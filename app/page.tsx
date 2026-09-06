@@ -644,10 +644,10 @@ export default function Home() {
     // 1. If in Annotation Mode (active color selected from the dock)
     if (activeAnnotationColor) {
       const colorMap = {
-        green: { bg: "#52b788", border: "#10b981", type: "green" as const },
-        red: { bg: "#ef4444", border: "#b91c1c", type: "red" as const },
-        cyan: { bg: "#06b6d4", border: "#0e7490", type: "cyan" as const },
-        yellow: { bg: "#eab308", border: "#b45309", type: "yellow" as const },
+        green: { bg: "rgba(16, 185, 129, 0.40)", border: "#10b981", type: "green" as const },
+        red: { bg: "rgba(239, 68, 68, 0.40)", border: "#ef4444", type: "red" as const },
+        cyan: { bg: "rgba(6, 182, 212, 0.40)", border: "#06b6d4", type: "cyan" as const },
+        yellow: { bg: "rgba(234, 179, 8, 0.42)", border: "#eab308", type: "yellow" as const },
       };
       const config = colorMap[activeAnnotationColor];
       setAnnotatedSquares((prev) => {
@@ -730,21 +730,21 @@ export default function Home() {
     const isCtrl = lastRightClickModifiersRef.current.ctrl || activeModifiersRef.current.ctrl;
 
     let colorType: "green" | "red" | "cyan" | "yellow" = "green";
-    let bg = "#52b788";
+    let bg = "rgba(16, 185, 129, 0.40)";
     let border = "#10b981";
 
     if (isAlt) {
       colorType = "yellow";
-      bg = "#eab308";
-      border = "#b45309";
+      bg = "rgba(234, 179, 8, 0.42)";
+      border = "#eab308";
     } else if (isShift) {
       colorType = "cyan";
-      bg = "#06b6d4";
-      border = "#0e7490";
+      bg = "rgba(6, 182, 212, 0.40)";
+      border = "#06b6d4";
     } else if (isCtrl) {
       colorType = "red";
-      bg = "#ef4444";
-      border = "#b91c1c";
+      bg = "rgba(239, 68, 68, 0.40)";
+      border = "#ef4444";
     }
 
     setAnnotatedSquares((prev) => {
@@ -773,11 +773,11 @@ export default function Home() {
   const getCustomSquareStyles = () => {
     const styles: Record<string, React.CSSProperties> = {};
 
-    // 1. Right-click tactical annotations (solid high-visibility background with matching inset border)
+    // 1. Right-click tactical annotations (crisp tile framing with dark perimeter divider so adjacent squares stay distinctly separated)
     Object.entries(annotatedSquares).forEach(([sq, item]) => {
       styles[sq] = {
         backgroundColor: item.bg,
-        boxShadow: `inset 0 0 0 3px ${item.border}`,
+        boxShadow: `inset 0 0 0 1.5px rgba(0, 0, 0, 0.45), inset 0 0 0 4.5px ${item.border}`,
       };
     });
 
@@ -1309,11 +1309,13 @@ export default function Home() {
                     canDragPiece: () => activeAnnotationColor === null,
                     arrowOptions: {
                       ...defaultArrowOptions,
+                      opacity: 0.95,
+                      activeOpacity: 0.85,
                       colors: {
                         default: "#10b981", // Green
                         shift: "#06b6d4",   // Cyan ("swift")
                         ctrl: "#ef4444",    // Red
-                        alt: "#eab308",     // Yellow
+                        alt: "#f59e0b",     // Yellow / Amber
                         meta: "#ef4444",    // Red
                       },
                       color: "#10b981",
