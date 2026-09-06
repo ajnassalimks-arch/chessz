@@ -653,7 +653,7 @@ export default function Home() {
     }
   };
 
-  // Right-click tactical annotation handler (uniform crisp green for all squares)
+  // Right-click tactical annotation handler (uniform solid green for all squares)
   const handleSquareRightClick = ({ square }: { square: string }) => {
     if (!game || puzzleStatus !== "solving") return;
 
@@ -662,8 +662,8 @@ export default function Home() {
       if (next[square]) {
         delete next[square];
       } else {
-        // Uniform crisp green highlight for all squares (light and dark alike)
-        next[square] = "rgba(16, 185, 129, 0.45)";
+        // Uniform solid green highlight (identical on both light and dark squares)
+        next[square] = "#52b788";
       }
       return next;
     });
@@ -682,11 +682,11 @@ export default function Home() {
   const getCustomSquareStyles = () => {
     const styles: Record<string, React.CSSProperties> = {};
 
-    // 1. Right-click tactical annotations (Consistent crisp green for all squares)
+    // 1. Right-click tactical annotations (100% identical solid green for both light & dark squares)
     Object.entries(annotatedSquares).forEach(([sq, color]) => {
       styles[sq] = {
-        backgroundColor: color || "rgba(16, 185, 129, 0.45)",
-        boxShadow: "inset 0 0 0 3px rgba(16, 185, 129, 0.85)",
+        backgroundColor: color || "#52b788",
+        boxShadow: "inset 0 0 0 3px #10b981",
       };
     });
 
