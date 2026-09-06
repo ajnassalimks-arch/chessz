@@ -383,6 +383,7 @@ export default function Home() {
   const [legalMoves, setLegalMoves] = useState<LegalMoveTarget[]>([]);
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
   const [hintSquare, setHintSquare] = useState<string | null>(null);
+  const [annotatedSquares, setAnnotatedSquares] = useState<Record<string, string>>({});
 
   // Modals (Save Progress & Credits)
   const [showSaveModal, setShowSaveModal] = useState<boolean>(false);
@@ -498,6 +499,7 @@ export default function Home() {
     setLegalMoves([]);
     setLastMove(null);
     setHintSquare(null);
+    setAnnotatedSquares({});
     const newChess = new Chess(puzzle.initialFen);
     setGame(newChess);
     setStatus(`${newChess.turn() === "w" ? "White" : "Black"} to move`);
@@ -511,6 +513,7 @@ export default function Home() {
     setSelectedSquare(null);
     setLegalMoves([]);
     setHintSquare(null);
+    setAnnotatedSquares({});
 
     // 1. Check legal move in chess.js
     const testChess = new Chess(game.fen());
@@ -596,13 +599,28 @@ export default function Home() {
   const handleSquareClick = ({ square }: { square: string }) => {
     if (!game || !currentPuzzle || puzzleStatus !== "solving") return;
 
+    // Left click clears any right-click annotations
+    if (Object.keys(annotatedSquares).length > 0) {
+      setAnnotatedSquares({});
+    }
+
     if (selectedSquare) {
+      // 1. If clicking the EXACT same square that is currently selected -> DESELECT and CLEAR DOTS!
+      if (selectedSquare === square) {
+        setSelectedSquare(null);
+        setLegalMoves([]);
+        setHintSquare(null);
+        return;
+      }
+
+      // 2. If clicking a legal target -> execute move
       const isLegalTarget = legalMoves.some((m) => m.to === square);
       if (isLegalTarget) {
         handleMoveAttempt(selectedSquare, square);
         return;
       }
 
+      // 3. If clicking another friendly piece -> switch selection to that piece
       const pieceOnSquare = game.get(square as any);
       if (pieceOnSquare && pieceOnSquare.color === game.turn()) {
         setSelectedSquare(square);
@@ -613,11 +631,14 @@ export default function Home() {
         return;
       }
 
+      // 4. If clicking any other square (empty or enemy square that is not a legal move) -> CLEAR SELECTION & DOTS!
       setSelectedSquare(null);
       setLegalMoves([]);
+      setHintSquare(null);
       return;
     }
 
+    // When no piece is selected:
     const piece = game.get(square as any);
     if (piece && piece.color === game.turn()) {
       setSelectedSquare(square);
@@ -625,7 +646,38 @@ export default function Home() {
       const moves = game.moves({ square: square as any, verbose: true });
       setLegalMoves(moves.map((m) => ({ to: m.to, captured: m.captured })));
       sounds.playMove();
+    } else {
+      setSelectedSquare(null);
+      setLegalMoves([]);
+      setHintSquare(null);
     }
+  };
+
+  // Right-click tactical annotation handler (inspired by Lichess & Chess.com)
+  const handleSquareRightClick = ({ square }: { square: string }) => {
+    if (!game || puzzleStatus !== "solving") return;
+
+    setAnnotatedSquares((prev) => {
+      const next = { ...prev };
+      if (next[square]) {
+        delete next[square];
+      } else {
+        const piece = game.get(square as any);
+        if (piece) {
+          if (piece.color !== game.turn()) {
+            // Opponent piece: Threat / Target (Translucent Crimson Red)
+            next[square] = "rgba(239, 68, 68, 0.4)";
+          } else {
+            // Friendly piece: Defender / Active outpost (Translucent Emerald Green)
+            next[square] = "rgba(16, 185, 129, 0.4)";
+          }
+        } else {
+          // Empty square: Strategic focus / Key square (Translucent Amber Yellow)
+          next[square] = "rgba(245, 158, 11, 0.4)";
+        }
+      }
+      return next;
+    });
   };
 
   const triggerHint = () => {
@@ -641,11 +693,27 @@ export default function Home() {
   const getCustomSquareStyles = () => {
     const styles: Record<string, React.CSSProperties> = {};
 
+    // 1. Right-click tactical annotations (Red threats, Emerald defenders, Amber key squares)
+    Object.entries(annotatedSquares).forEach(([sq, color]) => {
+      styles[sq] = {
+        backgroundColor: color,
+        boxShadow: "inset 0 0 0 3px rgba(255, 255, 255, 0.4)",
+      };
+    });
+
+    // 2. Last move highlight
     if (lastMove) {
-      styles[lastMove.from] = { backgroundColor: "rgba(250, 204, 21, 0.28)" };
-      styles[lastMove.to] = { backgroundColor: "rgba(250, 204, 21, 0.38)" };
+      styles[lastMove.from] = {
+        ...styles[lastMove.from],
+        backgroundColor: "rgba(250, 204, 21, 0.28)",
+      };
+      styles[lastMove.to] = {
+        ...styles[lastMove.to],
+        backgroundColor: "rgba(250, 204, 21, 0.38)",
+      };
     }
 
+    // 3. Selected square highlight (warm gold)
     if (selectedSquare) {
       styles[selectedSquare] = {
         backgroundColor: "rgba(250, 204, 21, 0.55)",
@@ -653,22 +721,24 @@ export default function Home() {
       };
     }
 
+    // 4. Legal moves dots and capture rings (emerald dot & crimson capture ring)
     legalMoves.forEach((move) => {
       if (move.captured) {
         styles[move.to] = {
           background:
-            "radial-gradient(circle, transparent 55%, rgba(239, 68, 68, 0.5) 56%, rgba(239, 68, 68, 0.7) 70%, transparent 71%)",
+            "radial-gradient(circle, transparent 55%, rgba(239, 68, 68, 0.55) 56%, rgba(239, 68, 68, 0.8) 70%, transparent 71%)",
           borderRadius: "50%",
         };
       } else {
         styles[move.to] = {
           background:
-            "radial-gradient(circle, rgba(16, 185, 129, 0.6) 24%, transparent 25%)",
+            "radial-gradient(circle, rgba(16, 185, 129, 0.65) 24%, transparent 25%)",
           borderRadius: "50%",
         };
       }
     });
 
+    // 5. Hint square highlight (emerald pulse)
     if (hintSquare) {
       styles[hintSquare] = {
         backgroundColor: "rgba(52, 211, 153, 0.4)",
@@ -723,6 +793,7 @@ export default function Home() {
     setLegalMoves([]);
     setLastMove(null);
     setHintSquare(null);
+    setAnnotatedSquares({});
   };
 
   const handleSaveProgressSubmit = async (e: React.FormEvent) => {
@@ -1101,7 +1172,10 @@ export default function Home() {
             <div className="w-full md:hidden bg-emerald-950/40 border border-emerald-500/30 rounded-xl p-2.5 mb-2 flex items-start gap-2 text-left">
               <Sparkles className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
               <div className="text-xs flex-1">
-                <span className="font-bold text-emerald-300 block">{currentPuzzle.prompt}</span>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 block mb-0.5">
+                  Coach Says 💡
+                </span>
+                <span className="font-bold text-emerald-200 block">{currentPuzzle.prompt}</span>
                 <span className="text-[11px] text-zinc-400">Remember: {currentPuzzle.ruleTitle}</span>
               </div>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-900 text-zinc-300 border border-zinc-800">
@@ -1149,10 +1223,10 @@ export default function Home() {
                     position: game.fen(),
                     boardOrientation: currentPuzzle.playerColor,
                     squareStyles: getCustomSquareStyles(),
+                    allowDrawingArrows: true,
+                    clearArrowsOnClick: true,
                     onSquareClick: ({ square }) => handleSquareClick({ square }),
-                    onPieceClick: ({ square }: any) => {
-                      if (square) handleSquareClick({ square });
-                    },
+                    onSquareRightClick: ({ square }) => handleSquareRightClick({ square }),
                     onPieceDrop: ({ sourceSquare, targetSquare }) => {
                       if (!targetSquare) return false;
                       return handleMoveAttempt(sourceSquare, targetSquare);
@@ -1271,7 +1345,7 @@ export default function Home() {
                     </button>
                   )}
                   <span className="text-zinc-500 font-mono text-[10px]">
-                    Drag or Click
+                    Drag, Click, or Right-Click ✏️
                   </span>
                 </div>
               </div>
@@ -1282,7 +1356,7 @@ export default function Home() {
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-1.5 text-emerald-400 font-bold text-xs">
                       <Sparkles className="w-3.5 h-3.5" />
-                      <span>FIDE Coach Objective</span>
+                      <span>Coach Says 💡</span>
                     </div>
                     <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-950 text-zinc-300 border border-zinc-800">
                       {currentPuzzle.ratingBadge}
@@ -1306,7 +1380,7 @@ export default function Home() {
                     Your Turn
                   </span>
                   <p className="text-[11px] text-zinc-400 leading-relaxed">
-                    Find the best continuation on the board. Drag pieces or click squares to move!
+                    Find the best continuation. Drag pieces or click squares to move. Right-click any square to mark tactical annotations ✏️
                   </p>
                 </div>
               )}
