@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Chess } from "chess.js";
 import { Chessboard, defaultArrowOptions } from "react-chessboard";
 import {
@@ -383,7 +383,21 @@ export default function Home() {
   const [legalMoves, setLegalMoves] = useState<LegalMoveTarget[]>([]);
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
   const [hintSquare, setHintSquare] = useState<string | null>(null);
-  const [annotatedSquares, setAnnotatedSquares] = useState<Record<string, string>>({});
+  const [annotatedSquares, setAnnotatedSquares] = useState<
+    Record<string, { bg: string; border: string; type: "green" | "red" | "cyan" | "yellow" }>
+  >({});
+
+  // Right-click modifier tracking refs for square markings & arrows
+  const lastRightClickModifiersRef = useRef<{ ctrl: boolean; shift: boolean; alt: boolean }>({
+    ctrl: false,
+    shift: false,
+    alt: false,
+  });
+  const activeModifiersRef = useRef<{ ctrl: boolean; shift: boolean; alt: boolean }>({
+    ctrl: false,
+    shift: false,
+    alt: false,
+  });
 
   // Modals (Save Progress & Credits)
   const [showSaveModal, setShowSaveModal] = useState<boolean>(false);
@@ -453,6 +467,23 @@ export default function Home() {
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Track keyboard modifier keys globally (Ctrl, Shift, Alt, Meta) for right-click annotations
+  useEffect(() => {
+    const handleKeyChange = (e: KeyboardEvent) => {
+      activeModifiersRef.current = {
+        ctrl: !!e.ctrlKey || !!e.metaKey,
+        shift: !!e.shiftKey,
+        alt: !!e.altKey,
+      };
+    };
+    window.addEventListener("keydown", handleKeyChange);
+    window.addEventListener("keyup", handleKeyChange);
+    return () => {
+      window.removeEventListener("keydown", handleKeyChange);
+      window.removeEventListener("keyup", handleKeyChange);
+    };
   }, []);
 
   const startLevelCalibration = (level: LevelOption) => {
@@ -653,17 +684,44 @@ export default function Home() {
     }
   };
 
-  // Right-click tactical annotation handler (uniform solid green for all squares)
+  // Right-click tactical annotation handler:
+  // Default: Green (#52b788)
+  // Control: Red (#ef4444)
+  // Shift (swift): Cyan (#06b6d4)
+  // Alt: Yellow (#eab308)
   const handleSquareRightClick = ({ square }: { square: string }) => {
     if (!game || puzzleStatus !== "solving") return;
 
+    const isAlt = lastRightClickModifiersRef.current.alt || activeModifiersRef.current.alt;
+    const isShift = lastRightClickModifiersRef.current.shift || activeModifiersRef.current.shift;
+    const isCtrl = lastRightClickModifiersRef.current.ctrl || activeModifiersRef.current.ctrl;
+
+    let colorType: "green" | "red" | "cyan" | "yellow" = "green";
+    let bg = "#52b788";
+    let border = "#10b981";
+
+    if (isAlt) {
+      colorType = "yellow";
+      bg = "#eab308";
+      border = "#b45309";
+    } else if (isShift) {
+      colorType = "cyan";
+      bg = "#06b6d4";
+      border = "#0e7490";
+    } else if (isCtrl) {
+      colorType = "red";
+      bg = "#ef4444";
+      border = "#b91c1c";
+    }
+
     setAnnotatedSquares((prev) => {
       const next = { ...prev };
-      if (next[square]) {
+      if (next[square] && next[square].type === colorType) {
+        // Clicking same square with same modifier toggles it off
         delete next[square];
       } else {
-        // Uniform solid green highlight (identical on both light and dark squares)
-        next[square] = "#52b788";
+        // Set new color highlight
+        next[square] = { bg, border, type: colorType };
       }
       return next;
     });
@@ -682,11 +740,11 @@ export default function Home() {
   const getCustomSquareStyles = () => {
     const styles: Record<string, React.CSSProperties> = {};
 
-    // 1. Right-click tactical annotations (100% identical solid green for both light & dark squares)
-    Object.entries(annotatedSquares).forEach(([sq, color]) => {
+    // 1. Right-click tactical annotations (solid high-visibility background with matching inset border)
+    Object.entries(annotatedSquares).forEach(([sq, item]) => {
       styles[sq] = {
-        backgroundColor: color || "#52b788",
-        boxShadow: "inset 0 0 0 3px #10b981",
+        backgroundColor: item.bg,
+        boxShadow: `inset 0 0 0 3px ${item.border}`,
       };
     });
 
@@ -1217,13 +1275,27 @@ export default function Home() {
                     arrowOptions: {
                       ...defaultArrowOptions,
                       colors: {
-                        ...defaultArrowOptions.colors,
-                        default: "#10b981",
+                        default: "#10b981", // Green
+                        shift: "#06b6d4",   // Cyan ("swift")
+                        ctrl: "#ef4444",    // Red
+                        alt: "#eab308",     // Yellow
+                        meta: "#ef4444",    // Red
                       },
                       color: "#10b981",
+                      secondaryColor: "#06b6d4",
+                      tertiaryColor: "#ef4444",
                     },
                     onSquareClick: ({ square }) => handleSquareClick({ square }),
                     onSquareRightClick: ({ square }) => handleSquareRightClick({ square }),
+                    onSquareMouseDown: ({ square }, e) => {
+                      if (e?.button === 2) {
+                        lastRightClickModifiersRef.current = {
+                          ctrl: !!e.ctrlKey || !!e.metaKey,
+                          shift: !!e.shiftKey,
+                          alt: !!e.altKey,
+                        };
+                      }
+                    },
                     onPieceDrop: ({ sourceSquare, targetSquare }) => {
                       if (!targetSquare) return false;
                       return handleMoveAttempt(sourceSquare, targetSquare);
