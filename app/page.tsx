@@ -429,14 +429,23 @@ export default function Home() {
     } catch {}
   }, [streak, solvedCount]);
 
-  // Resize handler for mobile responsiveness
+  // Viewport-aware resize handler for mobile & desktop zero-scroll layouts
   useEffect(() => {
     const handleResize = () => {
       const width = window.innerWidth;
-      if (width < 440) {
-        setBoardWidth(width - 32);
+      const height = window.innerHeight;
+      if (width < 768) {
+        if (width < 440) {
+          setBoardWidth(width - 32);
+        } else {
+          setBoardWidth(420);
+        }
       } else {
-        setBoardWidth(440);
+        // Desktop: board sized dynamically to fit viewport height with zero overflow
+        const maxVertical = Math.max(320, height - 120);
+        const maxHorizontal = Math.max(320, width - 440);
+        const optimalSize = Math.floor(Math.min(maxVertical, maxHorizontal, 580));
+        setBoardWidth(optimalSize);
       }
     };
 
@@ -795,9 +804,9 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col justify-between p-3 sm:p-6 font-sans">
+    <main className="min-h-screen md:h-screen md:overflow-hidden bg-zinc-950 text-zinc-100 flex flex-col justify-between p-3 sm:p-4 md:px-6 md:py-3 font-sans">
       {/* Top Header */}
-      <header className="w-full max-w-md mx-auto flex items-center justify-between py-2 border-b border-zinc-800/80">
+      <header className="w-full max-w-md md:max-w-5xl lg:max-w-6xl mx-auto flex items-center justify-between py-2 border-b border-zinc-800/80 shrink-0">
         <div className="flex items-center gap-2">
           <span className="bg-emerald-500 text-black font-extrabold text-xs px-2.5 py-1 rounded-md flex items-center gap-1 shadow-sm">
             <Zap className="w-3.5 h-3.5 fill-black" />
@@ -856,53 +865,53 @@ export default function Home() {
 
       {/* Screen 1: Tier Selection (Jio Disruption Style) */}
       {!selectedLevel ? (
-        <section className="flex-1 flex flex-col items-center justify-center max-w-md mx-auto w-full py-4 sm:py-6">
+        <section className="flex-1 flex flex-col items-center justify-center max-w-md md:max-w-4xl mx-auto w-full py-2 md:py-3 min-h-0">
           {/* FIDE Coaches Badge */}
-          <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-wide text-emerald-400 bg-emerald-950/70 border border-emerald-700/40 px-3 py-1 rounded-full mb-3 shadow-sm">
+          <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-wide text-emerald-400 bg-emerald-950/70 border border-emerald-700/40 px-3 py-1 rounded-full mb-2 md:mb-2.5 shadow-sm">
             <Award className="w-3.5 h-3.5 text-emerald-400" />
             <span>Built by FIDE Rated Coaches</span>
           </div>
 
           {/* Punchy Hero Headline */}
-          <div className="text-center mb-5">
-            <div className="inline-block text-[11px] font-bold tracking-wider uppercase text-amber-400/90 bg-amber-950/40 border border-amber-800/40 px-2.5 py-0.5 rounded-full mb-2">
+          <div className="text-center mb-2.5 md:mb-4">
+            <div className="inline-block text-[10px] md:text-[11px] font-bold tracking-wider uppercase text-amber-400/90 bg-amber-950/40 border border-amber-800/40 px-2.5 py-0.5 rounded-full mb-1">
               Why Pay ₹1,500/yr For Diamond?
             </div>
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white leading-tight mb-2">
-              Unlimited Training. <br />
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-white leading-tight mb-1">
+              Unlimited Training.{" "}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-amber-300">
                 No Subscription Needed.
               </span>
             </h1>
-            <p className="text-zinc-400 text-xs sm:text-sm max-w-sm mx-auto leading-relaxed">
+            <p className="text-zinc-400 text-xs sm:text-sm max-w-md mx-auto leading-relaxed">
               Stop settling for 3 puzzles a day. Master tactics, learn positional play, and get clear coach explanations on every move.
             </p>
           </div>
 
-          {/* 4 Level Selection Cards */}
-          <div className="w-full mb-2">
+          {/* 4 Level Selection Cards - 2x2 Grid on Desktop */}
+          <div className="w-full mb-2 max-w-3xl">
             <div className="flex items-center justify-between text-xs text-zinc-400 px-1 mb-2 font-medium">
               <span>Select your rating to begin:</span>
               <span className="text-emerald-400 font-mono text-[11px]">3-Step Calibration ⚡</span>
             </div>
 
-            <div className="w-full flex flex-col gap-3">
+            <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-3">
               {LEVEL_OPTIONS.map((lvl) => {
                 const Icon = lvl.icon;
                 return (
                   <button
                     key={lvl.id}
                     onClick={() => startLevelCalibration(lvl)}
-                    className={`group relative w-full text-left p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r ${lvl.accentBg} bg-zinc-900/90 border ${lvl.borderClass} transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] cursor-pointer shadow-lg`}
+                    className={`group relative w-full text-left p-3 sm:p-3.5 rounded-2xl bg-gradient-to-r ${lvl.accentBg} bg-zinc-900/90 border ${lvl.borderClass} transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] cursor-pointer shadow-lg`}
                   >
                     <div className="flex items-start justify-between mb-1">
                       <div className="flex items-center gap-2.5">
-                        <div className={`p-2 rounded-xl bg-zinc-800/80 border border-zinc-700/50 ${lvl.colorClass}`}>
+                        <div className={`p-1.5 sm:p-2 rounded-xl bg-zinc-800/80 border border-zinc-700/50 ${lvl.colorClass}`}>
                           <Icon className="w-4 h-4" />
                         </div>
                         <div>
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-bold text-white text-base">{lvl.title}</span>
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <span className="font-bold text-white text-sm sm:text-base">{lvl.title}</span>
                             <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300 font-mono">
                               Chess.com: {lvl.chessComRange}
                             </span>
@@ -921,7 +930,7 @@ export default function Home() {
                       </div>
                       <ChevronRight className="w-4 h-4 text-zinc-500 group-hover:text-white transition group-hover:translate-x-0.5" />
                     </div>
-                    <p className="text-xs text-zinc-400 pl-11">
+                    <p className="text-xs text-zinc-400 pl-9 sm:pl-10">
                       {lvl.desc}
                     </p>
                   </button>
@@ -931,7 +940,7 @@ export default function Home() {
           </div>
 
           {/* Social Proof Pill */}
-          <div className="mt-4 flex items-center justify-center gap-3 text-[11px] text-zinc-400 bg-zinc-900/80 border border-zinc-800/60 px-3.5 py-1.5 rounded-full">
+          <div className="mt-2 md:mt-2.5 flex items-center justify-center gap-3 text-[11px] text-zinc-400 bg-zinc-900/80 border border-zinc-800/60 px-3.5 py-1.5 rounded-full">
             <span className="flex items-center gap-1 text-emerald-400 font-semibold">
               ✓ Zero Ads
             </span>
@@ -945,12 +954,12 @@ export default function Home() {
         </section>
       ) : showDiagnosisModal && coachDiagnosis ? (
         /* Screen 2.5: The High-Energy Coach Diagnosis & Golden Rule Card */
-        <section className="flex-1 flex flex-col items-center justify-center max-w-md mx-auto w-full py-6">
-          <div className="w-full bg-gradient-to-b from-zinc-900 to-zinc-950 border border-emerald-500/40 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
+        <section className="flex-1 flex flex-col items-center justify-center max-w-md md:max-w-lg mx-auto w-full py-4 min-h-0">
+          <div className="w-full bg-gradient-to-b from-zinc-900 to-zinc-950 border border-emerald-500/40 rounded-3xl p-5 sm:p-6 shadow-2xl relative overflow-hidden">
             {/* Top Accent Glow */}
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-500" />
 
-            <div className="flex items-center gap-2 mb-3">
+            <div className="flex items-center gap-2 mb-2.5">
               <span className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
                 <Lightbulb className="w-4 h-4" />
               </span>
@@ -959,16 +968,16 @@ export default function Home() {
               </span>
             </div>
 
-            <h2 className="text-xl sm:text-2xl font-black text-white leading-tight mb-2">
+            <h2 className="text-lg sm:text-xl md:text-2xl font-black text-white leading-tight mb-2">
               {coachDiagnosis.headline}
             </h2>
 
-            <div className="inline-block text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-zinc-800 text-zinc-300 border border-zinc-700/60 mb-4">
+            <div className="inline-block text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-zinc-800 text-zinc-300 border border-zinc-700/60 mb-3.5">
               Focus Area: {coachDiagnosis.targetFocus}
             </div>
 
             {/* Golden Rule Callout Box */}
-            <div className="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-4 mb-5 shadow-inner">
+            <div className="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-4 mb-4 shadow-inner">
               <div className="text-xs font-bold text-amber-400 uppercase tracking-wide mb-1 flex items-center gap-1.5">
                 <span>⚡</span>
                 <span>{coachDiagnosis.ruleTitle}</span>
@@ -981,7 +990,7 @@ export default function Home() {
             {/* Put This Rule to the Test CTA */}
             <button
               onClick={startDiagnosedPuzzle}
-              className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-zinc-950 font-black text-sm tracking-wide flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 transition-all duration-150 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+              className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-zinc-950 font-black text-sm tracking-wide flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 transition-all duration-150 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
             >
               <span>Put This Rule To The Test</span>
               <Play className="w-4 h-4 fill-zinc-950" />
@@ -990,7 +999,7 @@ export default function Home() {
             {/* Viral Share Diagnosis CTA */}
             <button
               onClick={handleShareDiagnosis}
-              className="w-full mt-2.5 py-2.5 px-4 rounded-xl bg-zinc-800/80 hover:bg-zinc-800 border border-zinc-700/60 hover:border-zinc-600 text-zinc-300 hover:text-white font-semibold text-xs tracking-wide flex items-center justify-center gap-2 transition duration-150 cursor-pointer shadow-sm"
+              className="w-full mt-2 py-2 px-4 rounded-xl bg-zinc-800/80 hover:bg-zinc-800 border border-zinc-700/60 hover:border-zinc-600 text-zinc-300 hover:text-white font-semibold text-xs tracking-wide flex items-center justify-center gap-2 transition duration-150 cursor-pointer shadow-sm"
               title="Share or Copy your diagnosis card"
             >
               {shareCopied ? (
@@ -1009,9 +1018,9 @@ export default function Home() {
         </section>
       ) : !isCalibrated ? (
         /* Screen 2: 3 Rapid Coach Calibration Questions */
-        <section className="flex-1 flex flex-col items-center justify-center max-w-md mx-auto w-full py-6">
-          <div className="w-full mb-4">
-            <div className="flex items-center justify-between text-xs text-zinc-400 mb-2 font-mono">
+        <section className="flex-1 flex flex-col items-center justify-center max-w-md md:max-w-xl mx-auto w-full py-4 min-h-0">
+          <div className="w-full mb-3">
+            <div className="flex items-center justify-between text-xs text-zinc-400 mb-1.5 font-mono">
               <span className={`font-semibold ${selectedLevel.colorClass}`}>{selectedLevel.title} Tuning</span>
               <span>Question {currentQuestionIndex + 1} of 3</span>
             </div>
@@ -1024,8 +1033,8 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="w-full bg-zinc-900/90 border border-zinc-800 rounded-2xl p-5 mb-4 shadow-xl">
-            <h2 className="text-base sm:text-lg font-bold text-white mb-4 leading-snug">
+          <div className="w-full bg-zinc-900/90 border border-zinc-800 rounded-2xl p-4 sm:p-5 mb-3 shadow-xl">
+            <h2 className="text-sm sm:text-base md:text-lg font-bold text-white mb-3.5 leading-snug">
               {selectedLevel.questions[currentQuestionIndex].question}
             </h2>
 
@@ -1034,7 +1043,7 @@ export default function Home() {
                 <button
                   key={oIdx}
                   onClick={() => handleAnswerQuestion(oIdx)}
-                  className="w-full text-left p-3.5 rounded-xl bg-zinc-800/80 hover:bg-zinc-800 border border-zinc-700/60 hover:border-emerald-500/60 text-zinc-200 hover:text-white transition-all duration-150 text-xs sm:text-sm font-medium flex items-center justify-between group cursor-pointer"
+                  className="w-full text-left p-3 rounded-xl bg-zinc-800/80 hover:bg-zinc-800 border border-zinc-700/60 hover:border-emerald-500/60 text-zinc-200 hover:text-white transition-all duration-150 text-xs sm:text-sm font-medium flex items-center justify-between group cursor-pointer"
                 >
                   <span>{opt.label}</span>
                   <ChevronRight className="w-4 h-4 text-zinc-500 group-hover:text-emerald-400 transition group-hover:translate-x-0.5" />
@@ -1048,10 +1057,10 @@ export default function Home() {
           </p>
         </section>
       ) : (
-        /* Screen 3: The Interactive Chessboard Loaded with Diagnosed Puzzle */
-        <section className="flex-1 flex flex-col items-center justify-center max-w-md mx-auto w-full py-2">
-          {/* Top HUD: Stats, Streak & Track Toggle */}
-          <div className="w-full flex items-center justify-between mb-2 px-1">
+        /* Screen 3: The Interactive Chessboard Arena (Chess.com Desktop Layout Reference) */
+        <section className="flex-1 flex flex-col md:flex-row items-center justify-center gap-4 lg:gap-8 max-w-6xl mx-auto w-full py-1 md:py-2 min-h-0">
+          {/* Mobile Only: Top HUD */}
+          <div className="w-full flex md:hidden items-center justify-between mb-1 px-1">
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1 text-xs font-mono font-bold bg-zinc-900 border border-zinc-800 px-2.5 py-1 rounded-lg text-amber-400">
                 <Flame className="w-3.5 h-3.5 fill-amber-400" />
@@ -1087,9 +1096,9 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Coach Tip Reminder Banner above board */}
+          {/* Mobile Only: Coach Tip Reminder Banner above board */}
           {currentPuzzle && (
-            <div className="w-full bg-emerald-950/40 border border-emerald-500/30 rounded-xl p-2.5 mb-2.5 flex items-start gap-2 text-left">
+            <div className="w-full md:hidden bg-emerald-950/40 border border-emerald-500/30 rounded-xl p-2.5 mb-2 flex items-start gap-2 text-left">
               <Sparkles className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
               <div className="text-xs flex-1">
                 <span className="font-bold text-emerald-300 block">{currentPuzzle.prompt}</span>
@@ -1101,8 +1110,8 @@ export default function Home() {
             </div>
           )}
 
-          {/* Status Row with Hint Button */}
-          <div className="w-full flex items-center justify-between mb-2 px-1 text-xs">
+          {/* Mobile Only: Status Row with Hint Button */}
+          <div className="w-full flex md:hidden items-center justify-between mb-1.5 px-1 text-xs">
             <div className="flex items-center gap-2">
               <span
                 className={`w-2.5 h-2.5 rounded-full ${
@@ -1128,72 +1137,237 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Interactive Chessboard Container */}
-          <div 
-            className="rounded-2xl overflow-hidden shadow-2xl border border-zinc-800 bg-zinc-900 p-2 relative"
-            style={{ width: boardWidth + 16, height: boardWidth + 16 }}
-          >
-            {game && currentPuzzle && (
-              <Chessboard
-                options={{
-                  position: game.fen(),
-                  boardOrientation: currentPuzzle.playerColor,
-                  squareStyles: getCustomSquareStyles(),
-                  onSquareClick: ({ square }) => handleSquareClick({ square }),
-                  onPieceClick: ({ square }: any) => {
-                    if (square) handleSquareClick({ square });
-                  },
-                  onPieceDrop: ({ sourceSquare, targetSquare }) => {
-                    if (!targetSquare) return false;
-                    return handleMoveAttempt(sourceSquare, targetSquare);
-                  },
-                  darkSquareStyle: { backgroundColor: "#779952" },
-                  lightSquareStyle: { backgroundColor: "#edeed1" },
-                }}
-              />
-            )}
+          {/* Chessboard Column (Left / Center) */}
+          <div className="flex flex-col items-center justify-center shrink-0">
+            <div 
+              className="rounded-2xl overflow-hidden shadow-2xl border border-zinc-800 bg-zinc-900 p-2 relative"
+              style={{ width: boardWidth + 16, height: boardWidth + 16 }}
+            >
+              {game && currentPuzzle && (
+                <Chessboard
+                  options={{
+                    position: game.fen(),
+                    boardOrientation: currentPuzzle.playerColor,
+                    squareStyles: getCustomSquareStyles(),
+                    onSquareClick: ({ square }) => handleSquareClick({ square }),
+                    onPieceClick: ({ square }: any) => {
+                      if (square) handleSquareClick({ square });
+                    },
+                    onPieceDrop: ({ sourceSquare, targetSquare }) => {
+                      if (!targetSquare) return false;
+                      return handleMoveAttempt(sourceSquare, targetSquare);
+                    },
+                    darkSquareStyle: { backgroundColor: "#779952" },
+                    lightSquareStyle: { backgroundColor: "#edeed1" },
+                  }}
+                />
+              )}
+            </div>
           </div>
 
-          {/* Interactive Feedback Cards (Refutation or Win) */}
-          {puzzleStatus === "failed" && refutationInfo && (
-            <div className="w-full mt-3 bg-rose-950/50 border border-rose-500/40 rounded-2xl p-4 shadow-xl animate-in fade-in slide-in-from-bottom-2 duration-200">
-              <div className="flex items-center gap-2 text-rose-400 text-xs font-bold uppercase tracking-wide mb-1">
-                <AlertTriangle className="w-4 h-4" />
-                <span>Instant Learning: Refutation</span>
-              </div>
-              <p className="text-xs sm:text-sm text-zinc-200 leading-relaxed mb-3">
-                {refutationInfo.coachExplanation}
-              </p>
-              <div className="flex items-center gap-2">
+          {/* Mobile Only: Interactive Feedback Cards below board */}
+          <div className="w-full flex md:hidden flex-col">
+            {puzzleStatus === "failed" && refutationInfo && (
+              <div className="w-full mt-3 bg-rose-950/50 border border-rose-500/40 rounded-2xl p-4 shadow-xl animate-in fade-in slide-in-from-bottom-2 duration-200">
+                <div className="flex items-center gap-2 text-rose-400 text-xs font-bold uppercase tracking-wide mb-1">
+                  <AlertTriangle className="w-4 h-4" />
+                  <span>Instant Learning: Refutation</span>
+                </div>
+                <p className="text-xs sm:text-sm text-zinc-200 leading-relaxed mb-3">
+                  {refutationInfo.coachExplanation}
+                </p>
                 <button
                   onClick={retryCurrentPuzzle}
-                  className="flex-1 py-2.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
+                  className="w-full py-2.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
                   <span>Try Again</span>
                 </button>
               </div>
-            </div>
-          )}
+            )}
 
-          {puzzleStatus === "solved" && currentPuzzle && (
-            <div className="w-full mt-3 bg-emerald-950/60 border border-emerald-500/50 rounded-2xl p-4 shadow-xl animate-in fade-in slide-in-from-bottom-2 duration-200">
-              <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-wide mb-1">
-                <CheckCircle2 className="w-4 h-4" />
-                <span>Rule Mastered!</span>
+            {puzzleStatus === "solved" && currentPuzzle && (
+              <div className="w-full mt-3 bg-emerald-950/60 border border-emerald-500/50 rounded-2xl p-4 shadow-xl animate-in fade-in slide-in-from-bottom-2 duration-200">
+                <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-wide mb-1">
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Rule Mastered!</span>
+                </div>
+                <p className="text-xs sm:text-sm text-zinc-200 leading-relaxed mb-3">
+                  {currentPuzzle.successExplanation}
+                </p>
+                <button
+                  onClick={() => nextPuzzle()}
+                  className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-zinc-950 font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 transition shadow-lg cursor-pointer"
+                >
+                  <span>Next Puzzle</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
               </div>
-              <p className="text-xs sm:text-sm text-zinc-200 leading-relaxed mb-3">
-                {currentPuzzle.successExplanation}
-              </p>
+            )}
+          </div>
+
+          {/* Desktop Only: Dedicated Chess.com-Style Sidebar Console */}
+          <div 
+            className="hidden md:flex flex-col justify-between w-80 lg:w-96 shrink-0 bg-zinc-900/90 border border-zinc-800 rounded-2xl p-4 shadow-2xl overflow-y-auto"
+            style={{ height: boardWidth + 16 }}
+          >
+            {/* Top: HUD Stats & Track Switcher */}
+            <div>
+              <div className="flex items-center justify-between pb-3 mb-3 border-b border-zinc-800">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 text-xs font-mono font-bold bg-zinc-950 border border-zinc-800 px-2.5 py-1 rounded-lg text-amber-400">
+                    <Flame className="w-3.5 h-3.5 fill-amber-400" />
+                    <span>{streak} Streak</span>
+                  </div>
+                  <span className="text-xs text-zinc-400 font-mono">
+                    {solvedCount} Solved
+                  </span>
+                </div>
+
+                {/* Track Switcher */}
+                <div className="flex items-center bg-zinc-950 border border-zinc-800 p-0.5 rounded-lg text-[11px] font-medium">
+                  <button
+                    onClick={() => handleSwitchTrack("tactical")}
+                    className={`px-2 py-0.5 rounded transition cursor-pointer ${
+                      activeTrack === "tactical"
+                        ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-semibold"
+                        : "text-zinc-400 hover:text-zinc-200"
+                    }`}
+                  >
+                    Tactics ⚡
+                  </button>
+                  <button
+                    onClick={() => handleSwitchTrack("positional")}
+                    className={`px-2 py-0.5 rounded transition cursor-pointer ${
+                      activeTrack === "positional"
+                        ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-semibold"
+                        : "text-zinc-400 hover:text-zinc-200"
+                    }`}
+                  >
+                    Strategy 🧭
+                  </button>
+                </div>
+              </div>
+
+              {/* Status Row (Turn & Hint) */}
+              <div className="flex items-center justify-between mb-3 px-0.5 text-xs">
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`w-2.5 h-2.5 rounded-full ${
+                      game?.turn() === "w" ? "bg-amber-200" : "bg-zinc-800 border border-zinc-600"
+                    }`}
+                  />
+                  <span className="font-semibold text-zinc-200">{status}</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {puzzleStatus === "solving" && (
+                    <button
+                      onClick={triggerHint}
+                      className="flex items-center gap-1 text-[11px] text-emerald-400 hover:text-emerald-300 bg-emerald-950/60 border border-emerald-600/40 px-2 py-0.5 rounded-md transition cursor-pointer hover:bg-emerald-900/40"
+                    >
+                      <HelpCircle className="w-3 h-3" />
+                      <span>Hint</span>
+                    </button>
+                  )}
+                  <span className="text-zinc-500 font-mono text-[10px]">
+                    Drag or Click
+                  </span>
+                </div>
+              </div>
+
+              {/* Coach Tip Reminder Banner */}
+              {currentPuzzle && (
+                <div className="bg-emerald-950/40 border border-emerald-500/30 rounded-xl p-3 mb-3 text-left">
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-1.5 text-emerald-400 font-bold text-xs">
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>FIDE Coach Objective</span>
+                    </div>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-950 text-zinc-300 border border-zinc-800">
+                      {currentPuzzle.ratingBadge}
+                    </span>
+                  </div>
+                  <p className="text-xs font-semibold text-emerald-200 mb-1 leading-snug">
+                    {currentPuzzle.prompt}
+                  </p>
+                  <p className="text-[11px] text-zinc-400 leading-relaxed">
+                    Golden Rule: <span className="text-zinc-300 font-medium">{currentPuzzle.ruleTitle}</span>
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Middle: Dynamic Learning Action Area */}
+            <div className="flex-1 flex flex-col justify-center my-2">
+              {puzzleStatus === "solving" && (
+                <div className="bg-zinc-950/60 border border-zinc-800/80 rounded-xl p-3 text-center">
+                  <span className="text-xs font-medium text-zinc-300 block mb-1">
+                    Your Turn
+                  </span>
+                  <p className="text-[11px] text-zinc-400 leading-relaxed">
+                    Find the best continuation on the board. Drag pieces or click squares to move!
+                  </p>
+                </div>
+              )}
+
+              {puzzleStatus === "failed" && refutationInfo && (
+                <div className="w-full bg-rose-950/60 border border-rose-500/40 rounded-xl p-3.5 shadow-xl animate-in fade-in duration-200">
+                  <div className="flex items-center gap-1.5 text-rose-400 text-xs font-bold uppercase tracking-wide mb-1.5">
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    <span>Instant Refutation</span>
+                  </div>
+                  <p className="text-xs text-zinc-200 leading-relaxed mb-3">
+                    {refutationInfo.coachExplanation}
+                  </p>
+                  <button
+                    onClick={retryCurrentPuzzle}
+                    className="w-full py-2 px-3 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer shadow-md"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>Try Again</span>
+                  </button>
+                </div>
+              )}
+
+              {puzzleStatus === "solved" && currentPuzzle && (
+                <div className="w-full bg-emerald-950/70 border border-emerald-500/50 rounded-xl p-3.5 shadow-xl animate-in fade-in duration-200">
+                  <div className="flex items-center gap-1.5 text-emerald-400 text-xs font-bold uppercase tracking-wide mb-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Rule Mastered!</span>
+                  </div>
+                  <p className="text-xs text-zinc-200 leading-relaxed mb-3">
+                    {currentPuzzle.successExplanation}
+                  </p>
+                  <button
+                    onClick={() => nextPuzzle()}
+                    className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-zinc-950 font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 transition shadow-lg cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
+                  >
+                    <span>Next Puzzle</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Bottom: Console Quick Controls */}
+            <div className="pt-2.5 border-t border-zinc-800 flex items-center justify-between text-xs">
               <button
-                onClick={() => nextPuzzle()}
-                className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-zinc-950 font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 transition shadow-lg cursor-pointer"
+                onClick={retryCurrentPuzzle}
+                className="flex items-center gap-1 text-[11px] text-zinc-400 hover:text-white transition cursor-pointer"
               >
-                <span>Next Puzzle</span>
-                <ArrowRight className="w-4 h-4" />
+                <RotateCcw className="w-3 h-3" />
+                <span>Reset Position</span>
+              </button>
+
+              <button
+                onClick={() => setShowCreditsModal(true)}
+                className="text-[11px] text-zinc-500 hover:text-zinc-300 transition underline underline-offset-2 cursor-pointer"
+              >
+                Credits & License
               </button>
             </div>
-          )}
+          </div>
         </section>
       )}
 
@@ -1307,7 +1481,7 @@ export default function Home() {
       )}
 
       {/* Footer */}
-      <footer className="w-full max-w-md mx-auto text-center py-2 text-xs text-zinc-500 border-t border-zinc-900 mt-2 flex items-center justify-between px-2">
+      <footer className="w-full max-w-md md:max-w-5xl lg:max-w-6xl mx-auto text-center py-2 text-xs text-zinc-500 border-t border-zinc-900 mt-2 shrink-0 flex items-center justify-between px-2">
         <span>ChessZ • 100% Free Core</span>
         <button
           onClick={() => setShowCreditsModal(true)}
