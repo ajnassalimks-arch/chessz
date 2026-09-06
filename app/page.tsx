@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Chess } from "chess.js";
-import { Chessboard } from "react-chessboard";
+import { Chessboard, defaultArrowOptions } from "react-chessboard";
 import {
   Zap,
   RotateCcw,
@@ -653,7 +653,7 @@ export default function Home() {
     }
   };
 
-  // Right-click tactical annotation handler (inspired by Lichess & Chess.com)
+  // Right-click tactical annotation handler (uniform crisp green for all squares)
   const handleSquareRightClick = ({ square }: { square: string }) => {
     if (!game || puzzleStatus !== "solving") return;
 
@@ -662,19 +662,8 @@ export default function Home() {
       if (next[square]) {
         delete next[square];
       } else {
-        const piece = game.get(square as any);
-        if (piece) {
-          if (piece.color !== game.turn()) {
-            // Opponent piece: Threat / Target (Translucent Crimson Red)
-            next[square] = "rgba(239, 68, 68, 0.4)";
-          } else {
-            // Friendly piece: Defender / Active outpost (Translucent Emerald Green)
-            next[square] = "rgba(16, 185, 129, 0.4)";
-          }
-        } else {
-          // Empty square: Strategic focus / Key square (Translucent Amber Yellow)
-          next[square] = "rgba(245, 158, 11, 0.4)";
-        }
+        // Uniform crisp green highlight for all squares (light and dark alike)
+        next[square] = "rgba(16, 185, 129, 0.45)";
       }
       return next;
     });
@@ -693,11 +682,11 @@ export default function Home() {
   const getCustomSquareStyles = () => {
     const styles: Record<string, React.CSSProperties> = {};
 
-    // 1. Right-click tactical annotations (Red threats, Emerald defenders, Amber key squares)
+    // 1. Right-click tactical annotations (Consistent crisp green for all squares)
     Object.entries(annotatedSquares).forEach(([sq, color]) => {
       styles[sq] = {
-        backgroundColor: color,
-        boxShadow: "inset 0 0 0 3px rgba(255, 255, 255, 0.4)",
+        backgroundColor: color || "rgba(16, 185, 129, 0.45)",
+        boxShadow: "inset 0 0 0 3px rgba(16, 185, 129, 0.85)",
       };
     });
 
@@ -1225,6 +1214,14 @@ export default function Home() {
                     squareStyles: getCustomSquareStyles(),
                     allowDrawingArrows: true,
                     clearArrowsOnClick: true,
+                    arrowOptions: {
+                      ...defaultArrowOptions,
+                      colors: {
+                        ...defaultArrowOptions.colors,
+                        default: "#10b981",
+                      },
+                      color: "#10b981",
+                    },
                     onSquareClick: ({ square }) => handleSquareClick({ square }),
                     onSquareRightClick: ({ square }) => handleSquareRightClick({ square }),
                     onPieceDrop: ({ sourceSquare, targetSquare }) => {
