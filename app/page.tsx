@@ -27,7 +27,10 @@ import {
   Share2,
   Check,
   Volume2,
-  VolumeX
+  VolumeX,
+  PenTool,
+  Eraser,
+  MousePointer2
 } from "lucide-react";
 import {
   DIAGNOSTIC_PUZZLES,
@@ -386,6 +389,8 @@ export default function Home() {
   const [annotatedSquares, setAnnotatedSquares] = useState<
     Record<string, { bg: string; border: string; type: "green" | "red" | "cyan" | "yellow" }>
   >({});
+  const [activeAnnotationColor, setActiveAnnotationColor] = useState<"green" | "red" | "cyan" | "yellow" | null>(null);
+  const [boardKey, setBoardKey] = useState<number>(0);
 
   // Right-click modifier tracking refs for square markings & arrows
   const lastRightClickModifiersRef = useRef<{ ctrl: boolean; shift: boolean; alt: boolean }>({
@@ -453,13 +458,13 @@ export default function Home() {
         if (width < 440) {
           setBoardWidth(width - 32);
         } else {
-          setBoardWidth(420);
+          setBoardWidth(390);
         }
       } else {
         // Desktop: board sized dynamically to fit viewport height with zero overflow
-        const maxVertical = Math.max(320, height - 120);
+        const maxVertical = Math.max(320, height - 165);
         const maxHorizontal = Math.max(320, width - 440);
-        const optimalSize = Math.floor(Math.min(maxVertical, maxHorizontal, 580));
+        const optimalSize = Math.floor(Math.min(maxVertical, maxHorizontal, 540));
         setBoardWidth(optimalSize);
       }
     };
@@ -531,9 +536,15 @@ export default function Home() {
     setLastMove(null);
     setHintSquare(null);
     setAnnotatedSquares({});
+    setBoardKey((prev) => prev + 1);
     const newChess = new Chess(puzzle.initialFen);
     setGame(newChess);
     setStatus(`${newChess.turn() === "w" ? "White" : "Black"} to move`);
+  };
+
+  const clearAllAnnotations = () => {
+    setAnnotatedSquares({});
+    setBoardKey((prev) => prev + 1);
   };
 
   // Shared move executor for Drag-and-Drop and Tap-to-Move
@@ -626,12 +637,34 @@ export default function Home() {
     return true;
   };
 
-  // Tap-to-move square click handler
+  // Tap-to-move or Tap-to-Annotate square click handler
   const handleSquareClick = ({ square }: { square: string }) => {
     if (!game || !currentPuzzle || puzzleStatus !== "solving") return;
 
-    // Left click clears any right-click annotations
-    if (Object.keys(annotatedSquares).length > 0) {
+    // 1. If in Annotation Mode (active color selected from the dock)
+    if (activeAnnotationColor) {
+      const colorMap = {
+        green: { bg: "#52b788", border: "#10b981", type: "green" as const },
+        red: { bg: "#ef4444", border: "#b91c1c", type: "red" as const },
+        cyan: { bg: "#06b6d4", border: "#0e7490", type: "cyan" as const },
+        yellow: { bg: "#eab308", border: "#b45309", type: "yellow" as const },
+      };
+      const config = colorMap[activeAnnotationColor];
+      setAnnotatedSquares((prev) => {
+        const next = { ...prev };
+        if (next[square] && next[square].type === activeAnnotationColor) {
+          delete next[square];
+        } else {
+          next[square] = config;
+        }
+        return next;
+      });
+      return;
+    }
+
+    // 2. Play / Move Mode:
+    // Left-clicking empty square clears markings
+    if (!selectedSquare && !game.get(square as any) && Object.keys(annotatedSquares).length > 0) {
       setAnnotatedSquares({});
     }
 
@@ -1266,12 +1299,14 @@ export default function Home() {
             >
               {game && currentPuzzle && (
                 <Chessboard
+                  key={boardKey}
                   options={{
                     position: game.fen(),
                     boardOrientation: currentPuzzle.playerColor,
                     squareStyles: getCustomSquareStyles(),
                     allowDrawingArrows: true,
                     clearArrowsOnClick: true,
+                    canDragPiece: () => activeAnnotationColor === null,
                     arrowOptions: {
                       ...defaultArrowOptions,
                       colors: {
@@ -1305,6 +1340,125 @@ export default function Home() {
                   }}
                 />
               )}
+            </div>
+
+            {/* Modernized Floating Annotation Dock */}
+            <div 
+              className="flex items-center justify-between gap-1.5 sm:gap-2 mt-2 px-2.5 sm:px-3 py-1.5 rounded-2xl bg-zinc-900/90 backdrop-blur-md border border-zinc-800/80 shadow-xl"
+              style={{ width: boardWidth + 16 }}
+            >
+              {/* Mode Switch: Play vs Annotate */}
+              <div className="flex items-center gap-0.5 sm:gap-1 bg-zinc-950/70 p-0.5 rounded-xl border border-zinc-800/70 shrink-0">
+                <button
+                  onClick={() => setActiveAnnotationColor(null)}
+                  className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 rounded-lg text-xs font-semibold transition-all duration-150 cursor-pointer ${
+                    activeAnnotationColor === null
+                      ? "bg-zinc-800 text-emerald-400 border border-zinc-700/60 shadow-sm"
+                      : "text-zinc-400 hover:text-zinc-200"
+                  }`}
+                  title="Play Mode: Drag or tap to make moves"
+                >
+                  <MousePointer2 className="w-3.5 h-3.5" />
+                  <span>Play</span>
+                </button>
+                <button
+                  onClick={() => setActiveAnnotationColor((prev) => (prev ? null : "green"))}
+                  className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-1 rounded-lg text-xs font-semibold transition-all duration-150 cursor-pointer ${
+                    activeAnnotationColor !== null
+                      ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm"
+                      : "text-zinc-400 hover:text-zinc-200"
+                  }`}
+                  title="Annotate Mode: Tap squares to mark them"
+                >
+                  <PenTool className="w-3.5 h-3.5" />
+                  <span>Annotate</span>
+                </button>
+              </div>
+
+              {/* Jewel Color Chips with Glowing Halos */}
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                {/* Green Chip */}
+                <button
+                  onClick={() => setActiveAnnotationColor((prev) => (prev === "green" ? null : "green"))}
+                  className={`relative flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-full transition-all duration-150 cursor-pointer group ${
+                    activeAnnotationColor === "green"
+                      ? "ring-2 ring-emerald-400 ring-offset-2 ring-offset-zinc-900 scale-110 shadow-lg shadow-emerald-500/30"
+                      : "opacity-70 hover:opacity-100 hover:scale-105"
+                  }`}
+                  title="Green: Good Plan (Right-click)"
+                >
+                  <span className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50" />
+                  <span className="hidden md:group-hover:flex absolute -top-8 px-2 py-0.5 text-[10px] font-mono bg-zinc-950 border border-zinc-800 text-emerald-300 rounded-md whitespace-nowrap shadow-xl z-30">
+                    Green: Plan
+                  </span>
+                </button>
+
+                {/* Red Chip */}
+                <button
+                  onClick={() => setActiveAnnotationColor((prev) => (prev === "red" ? null : "red"))}
+                  className={`relative flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-full transition-all duration-150 cursor-pointer group ${
+                    activeAnnotationColor === "red"
+                      ? "ring-2 ring-rose-400 ring-offset-2 ring-offset-zinc-900 scale-110 shadow-lg shadow-rose-500/30"
+                      : "opacity-70 hover:opacity-100 hover:scale-105"
+                  }`}
+                  title="Red: Danger / Threat (Ctrl + Right-click)"
+                >
+                  <span className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-rose-500 shadow-sm shadow-rose-500/50" />
+                  <span className="hidden md:group-hover:flex absolute -top-8 px-2 py-0.5 text-[10px] font-mono bg-zinc-950 border border-zinc-800 text-rose-300 rounded-md whitespace-nowrap shadow-xl z-30">
+                    Ctrl: Danger
+                  </span>
+                </button>
+
+                {/* Cyan Chip */}
+                <button
+                  onClick={() => setActiveAnnotationColor((prev) => (prev === "cyan" ? null : "cyan"))}
+                  className={`relative flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-full transition-all duration-150 cursor-pointer group ${
+                    activeAnnotationColor === "cyan"
+                      ? "ring-2 ring-cyan-400 ring-offset-2 ring-offset-zinc-900 scale-110 shadow-lg shadow-cyan-500/30"
+                      : "opacity-70 hover:opacity-100 hover:scale-105"
+                  }`}
+                  title="Cyan: Candidate Move (Shift + Right-click)"
+                >
+                  <span className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-cyan-400 shadow-sm shadow-cyan-500/50" />
+                  <span className="hidden md:group-hover:flex absolute -top-8 px-2 py-0.5 text-[10px] font-mono bg-zinc-950 border border-zinc-800 text-cyan-300 rounded-md whitespace-nowrap shadow-xl z-30">
+                    Shift: Swift
+                  </span>
+                </button>
+
+                {/* Yellow Chip */}
+                <button
+                  onClick={() => setActiveAnnotationColor((prev) => (prev === "yellow" ? null : "yellow"))}
+                  className={`relative flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 rounded-full transition-all duration-150 cursor-pointer group ${
+                    activeAnnotationColor === "yellow"
+                      ? "ring-2 ring-amber-400 ring-offset-2 ring-offset-zinc-900 scale-110 shadow-lg shadow-amber-500/30"
+                      : "opacity-70 hover:opacity-100 hover:scale-105"
+                  }`}
+                  title="Yellow: Key Outpost (Alt + Right-click)"
+                >
+                  <span className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-amber-400 shadow-sm shadow-amber-500/50" />
+                  <span className="hidden md:group-hover:flex absolute -top-8 px-2 py-0.5 text-[10px] font-mono bg-zinc-950 border border-zinc-800 text-amber-300 rounded-md whitespace-nowrap shadow-xl z-30">
+                    Alt: Outpost
+                  </span>
+                </button>
+              </div>
+
+              {/* Actions: Clear All */}
+              <div className="flex items-center shrink-0">
+                {Object.keys(annotatedSquares).length > 0 ? (
+                  <button
+                    onClick={clearAllAnnotations}
+                    className="flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-lg text-xs font-semibold text-rose-300 hover:text-white bg-rose-950/50 hover:bg-rose-900/80 border border-rose-600/40 transition-all duration-150 cursor-pointer animate-in fade-in"
+                    title="Clear all square marks & arrows"
+                  >
+                    <Eraser className="w-3.5 h-3.5" />
+                    <span className="text-[11px] font-mono hidden sm:inline">Clear</span>
+                  </button>
+                ) : (
+                  <span className="text-[11px] text-zinc-500 font-mono hidden md:inline px-1">
+                    {activeAnnotationColor ? "Tap square" : "Right-drag"}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
