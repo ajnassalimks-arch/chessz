@@ -40,17 +40,6 @@ import {
 import { sounds } from "@/lib/sounds";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
-interface QuestionOption {
-  label: string;
-  focusArea: string;
-  ratingAdjustment: number;
-}
-
-interface CalibrationQuestion {
-  question: string;
-  options: QuestionOption[];
-}
-
 interface CoachDiagnosis {
   headline: string;
   ruleTitle: string;
@@ -72,8 +61,8 @@ interface LevelOption {
   colorClass: string;
   borderClass: string;
   accentBg: string;
-  questions: CalibrationQuestion[];
-  getCoachDiagnosis: (answers: number[]) => CoachDiagnosis;
+  starterPuzzleId: string;
+  approxRating: number;
 }
 
 const LEVEL_OPTIONS: LevelOption[] = [
@@ -89,60 +78,8 @@ const LEVEL_OPTIONS: LevelOption[] = [
     colorClass: "text-emerald-400",
     borderClass: "border-emerald-500/30 hover:border-emerald-500/80 group-hover:border-emerald-500",
     accentBg: "from-emerald-500/10 to-transparent",
-    questions: [
-      {
-        question: "When you play, where do you lose most of your pieces?",
-        options: [
-          { label: "I leave pieces unprotected and opponent takes them for free", focusArea: "Free Gifts", ratingAdjustment: -100 },
-          { label: "I get surprised by sneak-attacks or sudden 1-move checkmates", focusArea: "Sneak Attacks", ratingAdjustment: -50 },
-          { label: "I trade pieces and end up with less points than my opponent", focusArea: "Trade Confusion", ratingAdjustment: 0 },
-        ],
-      },
-      {
-        question: "In the first 5 moves of the game, what do you usually do?",
-        options: [
-          { label: "I bring my Queen out early to try to attack right away", focusArea: "Early Queen", ratingAdjustment: -50 },
-          { label: "I push random pawns on the edge of the board", focusArea: "Flank Pawns", ratingAdjustment: -50 },
-          { label: "I bring my Knights and Bishops out toward the center", focusArea: "Good Development", ratingAdjustment: +50 },
-        ],
-      },
-      {
-        question: "Right before you let go of your piece, what do you check?",
-        options: [
-          { label: "I just let go and hope my attack works", focusArea: "Impulsive Move", ratingAdjustment: -50 },
-          { label: "I look at where my piece is going, but forget my back rank", focusArea: "Forward Only", ratingAdjustment: 0 },
-          { label: "I try to look at what my opponent's last move just did", focusArea: "Opponent Threats", ratingAdjustment: +50 },
-        ],
-      },
-    ],
-    getCoachDiagnosis: (answers) => {
-      const q1 = answers[0] ?? 0;
-      if (q1 === 0) {
-        return {
-          headline: "Diagnosed: The 'Free Gift' Habit",
-          ruleTitle: "The 2-Second Bodyguard Rule",
-          ruleBody: "You play with great attacking energy, but you are leaving pieces behind like free gifts! Before touching any piece, scan: Does this piece have a friendly teammate protecting it?",
-          targetFocus: "Bodyguard Defense & Free Pieces",
-          puzzleId: "beginner_1a",
-        };
-      } else if (q1 === 1) {
-        return {
-          headline: "Diagnosed: The 'Sneak-Attack' Blindspot",
-          ruleTitle: "Look at Their Last Move First",
-          ruleBody: "You are getting caught by surprise attacks because the enemy Queen sneaks in when you aren't looking. Never ask 'What do I want to do?' until you first ask: 'Why did my opponent just move there?'",
-          targetFocus: "Spotting Sneak Attacks (f7 Battery)",
-          puzzleId: "beginner_1b",
-        };
-      } else {
-        return {
-          headline: "Diagnosed: The 'Price Tag' Confusion",
-          ruleTitle: "The Piece Price Tag Rule",
-          ruleBody: "Remember the chess points: Queen = 9, Rook = 5, Bishop/Knight = 3, Pawn = 1. Never trade a 5-point Rook for a 3-point Bishop! Always count the points before swapping.",
-          targetFocus: "Piece Price Tags & Fair Trades",
-          puzzleId: "beginner_1c",
-        };
-      }
-    },
+    starterPuzzleId: "beginner_1a",
+    approxRating: 500,
   },
   {
     id: "adv_beginner",
@@ -156,137 +93,31 @@ const LEVEL_OPTIONS: LevelOption[] = [
     colorClass: "text-cyan-400",
     borderClass: "border-cyan-500/30 hover:border-cyan-500/80 group-hover:border-cyan-500",
     accentBg: "from-cyan-500/10 to-transparent",
-    questions: [
-      {
-        question: "Which tactical motif do you struggle to spot in real games?",
-        options: [
-          { label: "Sneaky Knight forks that hit my King and Rook simultaneously", focusArea: "Knight Geometry", ratingAdjustment: 0 },
-          { label: "Long-range Bishop/Rook pins that paralyze my pieces", focusArea: "Pin Exploitation", ratingAdjustment: +25 },
-          { label: "Discovered checks where moving a piece unleashes an attack", focusArea: "Discovered Attacks", ratingAdjustment: +50 },
-        ],
-      },
-      {
-        question: "When your opponent attacks your piece, what is your reflex?",
-        options: [
-          { label: "I reflexively run backwards into passive squares", focusArea: "Panic Retreat", ratingAdjustment: -50 },
-          { label: "I look for an aggressive counter-threat on an even bigger target", focusArea: "Counter-Threats", ratingAdjustment: +50 },
-          { label: "I guard it with a pawn or another piece", focusArea: "Solid Defense", ratingAdjustment: 0 },
-        ],
-      },
-      {
-        question: "How do you calculate your candidate moves?",
-        options: [
-          { label: "I calculate 1 move ahead and hope they don't notice my idea", focusArea: "Hope Chess", ratingAdjustment: -50 },
-          { label: "I look for checks and captures first", focusArea: "Forcing Moves", ratingAdjustment: +25 },
-          { label: "I calculate what forcing reply my opponent must play", focusArea: "2-Ply Calculation", ratingAdjustment: +50 },
-        ],
-      },
-    ],
-    getCoachDiagnosis: (answers) => {
-      const q1 = answers[0] ?? 0;
-      const q2 = answers[1] ?? 0;
-      if (q1 === 0) {
-        return {
-          headline: "Diagnosed: The 'Knight Geometry' Leak",
-          ruleTitle: "The Same-Color Radar Rule",
-          ruleBody: "Knights can only fork pieces that stand on the exact SAME square color! Whenever your King and Queen are both on light squares (or dark squares), a knight fork is ready to strike. Separate them onto opposite colors immediately.",
-          targetFocus: "Knight Forks & Color Square Radar",
-          puzzleId: "adv_beginner_2a",
-        };
-      } else if (q2 === 0) {
-        return {
-          headline: "Diagnosed: The 'Panic Retreat' Reflex",
-          ruleTitle: "Counter-Threat Before Retreat",
-          ruleBody: "Strong 900-1200 players don't retreat passively when attacked. Before retreating, always ask: 'Can I create a threat against their Queen or a check first?' A counter-threat always steals the tempo.",
-          targetFocus: "Counter-Attacking & Stealing Tempo",
-          puzzleId: "adv_beginner_2b",
-        };
-      } else {
-        return {
-          headline: "Diagnosed: Overcoming 'Hope Chess'",
-          ruleTitle: "The C-C-T Checklist (Checks, Captures, Threats)",
-          ruleBody: "Never make a move hoping your opponent blunders. Always calculate the C-C-T sequence (Forcing Checks, Forcing Captures, Direct Threats) assuming your opponent will find the absolute best response.",
-          targetFocus: "Forcing Calculation (Checks-Captures-Threats)",
-          puzzleId: "adv_beginner_2c",
-        };
-      }
-    },
+    starterPuzzleId: "adv_beginner_2a",
+    approxRating: 900,
   },
   {
     id: "intermediate",
     badge: "Tier 3",
-    chessComRange: "1200 – 1600",
-    lichessRange: "1500 – 1850",
-    fideRange: "~1400 – 1650 FIDE (If Rated)",
+    chessComRange: "1200 – 1500",
+    lichessRange: "1500 – 1800",
+    fideRange: "1300 – 1600 FIDE",
     title: "Intermediate",
-    desc: "Multi-move combinations, attacking tempo, pawn structures, and defensive counters.",
-    tag: "Combinations & Calculations",
+    desc: "Complex combinations, Greek Gift sacrifices, candidate moves, and in-between checks.",
+    tag: "Multi-Move Combinations",
     icon: Swords,
     colorClass: "text-amber-400",
     borderClass: "border-amber-500/30 hover:border-amber-500/80 group-hover:border-amber-500",
     accentBg: "from-amber-500/10 to-transparent",
-    questions: [
-      {
-        question: "Do you play in official rated tournaments or have a FIDE rating?",
-        options: [
-          { label: "No FIDE rating / Online only player", focusArea: "Online Rapid", ratingAdjustment: 0 },
-          { label: "Played 1 or 2 classical tournaments (Unrated)", focusArea: "OTB Aspirant", ratingAdjustment: +25 },
-          { label: "Yes, official FIDE rating (~1400 – 1650)", focusArea: "FIDE Rated", ratingAdjustment: +75 },
-        ],
-      },
-      {
-        question: "When an opponent sacrifices a piece against your king, what happens?",
-        options: [
-          { label: "I panic and try to hold every single pawn, walking into mate", focusArea: "Material Greed", ratingAdjustment: -50 },
-          { label: "I greedily take every piece without calculating the follow-up", focusArea: "Poisoned Pawns", ratingAdjustment: 0 },
-          { label: "I calculate how to absorb the attack and return material for safety", focusArea: "Prophylactic Defense", ratingAdjustment: +50 },
-        ],
-      },
-      {
-        question: "When the board has NO tactical combinations, how do you formulate plans?",
-        options: [
-          { label: "I drift, push random pawns, and create permanent weaknesses", focusArea: "Planless Drift", ratingAdjustment: -50 },
-          { label: "I locate my worst-placed minor piece and reroute it to an outpost", focusArea: "Piece Coordination", ratingAdjustment: +50 },
-          { label: "I prematurely trade pieces hoping for a drawn endgame", focusArea: "Premature Trades", ratingAdjustment: 0 },
-        ],
-      },
-    ],
-    getCoachDiagnosis: (answers) => {
-      const q3 = answers[2] ?? 0;
-      const q2 = answers[1] ?? 0;
-      if (q3 === 0) {
-        return {
-          headline: "Diagnosed: The 'Planless Middle-Game' Drift",
-          ruleTitle: "Steinitz's Worst-Placed Piece Principle",
-          ruleBody: "When there are no direct tactical shots, stop pushing random pawns that leave permanent holes. Ask: 'Which of my minor pieces is doing the least work?' Reroute that piece to an active outpost before striking.",
-          targetFocus: "Piece Coordination & Positional Outposts",
-          puzzleId: "intermediate_3a",
-        };
-      } else if (q2 === 0) {
-        return {
-          headline: "Diagnosed: Material Greed vs. King Sacrifices",
-          ruleTitle: "The Greek Gift Sacrifice Principle",
-          ruleBody: "When an opponent launches an aggressive sacrifice against your king, calculate the forcing checks and defensive returns before greedy pawn grabs.",
-          targetFocus: "Defensive Sacrifices & Refuting Attacks",
-          puzzleId: "intermediate_3b",
-        };
-      } else {
-        return {
-          headline: "Diagnosed: The Automatic Recapture Habit",
-          ruleTitle: "The 'Zwischenzug' (In-Between Move) Reflex",
-          ruleBody: "At 1400+, tactical games are decided not by the first move, but by the intermediate move. Whenever an opponent recaptures, never take back automatically! Always calculate if an intermediate check ruins their structure first.",
-          targetFocus: "Zwischenzug & Intermediate Tactics",
-          puzzleId: "intermediate_3c",
-        };
-      }
-    },
+    starterPuzzleId: "intermediate_3a",
+    approxRating: 1300,
   },
   {
     id: "advanced",
     badge: "Tier 4",
-    chessComRange: "1900+",
-    lichessRange: "2100+",
-    fideRange: "1700 – 2000+ FIDE",
+    chessComRange: "1500 – 1900+",
+    lichessRange: "1800 – 2100+",
+    fideRange: "1600 – 1950+ FIDE",
     title: "Advanced",
     desc: "Subtle positional pressure, prophylactic thinking, pawn levers, and deep refutations.",
     tag: "Master Calculation & Strategy",
@@ -294,62 +125,131 @@ const LEVEL_OPTIONS: LevelOption[] = [
     colorClass: "text-rose-400",
     borderClass: "border-rose-500/30 hover:border-rose-500/80 group-hover:border-rose-500",
     accentBg: "from-rose-500/10 to-transparent",
-    questions: [
-      {
-        question: "What is your primary competitive status?",
-        options: [
-          { label: "Active FIDE rated classical tournament player (1700 – 1950)", focusArea: "Classical FIDE", ratingAdjustment: 0 },
-          { label: "2000+ FIDE / National Master title aspirant", focusArea: "Master Aspirant", ratingAdjustment: +100 },
-          { label: "Online blitz/rapid specialist (1900+ online, unrated FIDE)", focusArea: "Online Speed", ratingAdjustment: -25 },
-        ],
-      },
-      {
-        question: "What is the primary reason you lose games against equal or higher-rated players?",
-        options: [
-          { label: "Confirmation bias during deep lines — I miss opponent's subtle resource on move 4", focusArea: "Confirmation Bias", ratingAdjustment: 0 },
-          { label: "Positional drift: I fail to identify the key pawn lever that breaks their center", focusArea: "Pawn Levers", ratingAdjustment: +50 },
-          { label: "Time management: Over-calculating obvious positions and blundering in time pressure", focusArea: "Clock Management", ratingAdjustment: -25 },
-        ],
-      },
-      {
-        question: "How do you evaluate long-term positional exchange sacrifices (Rook for Minor Piece)?",
-        options: [
-          { label: "I rarely sacrifice exchange unless there is an immediate forced tactic", focusArea: "Material Conservatism", ratingAdjustment: -25 },
-          { label: "I willingly sacrifice exchange for permanent dark-square control or monster outpost", focusArea: "Petrosian Imbalance", ratingAdjustment: +50 },
-          { label: "I calculate compensation based on pawn structure damage & king weakness", focusArea: "Dynamic Compensation", ratingAdjustment: +25 },
-        ],
-      },
-    ],
-    getCoachDiagnosis: (answers) => {
-      const q2 = answers[1] ?? 0;
-      if (q2 === 0) {
-        return {
-          headline: "Diagnosed: Confirmation Bias in Deep Lines",
-          ruleTitle: "Dvoretsky's Refutation Test",
-          ruleBody: "At 1900+, your forward calculation is sharp, but you naturally bias toward moves that make your attack succeed. Mark Dvoretsky's golden habit: Once you calculate a brilliant 4-move line, pause and ask: 'If I were Stockfish defending this, what quiet resource ruins my plan?'",
-          targetFocus: "Dvoretsky Prophylaxis & Defensive Refutations",
-          puzzleId: "advanced_4a",
-        };
-      } else if (q2 === 1) {
-        return {
-          headline: "Diagnosed: Structural Levers & Timing the Pawn Break",
-          ruleTitle: "The Pawn Lever Trigger",
-          ruleBody: "Master games are won not by piece maneuvering alone, but by timing the exact pawn break (...d5 / ...f5 / c4) that shatters the enemy pawn chain. A pawn sacrifice that establishes an outpost on the 6th rank is worth +2.5 in dynamic evaluation.",
-          targetFocus: "Pawn Levers & Structural Breakthroughs",
-          puzzleId: "advanced_4b",
-        };
-      } else {
-        return {
-          headline: "Diagnosed: Dynamic Imbalances vs. Nominal Material",
-          ruleTitle: "Petrosian's Dynamic Imbalance Rule",
-          ruleBody: "Stop treating the Rook as automatically worth 5 points and a minor piece as 3 points. A dominant knight entrenched on an unchallengeable outpost (d5/e5) easily dominates a passive rook locked behind blocked pawn chains. Seek structural dominance over nominal material count.",
-          targetFocus: "Petrosian Exchange Sacrifices & Outposts",
-          puzzleId: "advanced_4c",
-        };
-      }
-    },
+    starterPuzzleId: "advanced_4a",
+    approxRating: 1700,
   },
 ];
+
+interface DiagnosticOption {
+  label: string;
+  score: number;
+}
+
+interface DiagnosticQuestion {
+  category: string;
+  weight: number;
+  question: string;
+  options: DiagnosticOption[];
+}
+
+const DIAGNOSTIC_QUESTIONS: DiagnosticQuestion[] = [
+  {
+    category: "Vision & Calculation (Weight: 30%)",
+    weight: 0.30,
+    question: "When it's your turn, what is the first thing you look for?",
+    options: [
+      { label: "I just react to whatever my opponent attacked.", score: 500 },
+      { label: "I check which pieces are defended and which are free to take.", score: 900 },
+      { label: "I ask: 'What is my opponent planning next?'", score: 1300 },
+      { label: "I calculate 3 to 4 moves ahead before touching a piece.", score: 1700 },
+    ],
+  },
+  {
+    category: "Blunder Defense (Weight: 30%)",
+    weight: 0.30,
+    question: "What is the most common way you lose games?",
+    options: [
+      { label: "I leave a piece completely unprotected and lose it for free.", score: 500 },
+      { label: "I get caught in forks, pins, or surprise checkmates.", score: 900 },
+      { label: "I get a winning position, but make a mistake in the endgame.", score: 1300 },
+      { label: "I slowly run out of good moves and get outplayed.", score: 1700 },
+    ],
+  },
+  {
+    category: "Strategy & Planning (Weight: 20%)",
+    weight: 0.20,
+    question: "When there are no direct captures on the board, what do you do?",
+    options: [
+      { label: "I feel stuck and don't know what to move.", score: 500 },
+      { label: "I try to trade pieces or push pawns forward.", score: 900 },
+      { label: "I move my worst piece to a better square.", score: 1300 },
+      { label: "I find a weak square in my opponent's camp and build an attack.", score: 1700 },
+    ],
+  },
+  {
+    category: "Pressure & Composure (Weight: 20%)",
+    weight: 0.20,
+    question: "When the clock is running low or the game gets tense, what happens?",
+    options: [
+      { label: "I panic and make fast moves without looking.", score: 500 },
+      { label: "I defend, but usually miss opponent tricks.", score: 900 },
+      { label: "I stay calm and stick to solid basics.", score: 1300 },
+      { label: "I play even faster and find precise tactical shots.", score: 1700 },
+    ],
+  },
+];
+
+function calculateDiagnosticResult(answers: number[]) {
+  let weightedScore = 0;
+  for (let i = 0; i < DIAGNOSTIC_QUESTIONS.length; i++) {
+    const optIdx = answers[i] ?? 0;
+    const score = DIAGNOSTIC_QUESTIONS[i].options[optIdx].score;
+    weightedScore += score * DIAGNOSTIC_QUESTIONS[i].weight;
+  }
+  const calibratedRating = Math.round(weightedScore);
+
+  let targetTierId: LevelType = "beginner";
+  if (calibratedRating < 750) {
+    targetTierId = "beginner";
+  } else if (calibratedRating < 1150) {
+    targetTierId = "adv_beginner";
+  } else if (calibratedRating < 1550) {
+    targetTierId = "intermediate";
+  } else {
+    targetTierId = "advanced";
+  }
+
+  const targetLevel = LEVEL_OPTIONS.find((l) => l.id === targetTierId) || LEVEL_OPTIONS[0];
+
+  const q2Ans = answers[1] ?? 0;
+  let diagnosis: CoachDiagnosis;
+
+  if (q2Ans === 0) {
+    diagnosis = {
+      headline: "Diagnosed: The Free-Piece Blindspot",
+      ruleTitle: "The 2-Second Bodyguard Rule",
+      ruleBody: "You play with great attacking spirit, but friendly pieces are left undefended. Before making any move, spend 2 seconds verifying: 'Is this piece guarded by a teammate?'",
+      targetFocus: "Bodyguard Defense & Free Pieces",
+      puzzleId: "beginner_1a",
+    };
+  } else if (q2Ans === 1) {
+    diagnosis = {
+      headline: "Diagnosed: Tactical Radar Leak",
+      ruleTitle: "The Same-Color Radar Rule",
+      ruleBody: "You calculate well, but get caught by surprise double attacks. Knights can only fork pieces standing on the EXACT same color square. Watch your king and heavy piece alignment!",
+      targetFocus: "Forks, Pins & Double Attacks",
+      puzzleId: "adv_beginner_2a",
+    };
+  } else if (q2Ans === 2) {
+    diagnosis = {
+      headline: "Diagnosed: Endgame Conversion Gap",
+      ruleTitle: "King Activity & Passed Pawns",
+      ruleBody: "You build winning advantages in the middlegame, then drop points in the endgame. In the endgame, activate your King aggressively and push passed pawns immediately!",
+      targetFocus: "Endgame Technique & Passed Pawns",
+      puzzleId: "intermediate_3a",
+    };
+  } else {
+    diagnosis = {
+      headline: "Diagnosed: Strategic Passivity",
+      ruleTitle: "Find the Worst Piece & Restrict Counterplay",
+      ruleBody: "When tactics disappear, you run out of moves. Always find your least active piece, reposition it to a dominant square, and stop your opponent's counterplay.",
+      targetFocus: "Prophylaxis & Piece Improvement",
+      puzzleId: "advanced_4a",
+    };
+  }
+
+  return { calibratedRating, targetLevel, diagnosis };
+}
 
 type PuzzleStatus = "solving" | "refuting" | "failed" | "solved";
 
@@ -360,6 +260,8 @@ interface LegalMoveTarget {
 
 export default function Home() {
   const [selectedLevel, setSelectedLevel] = useState<LevelOption | null>(null);
+  const [isQuizActive, setIsQuizActive] = useState<boolean>(false);
+  const [calibratedRating, setCalibratedRating] = useState<number>(900);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
   const [calibrationAnswers, setCalibrationAnswers] = useState<number[]>([]);
   const [coachDiagnosis, setCoachDiagnosis] = useState<CoachDiagnosis | null>(null);
@@ -487,30 +389,42 @@ export default function Home() {
     };
   }, []);
 
-  const startLevelCalibration = (level: LevelOption) => {
-    setSelectedLevel(level);
+  // Start 4-Question Mathematical Diagnostic Quiz
+  const startDiagnosticQuiz = () => {
+    setIsQuizActive(true);
     setCurrentQuestionIndex(0);
     setCalibrationAnswers([]);
     setCoachDiagnosis(null);
     setShowDiagnosisModal(false);
     setIsCalibrated(false);
-    setCurrentPuzzle(null);
-    setSelectedSquare(null);
-    setLegalMoves([]);
-    setLastMove(null);
-    setHintSquare(null);
+    setSelectedLevel(null);
   };
 
-  const handleAnswerQuestion = (optionIndex: number) => {
-    if (!selectedLevel) return;
+  // Direct Tier Selection (Skip Diagnostic)
+  const handleDirectTierSelect = (level: LevelOption) => {
+    setSelectedLevel(level);
+    setCalibratedRating(level.approxRating);
+    setIsQuizActive(false);
+    setShowDiagnosisModal(false);
+    setIsCalibrated(true);
+    const starter = DIAGNOSTIC_PUZZLES[level.starterPuzzleId] || DIAGNOSTIC_PUZZLES["beginner_1a"];
+    loadPuzzle(starter);
+  };
+
+  // Answer a Question in the 4-Question Quiz
+  const handleAnswerDiagnosticQuestion = (optionIndex: number) => {
     const nextAnswers = [...calibrationAnswers, optionIndex];
     setCalibrationAnswers(nextAnswers);
 
-    if (currentQuestionIndex + 1 < selectedLevel.questions.length) {
+    if (currentQuestionIndex + 1 < DIAGNOSTIC_QUESTIONS.length) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
-      const diagnosis = selectedLevel.getCoachDiagnosis(nextAnswers);
-      setCoachDiagnosis(diagnosis);
+      // Run Pure Math Diagnostic Algorithm!
+      const result = calculateDiagnosticResult(nextAnswers);
+      setSelectedLevel(result.targetLevel);
+      setCalibratedRating(result.calibratedRating);
+      setCoachDiagnosis(result.diagnosis);
+      setIsQuizActive(false);
       setShowDiagnosisModal(true);
     }
   };
@@ -836,9 +750,12 @@ export default function Home() {
 
   const resetCalibration = () => {
     setSelectedLevel(null);
+    setIsQuizActive(false);
+    setIsCalibrated(false);
     setCurrentQuestionIndex(0);
     setCalibrationAnswers([]);
-    setIsCalibrated(false);
+    setCoachDiagnosis(null);
+    setShowDiagnosisModal(false);
     setGame(null);
     setCurrentPuzzle(null);
     setPuzzleStatus("solving");
@@ -988,7 +905,8 @@ export default function Home() {
       </header>
 
       {/* Screen 1: Tier Selection (Jio Disruption Style) */}
-      {!selectedLevel ? (
+      {/* Screen 1: Tier Selection & Diagnostic Entry */}
+      {!selectedLevel && !isQuizActive && !showDiagnosisModal ? (
         <section className="flex-1 flex flex-col items-center justify-center max-w-md md:max-w-4xl mx-auto w-full py-2 md:py-3 min-h-0">
           {/* FIDE Coaches Badge */}
           <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-wide text-emerald-400 bg-emerald-950/70 border border-emerald-700/40 px-3 py-1 rounded-full mb-2 md:mb-2.5 shadow-sm">
@@ -997,7 +915,7 @@ export default function Home() {
           </div>
 
           {/* Punchy Hero Headline */}
-          <div className="text-center mb-2.5 md:mb-4">
+          <div className="text-center mb-2.5 md:mb-3">
             <div className="inline-block text-[10px] md:text-[11px] font-bold tracking-wider uppercase text-amber-400/90 bg-amber-950/40 border border-amber-800/40 px-2.5 py-0.5 rounded-full mb-1">
               Why Pay ₹1,500/yr For Diamond?
             </div>
@@ -1012,21 +930,65 @@ export default function Home() {
             </p>
           </div>
 
-          {/* 4 Level Selection Cards - 2x2 Grid on Desktop */}
-          <div className="w-full mb-2 max-w-3xl">
-            <div className="flex items-center justify-between text-xs text-zinc-400 px-1 mb-2 font-medium">
-              <span>Select your rating to begin:</span>
-              <span className="text-emerald-400 font-mono text-[11px]">3-Step Calibration ⚡</span>
+          {/* Action 1: The 1-Minute Diagnostic Hook Card */}
+          <div className="w-full max-w-3xl mb-3">
+            <div className="relative rounded-2xl p-4 sm:p-5 bg-gradient-to-r from-emerald-950/60 via-zinc-900 to-teal-950/60 border border-emerald-500/40 shadow-xl overflow-hidden group">
+              <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+              
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 relative z-10">
+                <div className="flex items-start gap-3">
+                  <div className="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shrink-0">
+                    <Sparkles className="w-5 h-5 text-emerald-400" />
+                  </div>
+                  <div>
+                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-500/20 border border-emerald-500/30 text-[10px] font-bold text-emerald-300 uppercase tracking-wider mb-1">
+                      <span>4-Question Diagnostic</span>
+                      <span>•</span>
+                      <span>Math-Calibrated</span>
+                    </div>
+                    <h3 className="text-sm sm:text-base font-extrabold text-white">
+                      Find Your Exact Rating & Hidden Leaks
+                    </h3>
+                    <p className="text-xs text-zinc-300 mt-0.5 max-w-lg leading-relaxed">
+                      Answer 4 simple, jargon-free questions. Our formula calculates your exact rating and diagnoses your biggest blunder habit.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={startDiagnosticQuiz}
+                  className="w-full sm:w-auto shrink-0 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-zinc-950 font-black text-xs sm:text-sm tracking-wide flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 transition-all duration-150 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+                >
+                  <span>Start Diagnostic</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Action 2: Direct Tier Selection (Skip Diagnostic) */}
+          <div className="w-full max-w-3xl mb-2">
+            <div className="flex items-center gap-3 my-2 text-zinc-600">
+              <div className="flex-1 h-px bg-zinc-800" />
+              <span className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 font-mono">
+                Or Choose Level Directly
+              </span>
+              <div className="flex-1 h-px bg-zinc-800" />
             </div>
 
-            <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-2.5 sm:gap-3">
+            <div className="flex items-center justify-between text-xs text-zinc-400 px-1 mb-2 font-medium">
+              <span>Know your rating? Tap a tier to jump straight onto the board:</span>
+              <span className="text-amber-400/90 font-mono text-[11px]">Instant Play ⚡</span>
+            </div>
+
+            <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-2.5">
               {LEVEL_OPTIONS.map((lvl) => {
                 const Icon = lvl.icon;
                 return (
                   <button
                     key={lvl.id}
-                    onClick={() => startLevelCalibration(lvl)}
-                    className={`group relative w-full text-left p-3 sm:p-3.5 rounded-2xl bg-gradient-to-r ${lvl.accentBg} bg-zinc-900/90 border ${lvl.borderClass} transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] cursor-pointer shadow-lg`}
+                    onClick={() => handleDirectTierSelect(lvl)}
+                    className={`group relative w-full text-left p-2.5 sm:p-3 rounded-2xl bg-gradient-to-r ${lvl.accentBg} bg-zinc-900/90 border ${lvl.borderClass} transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] cursor-pointer shadow-lg`}
                   >
                     <div className="flex items-start justify-between mb-1">
                       <div className="flex items-center gap-2.5">
@@ -1064,7 +1026,7 @@ export default function Home() {
           </div>
 
           {/* Social Proof Pill */}
-          <div className="mt-2 md:mt-2.5 flex items-center justify-center gap-3 text-[11px] text-zinc-400 bg-zinc-900/80 border border-zinc-800/60 px-3.5 py-1.5 rounded-full">
+          <div className="mt-1 md:mt-2 flex items-center justify-center gap-3 text-[11px] text-zinc-400 bg-zinc-900/80 border border-zinc-800/60 px-3.5 py-1.5 rounded-full">
             <span className="flex items-center gap-1 text-emerald-400 font-semibold">
               ✓ Zero Ads
             </span>
@@ -1076,28 +1038,94 @@ export default function Home() {
             <span className="text-zinc-300 font-medium">Unlimited Puzzles</span>
           </div>
         </section>
-      ) : showDiagnosisModal && coachDiagnosis ? (
-        /* Screen 2.5: The High-Energy Coach Diagnosis & Golden Rule Card */
+      ) : isQuizActive && !showDiagnosisModal ? (
+        /* Screen 2: 4-Question Pure Math Diagnostic Assessment */
+        <section className="flex-1 flex flex-col items-center justify-center max-w-md md:max-w-xl mx-auto w-full py-4 min-h-0">
+          <div className="w-full mb-3">
+            <div className="flex items-center justify-between text-xs text-zinc-400 mb-1.5 font-mono">
+              <span className="font-semibold text-emerald-400">
+                {DIAGNOSTIC_QUESTIONS[currentQuestionIndex].category}
+              </span>
+              <span>Question {currentQuestionIndex + 1} of 4</span>
+            </div>
+            {/* Progress Bar */}
+            <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-emerald-400 transition-all duration-300 rounded-full"
+                style={{ width: `${((currentQuestionIndex + 1) / 4) * 100}%` }}
+              />
+            </div>
+          </div>
+
+          <div className="w-full bg-zinc-900/90 border border-zinc-800 rounded-2xl p-4 sm:p-5 mb-3 shadow-xl">
+            <h2 className="text-sm sm:text-base md:text-lg font-bold text-white mb-3.5 leading-snug">
+              {DIAGNOSTIC_QUESTIONS[currentQuestionIndex].question}
+            </h2>
+
+            <div className="flex flex-col gap-2.5">
+              {DIAGNOSTIC_QUESTIONS[currentQuestionIndex].options.map((opt, oIdx) => (
+                <button
+                  key={oIdx}
+                  onClick={() => handleAnswerDiagnosticQuestion(oIdx)}
+                  className="w-full text-left p-3 rounded-xl bg-zinc-800/80 hover:bg-zinc-800 border border-zinc-700/60 hover:border-emerald-500/60 text-zinc-200 hover:text-white transition-all duration-150 text-xs sm:text-sm font-medium flex items-center justify-between group cursor-pointer"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="w-6 h-6 rounded-lg bg-zinc-900 border border-zinc-700/60 flex items-center justify-center text-xs font-mono font-bold text-zinc-400 group-hover:text-emerald-400 group-hover:border-emerald-500/50">
+                      {oIdx + 1}
+                    </span>
+                    <span>{opt.label}</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-zinc-500 group-hover:text-emerald-400 transition group-hover:translate-x-0.5 shrink-0" />
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between w-full px-1 text-xs">
+            <p className="text-[11px] text-zinc-500">
+              Pick the answer that best matches your play.
+            </p>
+            <button
+              onClick={() => setIsQuizActive(false)}
+              className="text-[11px] text-zinc-400 hover:text-zinc-200 underline underline-offset-2 cursor-pointer transition"
+            >
+              Skip to Direct Level Selection ➔
+            </button>
+          </div>
+        </section>
+      ) : showDiagnosisModal && coachDiagnosis && selectedLevel ? (
+        /* Screen 2.5: The High-Energy Coach Diagnosis & Math-Calibrated Rating Card */
         <section className="flex-1 flex flex-col items-center justify-center max-w-md md:max-w-lg mx-auto w-full py-4 min-h-0">
           <div className="w-full bg-gradient-to-b from-zinc-900 to-zinc-950 border border-emerald-500/40 rounded-3xl p-5 sm:p-6 shadow-2xl relative overflow-hidden">
             {/* Top Accent Glow */}
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-500" />
 
-            <div className="flex items-center gap-2 mb-2.5">
-              <span className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-                <Lightbulb className="w-4 h-4" />
-              </span>
-              <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
-                FIDE Coach Diagnosis
-              </span>
+            <div className="flex items-center justify-between gap-2 mb-2.5">
+              <div className="flex items-center gap-2">
+                <span className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                  <Lightbulb className="w-4 h-4" />
+                </span>
+                <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
+                  FIDE Coach Diagnosis
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1 rounded-full text-[11px] font-mono font-bold text-emerald-300">
+                <span>Rating:</span>
+                <span>~{calibratedRating}</span>
+              </div>
             </div>
 
-            <h2 className="text-lg sm:text-xl md:text-2xl font-black text-white leading-tight mb-2">
+            <h2 className="text-lg sm:text-xl md:text-2xl font-black text-white leading-tight mb-1">
               {coachDiagnosis.headline}
             </h2>
 
-            <div className="inline-block text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-zinc-800 text-zinc-300 border border-zinc-700/60 mb-3.5">
-              Focus Area: {coachDiagnosis.targetFocus}
+            <div className="flex items-center gap-2 mb-3.5">
+              <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full bg-zinc-800 ${selectedLevel.colorClass} border border-zinc-700/60`}>
+                {selectedLevel.title}
+              </span>
+              <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-300 border border-zinc-700/60">
+                Focus: {coachDiagnosis.targetFocus}
+              </span>
             </div>
 
             {/* Golden Rule Callout Box */}
@@ -1139,46 +1167,6 @@ export default function Home() {
               )}
             </button>
           </div>
-        </section>
-      ) : !isCalibrated ? (
-        /* Screen 2: 3 Rapid Coach Calibration Questions */
-        <section className="flex-1 flex flex-col items-center justify-center max-w-md md:max-w-xl mx-auto w-full py-4 min-h-0">
-          <div className="w-full mb-3">
-            <div className="flex items-center justify-between text-xs text-zinc-400 mb-1.5 font-mono">
-              <span className={`font-semibold ${selectedLevel.colorClass}`}>{selectedLevel.title} Tuning</span>
-              <span>Question {currentQuestionIndex + 1} of 3</span>
-            </div>
-            {/* Progress Bar */}
-            <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-emerald-400 transition-all duration-300 rounded-full"
-                style={{ width: `${((currentQuestionIndex + 1) / 3) * 100}%` }}
-              />
-            </div>
-          </div>
-
-          <div className="w-full bg-zinc-900/90 border border-zinc-800 rounded-2xl p-4 sm:p-5 mb-3 shadow-xl">
-            <h2 className="text-sm sm:text-base md:text-lg font-bold text-white mb-3.5 leading-snug">
-              {selectedLevel.questions[currentQuestionIndex].question}
-            </h2>
-
-            <div className="flex flex-col gap-2.5">
-              {selectedLevel.questions[currentQuestionIndex].options.map((opt, oIdx) => (
-                <button
-                  key={oIdx}
-                  onClick={() => handleAnswerQuestion(oIdx)}
-                  className="w-full text-left p-3 rounded-xl bg-zinc-800/80 hover:bg-zinc-800 border border-zinc-700/60 hover:border-emerald-500/60 text-zinc-200 hover:text-white transition-all duration-150 text-xs sm:text-sm font-medium flex items-center justify-between group cursor-pointer"
-                >
-                  <span>{opt.label}</span>
-                  <ChevronRight className="w-4 h-4 text-zinc-500 group-hover:text-emerald-400 transition group-hover:translate-x-0.5" />
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <p className="text-[11px] text-zinc-500 text-center">
-            Tap the answer that best describes your chess habits.
-          </p>
         </section>
       ) : (
         /* Screen 3: The Interactive Chessboard Arena (Chess.com Desktop Layout Reference) */
