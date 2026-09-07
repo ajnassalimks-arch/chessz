@@ -322,7 +322,7 @@ function calculateDiagnosticResult(answers: number[]) {
   const headline = `Diagnosed: ${archetypeTitle} — ${leak.name}`;
   const personalizedSummary = `As ${archetypeTitle}, ${cleanVision} However, your ${leak.name} holds your rating back because you are ${leak.leakDetail.toLowerCase()} ${antidote} ${composure}`;
 
-  const curatedPlaylist = getCuratedDiagnosisPlaylist(calibratedRating, q1Ans, q2Ans);
+  const curatedPlaylist = getCuratedDiagnosisPlaylist(calibratedRating, [q0Ans, q1Ans, q2Ans, q3Ans]);
 
   const diagnosis: CoachDiagnosis = {
     archetypeTitle,
@@ -336,7 +336,7 @@ function calculateDiagnosticResult(answers: number[]) {
     composureTip: composure,
     personalizedSummary,
     curatedPlaylist,
-    starterPuzzleId: leak.starterPuzzleId,
+    starterPuzzleId: curatedPlaylist[0]?.id || leak.starterPuzzleId,
   };
 
   return { calibratedRating, targetLevel, diagnosis };
