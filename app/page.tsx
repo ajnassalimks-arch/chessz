@@ -1500,13 +1500,6 @@ export default function Home() {
                 <RotateCcw className="w-3 h-3" />
                 <span>Reset Position</span>
               </button>
-
-              <button
-                onClick={() => setShowCreditsModal(true)}
-                className="text-[11px] text-zinc-500 hover:text-zinc-300 transition underline underline-offset-2 cursor-pointer"
-              >
-                Credits & License
-              </button>
             </div>
           </div>
         </section>
