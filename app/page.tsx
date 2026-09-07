@@ -36,8 +36,7 @@ import {
   getCuratedDiagnosisPlaylist,
   ChessPuzzle,
   RefutationMove,
-  LevelType,
-  TrackType
+  LevelType
 } from "@/lib/puzzles";
 import { sounds } from "@/lib/sounds";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
@@ -376,7 +375,6 @@ export default function Home() {
   const [status, setStatus] = useState<string>("White to move");
   const [streak, setStreak] = useState<number>(0);
   const [solvedCount, setSolvedCount] = useState<number>(0);
-  const [activeTrack, setActiveTrack] = useState<TrackType>("tactical");
   const [continuousIndex, setContinuousIndex] = useState<number>(0);
 
   // Piece Selection & Marking State
@@ -876,30 +874,17 @@ export default function Home() {
     loadPuzzle(currentPuzzle);
   };
 
-  const nextPuzzle = (overrideTrack?: TrackType) => {
+  const nextPuzzle = () => {
     if (!selectedLevel) return;
-    const targetTrack = overrideTrack || activeTrack;
-    // 1. Puzzles matching BOTH user's rating tier and target track
     let matching = CONTINUOUS_PUZZLES.filter(
-      (p) => p.tier === selectedLevel.id && p.track === targetTrack
+      (p) => p.tier === selectedLevel.id
     );
-    // 2. Fallback to any puzzle with this track
-    if (matching.length === 0) {
-      matching = CONTINUOUS_PUZZLES.filter((p) => p.track === targetTrack);
-    }
-    // 3. General fallback
     if (matching.length === 0) {
       matching = CONTINUOUS_PUZZLES;
     }
     const nextP = matching[continuousIndex % matching.length] || CONTINUOUS_PUZZLES[0];
     setContinuousIndex((prev) => prev + 1);
     loadPuzzle(nextP);
-  };
-
-  const handleSwitchTrack = (newTrack: TrackType) => {
-    if (newTrack === activeTrack) return;
-    setActiveTrack(newTrack);
-    nextPuzzle(newTrack);
   };
 
   const resetCalibration = () => {
@@ -1463,29 +1448,7 @@ export default function Home() {
               )}
             </div>
 
-            {/* Track Switcher */}
-            <div className="flex items-center bg-zinc-900 border border-zinc-800 p-0.5 rounded-lg text-[11px] font-medium">
-              <button
-                onClick={() => handleSwitchTrack("tactical")}
-                className={`px-2 py-0.5 rounded transition cursor-pointer ${
-                  activeTrack === "tactical"
-                    ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-semibold"
-                    : "text-zinc-400 hover:text-zinc-200"
-                }`}
-              >
-                Tactics ⚡
-              </button>
-              <button
-                onClick={() => handleSwitchTrack("positional")}
-                className={`px-2 py-0.5 rounded transition cursor-pointer ${
-                  activeTrack === "positional"
-                    ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-semibold"
-                    : "text-zinc-400 hover:text-zinc-200"
-                }`}
-              >
-                Strategy 🧭
-              </button>
-            </div>
+
           </div>
 
           {/* Mobile Only: Coach Tip Reminder Banner above board */}
@@ -1705,29 +1668,7 @@ export default function Home() {
                   )}
                 </div>
 
-                {/* Track Switcher */}
-                <div className="flex items-center bg-zinc-950 border border-zinc-800 p-0.5 rounded-lg text-[11px] font-medium">
-                  <button
-                    onClick={() => handleSwitchTrack("tactical")}
-                    className={`px-2 py-0.5 rounded transition cursor-pointer ${
-                      activeTrack === "tactical"
-                        ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-semibold"
-                        : "text-zinc-400 hover:text-zinc-200"
-                    }`}
-                  >
-                    Tactics ⚡
-                  </button>
-                  <button
-                    onClick={() => handleSwitchTrack("positional")}
-                    className={`px-2 py-0.5 rounded transition cursor-pointer ${
-                      activeTrack === "positional"
-                        ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-semibold"
-                        : "text-zinc-400 hover:text-zinc-200"
-                    }`}
-                  >
-                    Strategy 🧭
-                  </button>
-                </div>
+
               </div>
 
               {/* Status Row (Turn & Hint) */}
