@@ -510,3 +510,82 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
     successExplanation: "Strategic perfection! 1. c5 creates an enduring queenside pawn lever."
   }
 ];
+
+export const ALL_PUZZLES_MAP: Record<string, ChessPuzzle> = {
+  ...DIAGNOSTIC_PUZZLES,
+  ...Object.fromEntries(CONTINUOUS_PUZZLES.map((p) => [p.id, p])),
+};
+
+export function getCuratedDiagnosisPlaylist(
+  calibratedRating: number,
+  leakIndex: number,
+  strategyIndex: number = 0
+): ChessPuzzle[] {
+  let ids: string[] = [];
+
+  if (calibratedRating < 750) {
+    // Beginner Tier (~500)
+    if (leakIndex === 0) {
+      ids = strategyIndex >= 2
+        ? ["beginner_1a", "cont_beg_pawn_fork", "cont_beg_open_d_file", "beginner_1c", "beginner_1b"]
+        : ["beginner_1a", "beginner_1c", "cont_beg_pawn_fork", "cont_beg_01", "beginner_1b"];
+    } else if (leakIndex === 1) {
+      ids = strategyIndex >= 2
+        ? ["beginner_1c", "cont_beg_pawn_fork", "cont_beg_open_d_file", "beginner_1a", "beginner_1b"]
+        : ["beginner_1c", "cont_beg_pawn_fork", "beginner_1a", "cont_beg_01", "beginner_1b"];
+    } else if (leakIndex === 2) {
+      ids = strategyIndex >= 2
+        ? ["cont_beg_01", "cont_beg_open_d_file", "beginner_1a", "beginner_1c", "beginner_1b"]
+        : ["cont_beg_01", "beginner_1a", "cont_beg_pawn_fork", "beginner_1c", "beginner_1b"];
+    } else {
+      ids = strategyIndex >= 2
+        ? ["cont_beg_open_d_file", "beginner_1a", "beginner_1c", "cont_beg_pawn_fork", "beginner_1b"]
+        : ["cont_beg_open_d_file", "beginner_1a", "cont_beg_pawn_fork", "cont_beg_01", "beginner_1c"];
+    }
+  } else if (calibratedRating < 1150) {
+    // Advanced Beginner Tier (~900 - 1100)
+    if (leakIndex === 0) {
+      ids = strategyIndex >= 2
+        ? ["cont_adv_knight_fork", "adv_beginner_2a", "cont_adv_outpost_knight", "adv_beginner_2b", "adv_beginner_2c"]
+        : ["cont_adv_knight_fork", "adv_beginner_2a", "adv_beginner_2b", "cont_adv_01", "adv_beginner_2c"];
+    } else if (leakIndex === 1) {
+      ids = strategyIndex >= 2
+        ? ["adv_beginner_2a", "cont_adv_01", "cont_adv_outpost_knight", "adv_beginner_2b", "adv_beginner_2c"]
+        : ["adv_beginner_2a", "cont_adv_01", "adv_beginner_2b", "cont_adv_knight_fork", "adv_beginner_2c"];
+    } else if (leakIndex === 2) {
+      ids = strategyIndex >= 2
+        ? ["cont_beg_01", "cont_adv_outpost_knight", "adv_beginner_2a", "adv_beginner_2b", "adv_beginner_2c"]
+        : ["cont_beg_01", "adv_beginner_2a", "cont_adv_01", "adv_beginner_2b", "adv_beginner_2c"];
+    } else {
+      ids = strategyIndex >= 2
+        ? ["cont_adv_outpost_knight", "adv_beginner_2b", "adv_beginner_2a", "cont_adv_01", "adv_beginner_2c"]
+        : ["cont_adv_outpost_knight", "adv_beginner_2b", "cont_adv_knight_fork", "adv_beginner_2a", "adv_beginner_2c"];
+    }
+  } else if (calibratedRating < 1550) {
+    // Intermediate Tier (~1200 - 1500)
+    if (leakIndex === 0) {
+      ids = strategyIndex >= 2
+        ? ["intermediate_3c", "intermediate_3a", "cont_int_rooks_7th_rank", "cont_int_backrank_mate", "intermediate_3b"]
+        : ["intermediate_3c", "cont_int_01", "intermediate_3a", "cont_int_backrank_mate", "intermediate_3b"];
+    } else if (leakIndex === 1) {
+      ids = strategyIndex >= 2
+        ? ["intermediate_3b", "intermediate_3c", "cont_int_rooks_7th_rank", "intermediate_3a", "cont_int_backrank_mate"]
+        : ["intermediate_3b", "intermediate_3c", "cont_int_rooks_7th_rank", "cont_int_backrank_mate", "intermediate_3a"];
+    } else if (leakIndex === 2) {
+      ids = strategyIndex >= 2
+        ? ["cont_int_rooks_7th_rank", "intermediate_3a", "cont_int_backrank_mate", "intermediate_3c", "intermediate_3b"]
+        : ["cont_int_rooks_7th_rank", "cont_int_backrank_mate", "intermediate_3a", "intermediate_3c", "intermediate_3b"];
+    } else {
+      ids = strategyIndex >= 2
+        ? ["intermediate_3a", "cont_int_rooks_7th_rank", "intermediate_3c", "intermediate_3b", "cont_int_backrank_mate"]
+        : ["intermediate_3a", "cont_int_backrank_mate", "intermediate_3c", "intermediate_3b", "cont_int_rooks_7th_rank"];
+    }
+  } else {
+    // Advanced / Master Tier (~1700+)
+    ids = strategyIndex >= 2
+      ? ["advanced_4a", "advanced_4b", "cont_adv_majority_push", "advanced_4c", "cont_adv_clearance"]
+      : ["advanced_4a", "cont_adv_clearance", "advanced_4b", "advanced_4c", "cont_adv_majority_push"];
+  }
+
+  return ids.map((id) => ALL_PUZZLES_MAP[id] || DIAGNOSTIC_PUZZLES["beginner_1a"]);
+}

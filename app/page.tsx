@@ -32,6 +32,8 @@ import {
 import {
   DIAGNOSTIC_PUZZLES,
   CONTINUOUS_PUZZLES,
+  ALL_PUZZLES_MAP,
+  getCuratedDiagnosisPlaylist,
   ChessPuzzle,
   RefutationMove,
   LevelType,
@@ -41,11 +43,18 @@ import { sounds } from "@/lib/sounds";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
 interface CoachDiagnosis {
+  archetypeTitle: string;
   headline: string;
   ruleTitle: string;
   ruleBody: string;
   targetFocus: string;
-  puzzleId: string;
+  leakName: string;
+  leakDetail: string;
+  strategicAntidote: string;
+  composureTip: string;
+  personalizedSummary: string;
+  curatedPlaylist: ChessPuzzle[];
+  starterPuzzleId: string;
 }
 
 interface LevelOption {
@@ -189,6 +198,93 @@ const DIAGNOSTIC_QUESTIONS: DiagnosticQuestion[] = [
   },
 ];
 
+const ARCHETYPE_TITLES: string[][] = [
+  // q0 = 0 (Reactive / 1-move horizon)
+  [
+    "The Instinctive Scrapper",          // q3 = 0
+    "The Reactive Defender",             // q3 = 1
+    "The Resilient Fighter",             // q3 = 2
+    "The High-Octane Blitz Attacker",    // q3 = 3
+  ],
+  // q0 = 1 (Piece Protection & Material Radar)
+  [
+    "The Eager Opportunist",             // q3 = 0
+    "The Cautious Defender",             // q3 = 1
+    "The Disciplined Competitor",        // q3 = 2
+    "The Sharp Tactical Poacher",        // q3 = 3
+  ],
+  // q0 = 2 (Intent & Prophylaxis reader)
+  [
+    "The Ambitious Strategist",          // q3 = 0
+    "The Measured Counter-Puncher",      // q3 = 1
+    "The Methodical Positionalist",      // q3 = 2
+    "The Prophylactic Striker",          // q3 = 3
+  ],
+  // q0 = 3 (3-4 moves deep calculator)
+  [
+    "The Deep-Thinker in Time Trouble",  // q3 = 0
+    "The Analytical Perfectionist",      // q3 = 1
+    "The Cold-Blooded Calculator",       // q3 = 2
+    "The Master Blitz Prodigy",          // q3 = 3
+  ],
+];
+
+const VISION_NARRATIVES: string[] = [
+  "You play with fast instinctive reflexes, scanning the board one move at a time.",
+  "You possess strong piece-protection radar and consistently monitor friendly and enemy piece safety.",
+  "You read the board through intent, actively deducing what your opponent plans before choosing your candidate moves.",
+  "You calculate deep multi-ply candidate variations before touching a piece with grandmaster-like discipline.",
+];
+
+const LEAK_DEFINITIONS = [
+  {
+    name: "Free-Piece Blindspot",
+    ruleTitle: "The 2-Second Bodyguard Rule",
+    ruleBody: "Before touching any piece, take 2 seconds to check: 'Does every one of my pieces have an active teammate protecting it?' Never donate free points.",
+    leakDetail: "Leaving friendly pieces unguarded in open skirmishes when focusing on your own attack.",
+    focus: "Piece Protection & Hanging Pieces",
+    starterPuzzleId: "beginner_1a",
+  },
+  {
+    name: "Same-Color Fork Radar Leak",
+    ruleTitle: "The Geometric Radar Rule",
+    ruleBody: "Knights can only fork pieces on the EXACT same square color. Always notice when your King and heavy pieces share square colors.",
+    leakDetail: "Falling victim to surprise knight forks, bishop pins, and tactical batteries.",
+    focus: "Forks, Pins & Double Attacks",
+    starterPuzzleId: "adv_beginner_2a",
+  },
+  {
+    name: "Endgame Conversion Gap",
+    ruleTitle: "King Activity & Passed Pawn Priority",
+    ruleBody: "In the endgame, passive kings lose games. Activate your King toward the center aggressively and march passed pawns immediately.",
+    leakDetail: "Outplaying opponents in the middlegame, then letting winning advantages slip in the endgame.",
+    focus: "Endgame Technique & Passed Pawns",
+    starterPuzzleId: "intermediate_3a",
+  },
+  {
+    name: "Positional Stagnation",
+    ruleTitle: "Steinitz's Worst-Placed Piece Principle",
+    ruleBody: "When tactics fade, locate your least active piece, reposition it with tempo, and systematically restrict your opponent's counterplay.",
+    leakDetail: "Running out of constructive plans when no direct captures exist, allowing opponents to squeeze you.",
+    focus: "Piece Harmony & Prophylaxis",
+    starterPuzzleId: "advanced_4a",
+  },
+];
+
+const STRATEGY_ANTIDOTES: string[] = [
+  "Antidote: Break frozen positions by systematically listing candidate moves (Checks, Captures, Threats).",
+  "Antidote: Stop making cosmetic trades. Maintain tension until an exchange opens a file or creates a passed pawn.",
+  "Antidote: Reroute your least active piece to a dominant central outpost before seeking an attack.",
+  "Antidote: Focus multi-piece pressure onto your opponent's weakest square or pawn until their structure cracks.",
+];
+
+const COMPOSURE_TIPS: string[] = [
+  "Composure Directive: Breathe and take a mandatory 3-second pause before moving when your clock drops.",
+  "Composure Directive: In time trouble, prioritize King safety and simple solid defenses over wild complications.",
+  "Composure Directive: Your steady composure under tension is an elite superpower. Keep trusting your fundamentals.",
+  "Composure Directive: Channel your rapid speed into forcing tactical knockout strikes.",
+];
+
 function calculateDiagnosticResult(answers: number[]) {
   let weightedScore = 0;
   for (let i = 0; i < DIAGNOSTIC_QUESTIONS.length; i++) {
@@ -211,42 +307,37 @@ function calculateDiagnosticResult(answers: number[]) {
 
   const targetLevel = LEVEL_OPTIONS.find((l) => l.id === targetTierId) || LEVEL_OPTIONS[0];
 
-  const q2Ans = answers[1] ?? 0;
-  let diagnosis: CoachDiagnosis;
+  const q0Ans = Math.min(Math.max(answers[0] ?? 0, 0), 3);
+  const q1Ans = Math.min(Math.max(answers[1] ?? 0, 0), 3);
+  const q2Ans = Math.min(Math.max(answers[2] ?? 0, 0), 3);
+  const q3Ans = Math.min(Math.max(answers[3] ?? 0, 0), 3);
 
-  if (q2Ans === 0) {
-    diagnosis = {
-      headline: "Diagnosed: The Free-Piece Blindspot",
-      ruleTitle: "The 2-Second Bodyguard Rule",
-      ruleBody: "You play with great attacking spirit, but friendly pieces are left undefended. Before making any move, spend 2 seconds verifying: 'Is this piece guarded by a teammate?'",
-      targetFocus: "Bodyguard Defense & Free Pieces",
-      puzzleId: "beginner_1a",
-    };
-  } else if (q2Ans === 1) {
-    diagnosis = {
-      headline: "Diagnosed: Tactical Radar Leak",
-      ruleTitle: "The Same-Color Radar Rule",
-      ruleBody: "You calculate well, but get caught by surprise double attacks. Knights can only fork pieces standing on the EXACT same color square. Watch your king and heavy piece alignment!",
-      targetFocus: "Forks, Pins & Double Attacks",
-      puzzleId: "adv_beginner_2a",
-    };
-  } else if (q2Ans === 2) {
-    diagnosis = {
-      headline: "Diagnosed: Endgame Conversion Gap",
-      ruleTitle: "King Activity & Passed Pawns",
-      ruleBody: "You build winning advantages in the middlegame, then drop points in the endgame. In the endgame, activate your King aggressively and push passed pawns immediately!",
-      targetFocus: "Endgame Technique & Passed Pawns",
-      puzzleId: "intermediate_3a",
-    };
-  } else {
-    diagnosis = {
-      headline: "Diagnosed: Strategic Passivity",
-      ruleTitle: "Find the Worst Piece & Restrict Counterplay",
-      ruleBody: "When tactics disappear, you run out of moves. Always find your least active piece, reposition it to a dominant square, and stop your opponent's counterplay.",
-      targetFocus: "Prophylaxis & Piece Improvement",
-      puzzleId: "advanced_4a",
-    };
-  }
+  const archetypeTitle = ARCHETYPE_TITLES[q0Ans][q3Ans];
+  const visionDesc = VISION_NARRATIVES[q0Ans];
+  const cleanVision = visionDesc.charAt(0).toLowerCase() + visionDesc.slice(1);
+  const leak = LEAK_DEFINITIONS[q1Ans];
+  const antidote = STRATEGY_ANTIDOTES[q2Ans];
+  const composure = COMPOSURE_TIPS[q3Ans];
+
+  const headline = `Diagnosed: ${archetypeTitle} — ${leak.name}`;
+  const personalizedSummary = `As ${archetypeTitle}, ${cleanVision} However, your ${leak.name} holds your rating back because you are ${leak.leakDetail.toLowerCase()} ${antidote} ${composure}`;
+
+  const curatedPlaylist = getCuratedDiagnosisPlaylist(calibratedRating, q1Ans, q2Ans);
+
+  const diagnosis: CoachDiagnosis = {
+    archetypeTitle,
+    headline,
+    ruleTitle: leak.ruleTitle,
+    ruleBody: leak.ruleBody,
+    targetFocus: leak.focus,
+    leakName: leak.name,
+    leakDetail: leak.leakDetail,
+    strategicAntidote: antidote,
+    composureTip: composure,
+    personalizedSummary,
+    curatedPlaylist,
+    starterPuzzleId: leak.starterPuzzleId,
+  };
 
   return { calibratedRating, targetLevel, diagnosis };
 }
@@ -261,12 +352,20 @@ interface LegalMoveTarget {
 export default function Home() {
   const [selectedLevel, setSelectedLevel] = useState<LevelOption | null>(null);
   const [isQuizActive, setIsQuizActive] = useState<boolean>(false);
+  const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
+  const [analyzingPhase, setAnalyzingPhase] = useState<number>(0);
   const [calibratedRating, setCalibratedRating] = useState<number>(900);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
   const [calibrationAnswers, setCalibrationAnswers] = useState<number[]>([]);
   const [coachDiagnosis, setCoachDiagnosis] = useState<CoachDiagnosis | null>(null);
   const [showDiagnosisModal, setShowDiagnosisModal] = useState<boolean>(false);
   const [isCalibrated, setIsCalibrated] = useState<boolean>(false);
+
+  // 5-Puzzle Diagnostic Curriculum State
+  const [diagnosisPlaylist, setDiagnosisPlaylist] = useState<ChessPuzzle[]>([]);
+  const [curriculumIndex, setCurriculumIndex] = useState<number>(0);
+  const [isCurriculumActive, setIsCurriculumActive] = useState<boolean>(false);
+  const [curriculumCompleted, setCurriculumCompleted] = useState<boolean>(false);
 
   // Puzzle State
   const [currentPuzzle, setCurrentPuzzle] = useState<ChessPuzzle | null>(null);
@@ -392,12 +491,17 @@ export default function Home() {
   // Start 4-Question Mathematical Diagnostic Quiz
   const startDiagnosticQuiz = () => {
     setIsQuizActive(true);
+    setIsAnalyzing(false);
     setCurrentQuestionIndex(0);
     setCalibrationAnswers([]);
     setCoachDiagnosis(null);
     setShowDiagnosisModal(false);
     setIsCalibrated(false);
     setSelectedLevel(null);
+    setIsCurriculumActive(false);
+    setCurriculumIndex(0);
+    setCurriculumCompleted(false);
+    setDiagnosisPlaylist([]);
   };
 
   // Direct Tier Selection (Skip Diagnostic)
@@ -405,8 +509,12 @@ export default function Home() {
     setSelectedLevel(level);
     setCalibratedRating(level.approxRating);
     setIsQuizActive(false);
+    setIsAnalyzing(false);
     setShowDiagnosisModal(false);
     setIsCalibrated(true);
+    setIsCurriculumActive(false);
+    setCurriculumIndex(0);
+    setCurriculumCompleted(false);
     const starter = DIAGNOSTIC_PUZZLES[level.starterPuzzleId] || DIAGNOSTIC_PUZZLES["beginner_1a"];
     loadPuzzle(starter);
   };
@@ -419,22 +527,68 @@ export default function Home() {
     if (currentQuestionIndex + 1 < DIAGNOSTIC_QUESTIONS.length) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
-      // Run Pure Math Diagnostic Algorithm!
+      // 1. Run Pure Math Diagnostic Algorithm & Playlist Curation!
       const result = calculateDiagnosticResult(nextAnswers);
       setSelectedLevel(result.targetLevel);
       setCalibratedRating(result.calibratedRating);
       setCoachDiagnosis(result.diagnosis);
+      setDiagnosisPlaylist(result.diagnosis.curatedPlaylist);
+      setCurriculumIndex(0);
+      setCurriculumCompleted(false);
+
+      // 2. Trigger Exactly 2-Second AI Coach Analyzing Animation!
       setIsQuizActive(false);
-      setShowDiagnosisModal(true);
+      setIsAnalyzing(true);
+      setAnalyzingPhase(0);
+
+      setTimeout(() => {
+        setAnalyzingPhase(1);
+      }, 700);
+
+      setTimeout(() => {
+        setAnalyzingPhase(2);
+      }, 1400);
+
+      setTimeout(() => {
+        setIsAnalyzing(false);
+        setShowDiagnosisModal(true);
+        sounds.playVictory();
+      }, 2000);
     }
   };
 
-  const startDiagnosedPuzzle = () => {
+  // Start 5-Puzzle Targeted Curriculum from Diagnosis Card
+  const startDiagnosedCurriculum = () => {
     if (!selectedLevel || !coachDiagnosis) return;
+    const playlist = coachDiagnosis.curatedPlaylist && coachDiagnosis.curatedPlaylist.length > 0
+      ? coachDiagnosis.curatedPlaylist
+      : diagnosisPlaylist;
     setShowDiagnosisModal(false);
     setIsCalibrated(true);
-    const pz = DIAGNOSTIC_PUZZLES[coachDiagnosis.puzzleId] || DIAGNOSTIC_PUZZLES["beginner_1a"];
-    loadPuzzle(pz);
+    setIsCurriculumActive(true);
+    setCurriculumIndex(0);
+    setCurriculumCompleted(false);
+    const firstPz = playlist[0] || DIAGNOSTIC_PUZZLES[coachDiagnosis.starterPuzzleId] || DIAGNOSTIC_PUZZLES["beginner_1a"];
+    loadPuzzle(firstPz);
+  };
+
+  // Advance to next puzzle in the 5-puzzle curriculum
+  const handleAdvanceCurriculum = () => {
+    const playlist = coachDiagnosis?.curatedPlaylist || diagnosisPlaylist;
+    if (curriculumIndex + 1 < playlist.length) {
+      const nextIdx = curriculumIndex + 1;
+      setCurriculumIndex(nextIdx);
+      loadPuzzle(playlist[nextIdx]);
+    } else {
+      setCurriculumCompleted(true);
+    }
+  };
+
+  // Transition from curriculum completion into unlimited practice
+  const continueToUnlimitedPractice = () => {
+    setIsCurriculumActive(false);
+    setCurriculumCompleted(false);
+    nextPuzzle();
   };
 
   const loadPuzzle = (puzzle: ChessPuzzle) => {
@@ -751,7 +905,13 @@ export default function Home() {
   const resetCalibration = () => {
     setSelectedLevel(null);
     setIsQuizActive(false);
+    setIsAnalyzing(false);
+    setAnalyzingPhase(0);
     setIsCalibrated(false);
+    setIsCurriculumActive(false);
+    setCurriculumIndex(0);
+    setCurriculumCompleted(false);
+    setDiagnosisPlaylist([]);
     setCurrentQuestionIndex(0);
     setCalibrationAnswers([]);
     setCoachDiagnosis(null);
@@ -906,7 +1066,7 @@ export default function Home() {
 
       {/* Screen 1: Tier Selection (Jio Disruption Style) */}
       {/* Screen 1: Tier Selection & Diagnostic Entry */}
-      {!selectedLevel && !isQuizActive && !showDiagnosisModal ? (
+      {!selectedLevel && !isQuizActive && !showDiagnosisModal && !isAnalyzing ? (
         <section className="flex-1 flex flex-col items-center justify-center max-w-md md:max-w-4xl mx-auto w-full py-2 md:py-3 min-h-0">
           {/* FIDE Coaches Badge */}
           <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold tracking-wide text-emerald-400 bg-emerald-950/70 border border-emerald-700/40 px-3 py-1 rounded-full mb-2 md:mb-2.5 shadow-sm">
@@ -1038,6 +1198,65 @@ export default function Home() {
             <span className="text-zinc-300 font-medium">Unlimited Puzzles</span>
           </div>
         </section>
+      ) : isAnalyzing ? (
+        /* Screen 2.2: 2-Second AI Coach Analyzing Animation */
+        <section className="flex-1 flex flex-col items-center justify-center max-w-md md:max-w-xl mx-auto w-full py-4 min-h-0 text-center">
+          <div className="w-full bg-zinc-900/90 border border-emerald-500/40 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden flex flex-col items-center">
+            {/* Top Accent Glow */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 via-teal-300 to-amber-300 animate-pulse" />
+
+            {/* Pulsing Neural Radar Animation */}
+            <div className="relative w-20 h-20 mb-4 flex items-center justify-center">
+              <div className="absolute inset-0 rounded-full bg-emerald-500/10 animate-ping" />
+              <div className="absolute -inset-1 rounded-full border border-emerald-500/30 animate-pulse" />
+              <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/50 flex items-center justify-center text-emerald-400 shadow-lg shadow-emerald-500/20">
+                <Sparkles className="w-7 h-7 animate-bounce text-emerald-300" />
+              </div>
+            </div>
+
+            {/* Neural Engine Badge */}
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-[11px] font-bold text-emerald-300 uppercase tracking-wider mb-2 shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+              <span>AI Coach Engine Analyzing</span>
+            </div>
+
+            <h2 className="text-lg sm:text-xl font-black text-white tracking-tight mb-1">
+              Synthesizing Your Chess DNA
+            </h2>
+
+            {/* Cycling Dynamic Status Messages */}
+            <div className="text-xs sm:text-sm text-zinc-300 font-medium h-7 flex items-center justify-center transition-all duration-300">
+              {analyzingPhase === 0 && (
+                <span className="text-teal-300 animate-in fade-in duration-200">
+                  🧠 Calculating vision depth & calculation horizon...
+                </span>
+              )}
+              {analyzingPhase === 1 && (
+                <span className="text-amber-300 animate-in fade-in duration-200">
+                  🔍 Scanning blunder signatures & tactical leak patterns...
+                </span>
+              )}
+              {analyzingPhase === 2 && (
+                <span className="text-emerald-300 animate-in fade-in duration-200">
+                  ⚡ Curating 5 targeted master puzzles for your curriculum...
+                </span>
+              )}
+            </div>
+
+            {/* 2-Second Smooth Progress Bar */}
+            <div className="w-full max-w-xs mt-4 mb-1.5">
+              <div className="w-full h-2 bg-zinc-800 rounded-full overflow-hidden p-0.5">
+                <div 
+                  className="h-full bg-gradient-to-r from-emerald-400 via-teal-300 to-amber-300 rounded-full transition-all duration-[2000ms] ease-out"
+                  style={{ width: analyzingPhase === 0 ? "35%" : analyzingPhase === 1 ? "75%" : "100%" }}
+                />
+              </div>
+            </div>
+            <span className="text-[10px] font-mono text-zinc-500">
+              Mathematical weights applied (30% + 30% + 20% + 20%)
+            </span>
+          </div>
+        </section>
       ) : isQuizActive && !showDiagnosisModal ? (
         /* Screen 2: 4-Question Pure Math Diagnostic Assessment */
         <section className="flex-1 flex flex-col items-center justify-center max-w-md md:max-w-xl mx-auto w-full py-4 min-h-0">
@@ -1095,12 +1314,12 @@ export default function Home() {
         </section>
       ) : showDiagnosisModal && coachDiagnosis && selectedLevel ? (
         /* Screen 2.5: The High-Energy Coach Diagnosis & Math-Calibrated Rating Card */
-        <section className="flex-1 flex flex-col items-center justify-center max-w-md md:max-w-lg mx-auto w-full py-4 min-h-0">
-          <div className="w-full bg-gradient-to-b from-zinc-900 to-zinc-950 border border-emerald-500/40 rounded-3xl p-5 sm:p-6 shadow-2xl relative overflow-hidden">
+        <section className="flex-1 flex flex-col items-center justify-center max-w-md md:max-w-xl mx-auto w-full py-2 sm:py-3 min-h-0">
+          <div className="w-full bg-gradient-to-b from-zinc-900 via-zinc-900 to-zinc-950 border border-emerald-500/40 rounded-3xl p-4 sm:p-5 shadow-2xl relative overflow-hidden max-h-[85vh] overflow-y-auto">
             {/* Top Accent Glow */}
             <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-500" />
 
-            <div className="flex items-center justify-between gap-2 mb-2.5">
+            <div className="flex items-center justify-between gap-2 mb-2">
               <div className="flex items-center gap-2">
                 <span className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
                   <Lightbulb className="w-4 h-4" />
@@ -1115,43 +1334,79 @@ export default function Home() {
               </div>
             </div>
 
-            <h2 className="text-lg sm:text-xl md:text-2xl font-black text-white leading-tight mb-1">
+            <h2 className="text-base sm:text-lg md:text-xl font-black text-white leading-tight mb-1">
               {coachDiagnosis.headline}
             </h2>
 
-            <div className="flex items-center gap-2 mb-3.5">
-              <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full bg-zinc-800 ${selectedLevel.colorClass} border border-zinc-700/60`}>
+            <div className="flex items-center gap-2 mb-2">
+              <span className={`text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-full bg-zinc-800 ${selectedLevel.colorClass} border border-zinc-700/60`}>
                 {selectedLevel.title}
               </span>
-              <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-300 border border-zinc-700/60">
+              <span className="text-[10px] sm:text-[11px] font-mono px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-300 border border-zinc-700/60">
                 Focus: {coachDiagnosis.targetFocus}
               </span>
             </div>
 
+            {/* Personalized Narrative Breakdown */}
+            <p className="text-xs text-zinc-300 leading-relaxed mb-2.5 bg-zinc-950/60 p-2.5 rounded-xl border border-zinc-800/80">
+              {coachDiagnosis.personalizedSummary}
+            </p>
+
             {/* Golden Rule Callout Box */}
-            <div className="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-4 mb-4 shadow-inner">
-              <div className="text-xs font-bold text-amber-400 uppercase tracking-wide mb-1 flex items-center gap-1.5">
+            <div className="bg-zinc-900/90 border border-amber-500/30 rounded-xl p-3 mb-2.5 shadow-inner">
+              <div className="text-[11px] font-bold text-amber-400 uppercase tracking-wide mb-0.5 flex items-center gap-1.5">
                 <span>⚡</span>
                 <span>{coachDiagnosis.ruleTitle}</span>
               </div>
-              <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
+              <p className="text-xs text-zinc-300 leading-relaxed">
                 {coachDiagnosis.ruleBody}
               </p>
             </div>
 
+            {/* 5-Puzzle Targeted Curriculum Roadmap Preview */}
+            <div className="bg-zinc-950/70 border border-zinc-800 rounded-xl p-2.5 mb-3">
+              <div className="flex items-center justify-between text-[10px] font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
+                <span className="flex items-center gap-1 text-emerald-400">
+                  <Target className="w-3.5 h-3.5" />
+                  Your 5-Puzzle Curriculum Roadmap:
+                </span>
+                <span className="text-zinc-500 font-mono">100% Curated</span>
+              </div>
+              <div className="space-y-1">
+                {(coachDiagnosis.curatedPlaylist || diagnosisPlaylist).map((pz, pIdx) => (
+                  <div
+                    key={pz.id || pIdx}
+                    className="flex items-center justify-between p-1.5 rounded-lg bg-zinc-900/90 border border-zinc-800/60 text-xs text-zinc-300"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="w-4 h-4 rounded bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center text-[10px] font-mono font-bold shrink-0">
+                        {pIdx + 1}
+                      </span>
+                      <span className="font-medium text-[11px] truncate max-w-[190px] sm:max-w-[280px]">
+                        {pz.title}
+                      </span>
+                    </div>
+                    <span className="text-[9px] font-mono text-zinc-400 bg-zinc-950 px-1.5 py-0.5 rounded border border-zinc-800 shrink-0">
+                      {pz.ratingBadge}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {/* Put This Rule to the Test CTA */}
             <button
-              onClick={startDiagnosedPuzzle}
-              className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-zinc-950 font-black text-sm tracking-wide flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 transition-all duration-150 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+              onClick={startDiagnosedCurriculum}
+              className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-zinc-950 font-black text-xs sm:text-sm tracking-wide flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 transition-all duration-150 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
             >
-              <span>Put This Rule To The Test</span>
+              <span>Start 5-Puzzle Curriculum</span>
               <Play className="w-4 h-4 fill-zinc-950" />
             </button>
 
             {/* Viral Share Diagnosis CTA */}
             <button
               onClick={handleShareDiagnosis}
-              className="w-full mt-2 py-2 px-4 rounded-xl bg-zinc-800/80 hover:bg-zinc-800 border border-zinc-700/60 hover:border-zinc-600 text-zinc-300 hover:text-white font-semibold text-xs tracking-wide flex items-center justify-center gap-2 transition duration-150 cursor-pointer shadow-sm"
+              className="w-full mt-1.5 py-1.5 px-4 rounded-xl bg-zinc-800/80 hover:bg-zinc-800 border border-zinc-700/60 hover:border-zinc-600 text-zinc-300 hover:text-white font-semibold text-xs tracking-wide flex items-center justify-center gap-2 transition duration-150 cursor-pointer shadow-sm"
               title="Share or Copy your diagnosis card"
             >
               {shareCopied ? (
@@ -1174,13 +1429,38 @@ export default function Home() {
           {/* Mobile Only: Top HUD */}
           <div className="w-full flex md:hidden items-center justify-between mb-1 px-1">
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1 text-xs font-mono font-bold bg-zinc-900 border border-zinc-800 px-2.5 py-1 rounded-lg text-amber-400">
-                <Flame className="w-3.5 h-3.5 fill-amber-400" />
-                <span>{streak} Streak</span>
-              </div>
-              <span className="text-xs text-zinc-400 font-mono">
-                {solvedCount} Solved
-              </span>
+              {isCurriculumActive ? (
+                <>
+                  <div className="flex items-center gap-1 text-xs font-mono font-bold bg-zinc-900 border border-emerald-500/40 px-2 py-0.5 rounded-lg text-emerald-400">
+                    <Target className="w-3 h-3 text-emerald-400" />
+                    <span>Curriculum {curriculumIndex + 1}/5</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {[0, 1, 2, 3, 4].map((step) => (
+                      <div
+                        key={step}
+                        className={`h-1.5 rounded-full transition-all duration-300 ${
+                          step < curriculumIndex
+                            ? "w-2.5 bg-emerald-400"
+                            : step === curriculumIndex
+                            ? "w-4 bg-amber-400 animate-pulse"
+                            : "w-1.5 bg-zinc-700"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-1 text-xs font-mono font-bold bg-zinc-900 border border-zinc-800 px-2.5 py-1 rounded-lg text-amber-400">
+                    <Flame className="w-3.5 h-3.5 fill-amber-400" />
+                    <span>{streak} Streak</span>
+                  </div>
+                  <span className="text-xs text-zinc-400 font-mono">
+                    {solvedCount} Solved
+                  </span>
+                </>
+              )}
             </div>
 
             {/* Track Switcher */}
@@ -1214,7 +1494,7 @@ export default function Home() {
               <Sparkles className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
               <div className="text-xs flex-1">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 block mb-0.5">
-                  Coach Says 💡
+                  {isCurriculumActive ? `Curriculum Step ${curriculumIndex + 1} of 5 💡` : "Coach Says 💡"}
                 </span>
                 <span className="font-bold text-emerald-200 block">{currentPuzzle.prompt}</span>
                 <span className="text-[11px] text-zinc-400">Remember: {currentPuzzle.ruleTitle}</span>
@@ -1331,18 +1611,52 @@ export default function Home() {
               <div className="w-full mt-3 bg-emerald-950/60 border border-emerald-500/50 rounded-2xl p-4 shadow-xl animate-in fade-in slide-in-from-bottom-2 duration-200">
                 <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold uppercase tracking-wide mb-1">
                   <CheckCircle2 className="w-4 h-4" />
-                  <span>Rule Mastered!</span>
+                  <span>
+                    {isCurriculumActive
+                      ? `Curriculum Step ${curriculumIndex + 1} of 5 Mastered!`
+                      : "Rule Mastered!"}
+                  </span>
                 </div>
                 <p className="text-xs sm:text-sm text-zinc-200 leading-relaxed mb-3">
                   {currentPuzzle.successExplanation}
                 </p>
-                <button
-                  onClick={() => nextPuzzle()}
-                  className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-zinc-950 font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 transition shadow-lg cursor-pointer"
-                >
-                  <span>Next Puzzle</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
+                {isCurriculumActive ? (
+                  curriculumIndex < 4 ? (
+                    <button
+                      onClick={handleAdvanceCurriculum}
+                      className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-zinc-950 font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 transition shadow-lg cursor-pointer"
+                    >
+                      <span>Next Curriculum Puzzle ({curriculumIndex + 2}/5)</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="p-2.5 bg-emerald-500/20 border border-emerald-500/40 rounded-xl text-center">
+                        <span className="text-xs font-black text-white block">
+                          🎉 5/5 Curriculum Mastered!
+                        </span>
+                        <span className="text-[11px] text-emerald-200">
+                          Your leak ({coachDiagnosis?.leakName}) is now patched.
+                        </span>
+                      </div>
+                      <button
+                        onClick={continueToUnlimitedPractice}
+                        className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-zinc-950 font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 transition shadow-lg cursor-pointer"
+                      >
+                        <span>Continue to Unlimited Practice ⚡</span>
+                        <Zap className="w-4 h-4 fill-zinc-950" />
+                      </button>
+                    </div>
+                  )
+                ) : (
+                  <button
+                    onClick={() => nextPuzzle()}
+                    className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-zinc-950 font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 transition shadow-lg cursor-pointer"
+                  >
+                    <span>Next Puzzle</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -1356,13 +1670,39 @@ export default function Home() {
             <div>
               <div className="flex items-center justify-between pb-3 mb-3 border-b border-zinc-800">
                 <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1 text-xs font-mono font-bold bg-zinc-950 border border-zinc-800 px-2.5 py-1 rounded-lg text-amber-400">
-                    <Flame className="w-3.5 h-3.5 fill-amber-400" />
-                    <span>{streak} Streak</span>
-                  </div>
-                  <span className="text-xs text-zinc-400 font-mono">
-                    {solvedCount} Solved
-                  </span>
+                  {isCurriculumActive ? (
+                    <>
+                      <div className="flex items-center gap-1.5 text-xs font-mono font-bold bg-zinc-950 border border-emerald-500/40 px-2.5 py-1 rounded-lg text-emerald-400">
+                        <Target className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>Curriculum {curriculumIndex + 1}/5</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {[0, 1, 2, 3, 4].map((step) => (
+                          <div
+                            key={step}
+                            className={`h-2 rounded-full transition-all duration-300 ${
+                              step < curriculumIndex
+                                ? "w-3 bg-emerald-400"
+                                : step === curriculumIndex
+                                ? "w-5 bg-amber-400 animate-pulse shadow-sm shadow-amber-400/40"
+                                : "w-1.5 bg-zinc-700"
+                            }`}
+                            title={`Step ${step + 1}`}
+                          />
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-1 text-xs font-mono font-bold bg-zinc-950 border border-zinc-800 px-2.5 py-1 rounded-lg text-amber-400">
+                        <Flame className="w-3.5 h-3.5 fill-amber-400" />
+                        <span>{streak} Streak</span>
+                      </div>
+                      <span className="text-xs text-zinc-400 font-mono">
+                        {solvedCount} Solved
+                      </span>
+                    </>
+                  )}
                 </div>
 
                 {/* Track Switcher */}
@@ -1423,7 +1763,7 @@ export default function Home() {
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-1.5 text-emerald-400 font-bold text-xs">
                       <Sparkles className="w-3.5 h-3.5" />
-                      <span>Coach Says 💡</span>
+                      <span>{isCurriculumActive ? `Curriculum Step ${curriculumIndex + 1} of 5 💡` : "Coach Says 💡"}</span>
                     </div>
                     <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-950 text-zinc-300 border border-zinc-800">
                       {currentPuzzle.ratingBadge}
@@ -1475,18 +1815,52 @@ export default function Home() {
                 <div className="w-full bg-emerald-950/70 border border-emerald-500/50 rounded-xl p-3.5 shadow-xl animate-in fade-in duration-200">
                   <div className="flex items-center gap-1.5 text-emerald-400 text-xs font-bold uppercase tracking-wide mb-1.5">
                     <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Rule Mastered!</span>
+                    <span>
+                      {isCurriculumActive
+                        ? `Curriculum Step ${curriculumIndex + 1} of 5 Mastered!`
+                        : "Rule Mastered!"}
+                    </span>
                   </div>
                   <p className="text-xs text-zinc-200 leading-relaxed mb-3">
                     {currentPuzzle.successExplanation}
                   </p>
-                  <button
-                    onClick={() => nextPuzzle()}
-                    className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-zinc-950 font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 transition shadow-lg cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
-                  >
-                    <span>Next Puzzle</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
+                  {isCurriculumActive ? (
+                    curriculumIndex < 4 ? (
+                      <button
+                        onClick={handleAdvanceCurriculum}
+                        className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-zinc-950 font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 transition shadow-lg cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
+                      >
+                        <span>Next Curriculum Puzzle ({curriculumIndex + 2}/5)</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="p-2.5 bg-emerald-500/20 border border-emerald-500/40 rounded-xl text-center">
+                          <span className="text-xs font-black text-white block">
+                            🎉 5/5 Curriculum Mastered!
+                          </span>
+                          <span className="text-[11px] text-emerald-200">
+                            Your leak ({coachDiagnosis?.leakName}) is now patched.
+                          </span>
+                        </div>
+                        <button
+                          onClick={continueToUnlimitedPractice}
+                          className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-400 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-zinc-950 font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 transition shadow-lg cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
+                        >
+                          <span>Continue to Unlimited Practice ⚡</span>
+                          <Zap className="w-4 h-4 fill-zinc-950" />
+                        </button>
+                      </div>
+                    )
+                  ) : (
+                    <button
+                      onClick={() => nextPuzzle()}
+                      className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-zinc-950 font-black text-xs sm:text-sm flex items-center justify-center gap-1.5 transition shadow-lg cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
+                    >
+                      <span>Next Puzzle</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               )}
             </div>
