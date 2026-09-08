@@ -2,7 +2,7 @@
 
 /* ==========================================================================
    CHESSZ 2026 DESIGN SYSTEM TOKENS
-   Palettes: 🌿 Sage | 🪨 Periwinkle | 🏺 Terracotta
+   Palettes: 🪨 Periwinkle (Default) | 🌿 Sage | 🏺 Terracotta
    Modes: Light | Dark
    Motion: Apple cubic-bezier(0.16, 1, 0.3, 1)
    ========================================================================== */
@@ -13,73 +13,7 @@
   --duration-normal: 240ms;
   --duration-reveal: 360ms;
 
-  /* Default theme: Sage Light */
-  --bg-canvas: #f6f8f5;
-  --bg-card: #ffffff;
-  --bg-card-subtle: #eef2ed;
-  --border-subtle: rgba(40, 60, 48, 0.10);
-  --border-focus: rgba(61, 102, 84, 0.35);
-  --text-primary: #17211b;
-  --text-secondary: #49574f;
-  --text-muted: #7a8a81;
-  --accent-primary: #3d6654;
-  --accent-hover: #335546;
-  --accent-subtle: rgba(61, 102, 84, 0.10);
-  --accent-contrast: #ffffff;
-  --board-light: #f2f5ed;
-  --board-dark: #7d9985;
-  --shadow-card: 0 2px 10px -2px rgba(25, 45, 35, 0.05), 0 1px 3px rgba(25, 45, 35, 0.03);
-  --shadow-hover: 0 12px 30px -6px rgba(25, 45, 35, 0.10), 0 4px 12px -2px rgba(25, 45, 35, 0.05);
-}
-
-/* ==========================================================================
-   THEME 1: 🌿 ATELIER SAGE & CELADON (Apple Pro / Nordic Ceramics)
-   ========================================================================== */
-[data-theme="sage"][data-mode="light"],
-:root:not([data-theme])[data-mode="light"],
-:root:not([data-theme]):not([data-mode]) {
-  --bg-canvas: #f6f8f5;
-  --bg-card: #ffffff;
-  --bg-card-subtle: #eef2ed;
-  --border-subtle: rgba(40, 60, 48, 0.10);
-  --border-focus: rgba(61, 102, 84, 0.35);
-  --text-primary: #17211b;
-  --text-secondary: #49574f;
-  --text-muted: #7a8a81;
-  --accent-primary: #3d6654;
-  --accent-hover: #335546;
-  --accent-subtle: rgba(61, 102, 84, 0.10);
-  --accent-contrast: #ffffff;
-  --board-light: #f2f5ed;
-  --board-dark: #7d9985;
-  --shadow-card: 0 2px 10px -2px rgba(25, 45, 35, 0.05), 0 1px 3px rgba(25, 45, 35, 0.03);
-  --shadow-hover: 0 12px 30px -6px rgba(25, 45, 35, 0.10), 0 4px 12px -2px rgba(25, 45, 35, 0.05);
-}
-
-[data-theme="sage"][data-mode="dark"],
-:root:not([data-theme])[data-mode="dark"] {
-  --bg-canvas: #111613;
-  --bg-card: #18201b;
-  --bg-card-subtle: #202924;
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-focus: rgba(114, 169, 146, 0.40);
-  --text-primary: #ecf3ee;
-  --text-secondary: #a3b5aa;
-  --text-muted: #6d8074;
-  --accent-primary: #72a992;
-  --accent-hover: #85b8a2;
-  --accent-subtle: rgba(114, 169, 146, 0.15);
-  --accent-contrast: #0c1510;
-  --board-light: #dce4dc;
-  --board-dark: #476654;
-  --shadow-card: 0 2px 12px -2px rgba(0, 0, 0, 0.4);
-  --shadow-hover: 0 12px 32px -6px rgba(0, 0, 0, 0.6);
-}
-
-/* ==========================================================================
-   THEME 2: 🪨 NORDIC PERIWINKLE & MIST SLATE (Google Material 2026 / Sony Audio)
-   ========================================================================== */
-[data-theme="periwinkle"][data-mode="light"] {
+  /* Default theme: 🪨 Nordic Periwinkle Light */
   --bg-canvas: #f6f8fb;
   --bg-card: #ffffff;
   --bg-card-subtle: #edf1f7;
@@ -94,11 +28,48 @@
   --accent-contrast: #ffffff;
   --board-light: #eff3f9;
   --board-dark: #748cb4;
+  --board-bezel-bg: #e2eaf5;
+  --board-bezel-border: rgba(30, 50, 80, 0.12);
+  --board-coord-color: #516584;
+  --board-inner-border: rgba(30, 50, 80, 0.16);
+  --board-last-move: rgba(100, 135, 195, 0.32);
+  --board-legal-dot: rgba(66, 97, 153, 0.42);
   --shadow-card: 0 2px 10px -2px rgba(25, 35, 60, 0.05), 0 1px 3px rgba(25, 35, 60, 0.03);
   --shadow-hover: 0 12px 30px -6px rgba(25, 35, 60, 0.10), 0 4px 12px -2px rgba(25, 35, 60, 0.05);
 }
 
-[data-theme="periwinkle"][data-mode="dark"] {
+/* ==========================================================================
+   THEME 1: 🪨 NORDIC PERIWINKLE & MIST SLATE (Default - Google Material / Sony)
+   ========================================================================== */
+[data-theme="periwinkle"][data-mode="light"],
+:root:not([data-theme])[data-mode="light"],
+:root:not([data-theme]):not([data-mode]) {
+  --bg-canvas: #f6f8fb;
+  --bg-card: #ffffff;
+  --bg-card-subtle: #edf1f7;
+  --border-subtle: rgba(30, 50, 80, 0.10);
+  --border-focus: rgba(66, 97, 153, 0.35);
+  --text-primary: #111928;
+  --text-secondary: #424d62;
+  --text-muted: #738096;
+  --accent-primary: #426199;
+  --accent-hover: #365080;
+  --accent-subtle: rgba(66, 97, 153, 0.10);
+  --accent-contrast: #ffffff;
+  --board-light: #eff3f9;
+  --board-dark: #748cb4;
+  --board-bezel-bg: #e2eaf5;
+  --board-bezel-border: rgba(30, 50, 80, 0.12);
+  --board-coord-color: #516584;
+  --board-inner-border: rgba(30, 50, 80, 0.16);
+  --board-last-move: rgba(100, 135, 195, 0.32);
+  --board-legal-dot: rgba(66, 97, 153, 0.42);
+  --shadow-card: 0 2px 10px -2px rgba(25, 35, 60, 0.05), 0 1px 3px rgba(25, 35, 60, 0.03);
+  --shadow-hover: 0 12px 30px -6px rgba(25, 35, 60, 0.10), 0 4px 12px -2px rgba(25, 35, 60, 0.05);
+}
+
+[data-theme="periwinkle"][data-mode="dark"],
+:root:not([data-theme])[data-mode="dark"] {
   --bg-canvas: #0f131a;
   --bg-card: #161c27;
   --bg-card-subtle: #1f2736;
@@ -113,6 +84,65 @@
   --accent-contrast: #0a101d;
   --board-light: #dbe3ee;
   --board-dark: #475d82;
+  --board-bezel-bg: #121722;
+  --board-bezel-border: rgba(255, 255, 255, 0.08);
+  --board-coord-color: #8fa7cc;
+  --board-inner-border: rgba(0, 0, 0, 0.40);
+  --board-last-move: rgba(122, 152, 214, 0.30);
+  --board-legal-dot: rgba(165, 195, 255, 0.45);
+  --shadow-card: 0 2px 12px -2px rgba(0, 0, 0, 0.4);
+  --shadow-hover: 0 12px 32px -6px rgba(0, 0, 0, 0.6);
+}
+
+/* ==========================================================================
+   THEME 2: 🌿 ATELIER SAGE & CELADON (Apple Pro / Nordic Ceramics)
+   ========================================================================== */
+[data-theme="sage"][data-mode="light"] {
+  --bg-canvas: #f6f8f5;
+  --bg-card: #ffffff;
+  --bg-card-subtle: #eef2ed;
+  --border-subtle: rgba(40, 60, 48, 0.10);
+  --border-focus: rgba(61, 102, 84, 0.35);
+  --text-primary: #17211b;
+  --text-secondary: #49574f;
+  --text-muted: #7a8a81;
+  --accent-primary: #3d6654;
+  --accent-hover: #335546;
+  --accent-subtle: rgba(61, 102, 84, 0.10);
+  --accent-contrast: #ffffff;
+  --board-light: #f2f5ed;
+  --board-dark: #7d9985;
+  --board-bezel-bg: #e6ece4;
+  --board-bezel-border: rgba(35, 55, 45, 0.12);
+  --board-coord-color: #526b5c;
+  --board-inner-border: rgba(35, 55, 45, 0.18);
+  --board-last-move: rgba(90, 135, 105, 0.28);
+  --board-legal-dot: rgba(61, 102, 84, 0.40);
+  --shadow-card: 0 2px 10px -2px rgba(25, 45, 35, 0.05), 0 1px 3px rgba(25, 45, 35, 0.03);
+  --shadow-hover: 0 12px 30px -6px rgba(25, 45, 35, 0.10), 0 4px 12px -2px rgba(25, 45, 35, 0.05);
+}
+
+[data-theme="sage"][data-mode="dark"] {
+  --bg-canvas: #111613;
+  --bg-card: #18201b;
+  --bg-card-subtle: #202924;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-focus: rgba(114, 169, 146, 0.40);
+  --text-primary: #ecf3ee;
+  --text-secondary: #a3b5aa;
+  --text-muted: #6d8074;
+  --accent-primary: #72a992;
+  --accent-hover: #85b8a2;
+  --accent-subtle: rgba(114, 169, 146, 0.15);
+  --accent-contrast: #0c1510;
+  --board-light: #dce4dc;
+  --board-dark: #476654;
+  --board-bezel-bg: #131915;
+  --board-bezel-border: rgba(255, 255, 255, 0.08);
+  --board-coord-color: #82ad8e;
+  --board-inner-border: rgba(0, 0, 0, 0.35);
+  --board-last-move: rgba(114, 169, 146, 0.28);
+  --board-legal-dot: rgba(150, 210, 180, 0.45);
   --shadow-card: 0 2px 12px -2px rgba(0, 0, 0, 0.4);
   --shadow-hover: 0 12px 32px -6px rgba(0, 0, 0, 0.6);
 }
@@ -135,6 +165,12 @@
   --accent-contrast: #ffffff;
   --board-light: #f7f0e7;
   --board-dark: #a97061;
+  --board-bezel-bg: #ece5dc;
+  --board-bezel-border: rgba(65, 40, 30, 0.12);
+  --board-coord-color: #7a594d;
+  --board-inner-border: rgba(65, 40, 30, 0.18);
+  --board-last-move: rgba(170, 95, 75, 0.26);
+  --board-legal-dot: rgba(168, 84, 63, 0.40);
   --shadow-card: 0 2px 10px -2px rgba(50, 30, 20, 0.05), 0 1px 3px rgba(50, 30, 20, 0.03);
   --shadow-hover: 0 12px 30px -6px rgba(50, 30, 20, 0.10), 0 4px 12px -2px rgba(50, 30, 20, 0.05);
 }
@@ -154,20 +190,52 @@
   --accent-contrast: #180e0b;
   --board-light: #ebdcd4;
   --board-dark: #6e4338;
+  --board-bezel-bg: #171311;
+  --board-bezel-border: rgba(255, 255, 255, 0.08);
+  --board-coord-color: #c88d7b;
+  --board-inner-border: rgba(0, 0, 0, 0.35);
+  --board-last-move: rgba(200, 127, 93, 0.28);
+  --board-legal-dot: rgba(235, 160, 130, 0.45);
   --shadow-card: 0 2px 12px -2px rgba(0, 0, 0, 0.4);
   --shadow-hover: 0 12px 32px -6px rgba(0, 0, 0, 0.6);
 }
 
 /* ==========================================================================
-   GLOBAL BASE STYLING
+   GLOBAL BASE STYLING & TYPOGRAPHY
    ========================================================================== */
 body {
   background-color: var(--bg-canvas);
   color: var(--text-primary);
-  font-family: var(--font-geist-sans, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+  font-family: var(--font-ui, "Plus Jakarta Sans", var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+  letter-spacing: -0.011em;
   transition: background-color 220ms var(--ease-apple), color 220ms var(--ease-apple);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.font-mono, code, pre, kbd, samp {
+  font-family: var(--font-mono, "JetBrains Mono", var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace);
+  font-feature-settings: "tnum" on, "zero" on;
+}
+
+/* ==========================================================================
+   CHESSBOARD CRAFTSMANSHIP & PIECE DEPTH
+   ========================================================================== */
+/* Tactile piece drop-shadow and physical presence */
+[data-piece] img, 
+.react-chessboard img,
+div[data-board] img {
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.22));
+  transition: transform 140ms var(--ease-apple), filter 140ms var(--ease-apple);
+  user-select: none;
+}
+
+/* Elevated dragged piece */
+[data-piece][data-dragging="true"] img,
+.react-chessboard-dragging-piece img {
+  filter: drop-shadow(0 14px 24px rgba(0, 0, 0, 0.35)) !important;
+  transform: scale(1.08) !important;
+  cursor: grabbing !important;
 }
 
 /* ==========================================================================

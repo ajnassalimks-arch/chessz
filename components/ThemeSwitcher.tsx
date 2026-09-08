@@ -7,13 +7,13 @@ export type ThemePalette = "sage" | "periwinkle" | "terracotta";
 export type ThemeMode = "light" | "dark";
 
 export const THEME_BOARD_COLORS: Record<ThemePalette, Record<ThemeMode, { light: string; dark: string }>> = {
-  sage: {
-    light: { light: "#f2f5ed", dark: "#7d9985" },
-    dark: { light: "#dce4dc", dark: "#476654" },
-  },
   periwinkle: {
     light: { light: "#eff3f9", dark: "#748cb4" },
     dark: { light: "#dbe3ee", dark: "#475d82" },
+  },
+  sage: {
+    light: { light: "#f2f5ed", dark: "#7d9985" },
+    dark: { light: "#dce4dc", dark: "#476654" },
   },
   terracotta: {
     light: { light: "#f7f0e7", dark: "#a97061" },
@@ -22,8 +22,8 @@ export const THEME_BOARD_COLORS: Record<ThemePalette, Record<ThemeMode, { light:
 };
 
 export const THEME_NAMES: { id: ThemePalette; label: string; icon: string; desc: string }[] = [
+  { id: "periwinkle", label: "Periwinkle", icon: "🪨", desc: "Mist Slate (Default)" },
   { id: "sage", label: "Sage", icon: "🌿", desc: "Nordic Atelier" },
-  { id: "periwinkle", label: "Periwinkle", icon: "🪨", desc: "Mist Slate" },
   { id: "terracotta", label: "Terracotta", icon: "🏺", desc: "Kyoto Sand" },
 ];
 
@@ -32,14 +32,14 @@ interface ThemeSwitcherProps {
 }
 
 export function ThemeSwitcher({ onThemeChange }: ThemeSwitcherProps) {
-  const [theme, setTheme] = useState<ThemePalette>("sage");
+  const [theme, setTheme] = useState<ThemePalette>("periwinkle");
   const [mode, setMode] = useState<ThemeMode>("light");
   const [isMinimized, setIsMinimized] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    const savedTheme = (localStorage.getItem("chessz_theme") as ThemePalette) || "sage";
+    const savedTheme = (localStorage.getItem("chessz_theme") as ThemePalette) || "periwinkle";
     const savedMode = (localStorage.getItem("chessz_mode") as ThemeMode) || "light";
 
     setTheme(savedTheme);
@@ -91,7 +91,7 @@ export function ThemeSwitcher({ onThemeChange }: ThemeSwitcherProps) {
       <div
         className={`flex items-center gap-1.5 p-1.5 rounded-full border transition-all duration-300 shadow-2xl backdrop-blur-xl ${
           mode === "dark"
-            ? "bg-[#161a18]/90 border-white/10 text-white"
+            ? "bg-[#161c27]/90 border-white/10 text-white"
             : "bg-white/90 border-black/10 text-neutral-900"
         } ${isMinimized ? "p-1.5" : "px-2"}`}
       >

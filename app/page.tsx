@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Chess } from "chess.js";
 import { Chessboard, defaultArrowOptions } from "react-chessboard";
+import { ChessboardFrame } from "@/components/ChessboardFrame";
 import {
   Zap,
   RotateCcw,
@@ -382,6 +383,7 @@ export default function Home() {
   const [refutationInfo, setRefutationInfo] = useState<RefutationMove | null>(null);
   const [game, setGame] = useState<Chess | null>(null);
   const [boardWidth, setBoardWidth] = useState<number>(380);
+  const [bezelSize, setBezelSize] = useState<number>(24);
   const [status, setStatus] = useState<string>("White to move");
   const [streak, setStreak] = useState<number>(0);
   const [solvedCount, setSolvedCount] = useState<number>(0);
@@ -418,12 +420,12 @@ export default function Home() {
   const [isMuted, setIsMuted] = useState<boolean>(false);
 
   // Live Theme State & Board Synchronization
-  const [themePalette, setThemePalette] = useState<ThemePalette>("sage");
+  const [themePalette, setThemePalette] = useState<ThemePalette>("periwinkle");
   const [themeMode, setThemeMode] = useState<ThemeMode>("light");
 
   useEffect(() => {
     try {
-      const savedTheme = (localStorage.getItem("chessz_theme") as ThemePalette) || "sage";
+      const savedTheme = (localStorage.getItem("chessz_theme") as ThemePalette) || "periwinkle";
       const savedMode = (localStorage.getItem("chessz_mode") as ThemeMode) || "light";
       setThemePalette(savedTheme);
       setThemeMode(savedMode);
@@ -441,7 +443,7 @@ export default function Home() {
   }, []);
 
   const currentBoardColors =
-    THEME_BOARD_COLORS[themePalette]?.[themeMode] || THEME_BOARD_COLORS.sage.light;
+    THEME_BOARD_COLORS[themePalette]?.[themeMode] || THEME_BOARD_COLORS.periwinkle.light;
 
   // Load Session & Mute preferences from localStorage on mount
   useEffect(() => {
@@ -485,17 +487,22 @@ export default function Home() {
     const handleResize = () => {
       const width = window.innerWidth;
       const height = window.innerHeight;
+      const currentBezel = width < 640 ? 18 : 24;
+      setBezelSize(currentBezel);
+      const totalBezelMargin = currentBezel * 2;
+
       if (width < 768) {
         if (width < 440) {
-          setBoardWidth(width - 32);
+          // Keep playable board + outer bezel within mobile screen
+          setBoardWidth(Math.floor(width - 24 - totalBezelMargin));
         } else {
-          setBoardWidth(420);
+          setBoardWidth(360);
         }
       } else {
         // Desktop: board sized dynamically to fit viewport height with zero overflow
-        const maxVertical = Math.max(320, height - 120);
-        const maxHorizontal = Math.max(320, width - 440);
-        const optimalSize = Math.floor(Math.min(maxVertical, maxHorizontal, 580));
+        const maxVertical = Math.max(300, height - 130 - totalBezelMargin);
+        const maxHorizontal = Math.max(300, width - 450 - totalBezelMargin);
+        const optimalSize = Math.floor(Math.min(maxVertical, maxHorizontal, 520));
         setBoardWidth(optimalSize);
       }
     };
@@ -844,38 +851,38 @@ export default function Home() {
       };
     });
 
-    // 2. Last move highlight
+    // 2. Last move highlight (calm theme wash)
     if (lastMove) {
       styles[lastMove.from] = {
         ...styles[lastMove.from],
-        backgroundColor: "rgba(250, 204, 21, 0.28)",
+        backgroundColor: "var(--board-last-move, rgba(100, 135, 195, 0.30))",
       };
       styles[lastMove.to] = {
         ...styles[lastMove.to],
-        backgroundColor: "rgba(250, 204, 21, 0.38)",
+        backgroundColor: "var(--board-last-move, rgba(100, 135, 195, 0.38))",
       };
     }
 
-    // 3. Selected square highlight (warm gold)
+    // 3. Selected square highlight (refined accent inset ring)
     if (selectedSquare) {
       styles[selectedSquare] = {
-        backgroundColor: "rgba(250, 204, 21, 0.55)",
-        boxShadow: "inset 0 0 0 3px rgba(234, 179, 8, 0.9)",
+        backgroundColor: "var(--board-last-move, rgba(100, 135, 195, 0.35))",
+        boxShadow: "inset 0 0 0 2.5px var(--accent-primary, #426199)",
       };
     }
 
-    // 4. Legal moves dots and capture rings (emerald dot & crimson capture ring)
+    // 4. Legal moves dots and capture rings (calm dots & precision rings)
     legalMoves.forEach((move) => {
       if (move.captured) {
         styles[move.to] = {
           background:
-            "radial-gradient(circle, transparent 55%, rgba(239, 68, 68, 0.55) 56%, rgba(239, 68, 68, 0.8) 70%, transparent 71%)",
+            "radial-gradient(circle, transparent 52%, var(--accent-primary, #426199) 54%, var(--accent-primary, #426199) 68%, transparent 70%)",
           borderRadius: "50%",
         };
       } else {
         styles[move.to] = {
           background:
-            "radial-gradient(circle, rgba(16, 185, 129, 0.65) 24%, transparent 25%)",
+            "radial-gradient(circle, var(--board-legal-dot, rgba(66, 97, 153, 0.42)) 22%, transparent 24%)",
           borderRadius: "50%",
         };
       }
@@ -1448,19 +1455,21 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Chessboard Column (Left / Center) */}
+          {/* Chessboard Column (Left / Center) with Exterior ChessBase Bezel */}
           <div className="flex flex-col items-center justify-center shrink-0">
-            <div 
-              className="rounded-2xl overflow-hidden shadow-xl border theme-surface p-2 relative"
-              style={{ width: boardWidth + 16, height: boardWidth + 16 }}
-            >
-              {game && currentPuzzle && (
+            {game && currentPuzzle && (
+              <ChessboardFrame
+                boardOrientation={currentPuzzle.playerColor}
+                boardSize={boardWidth}
+                bezelSize={bezelSize}
+              >
                 <Chessboard
                   key={boardKey}
                   options={{
                     position: game.fen(),
                     boardOrientation: currentPuzzle.playerColor,
                     squareStyles: getCustomSquareStyles(),
+                    showNotation: false,
                     allowDrawingArrows: true,
                     clearArrowsOnClick: true,
                     arrowOptions: {
@@ -1495,11 +1504,11 @@ export default function Home() {
                     },
                     darkSquareStyle: { backgroundColor: currentBoardColors.dark },
                     lightSquareStyle: { backgroundColor: currentBoardColors.light },
-                    animationDurationInMs: 200,
+                    animationDurationInMs: 180,
                   }}
                 />
-              )}
-            </div>
+              </ChessboardFrame>
+            )}
           </div>
 
           {/* Mobile Only: Interactive Feedback Cards below board */}
@@ -1580,7 +1589,7 @@ export default function Home() {
           {/* Desktop Only: Dedicated Chessboard Sidebar Console */}
           <div 
             className="hidden md:flex flex-col justify-between w-80 lg:w-96 shrink-0 theme-surface rounded-2xl p-4 shadow-xl border overflow-y-auto"
-            style={{ height: boardWidth + 16 }}
+            style={{ height: boardWidth + bezelSize * 2 }}
           >
             {/* Top: HUD Stats & Track Switcher */}
             <div>

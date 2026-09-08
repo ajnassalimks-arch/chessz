@@ -26,18 +26,24 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      data-theme="sage"
+      data-theme="periwinkle"
       data-mode="light"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet"
+        />
         <script
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
                 try {
-                  var t = localStorage.getItem('chessz_theme') || 'sage';
+                  var t = localStorage.getItem('chessz_theme') || 'periwinkle';
                   var m = localStorage.getItem('chessz_mode') || 'light';
                   document.documentElement.setAttribute('data-theme', t);
                   document.documentElement.setAttribute('data-mode', m);
