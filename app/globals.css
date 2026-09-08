@@ -1,28 +1,281 @@
 @import "tailwindcss";
 
+/* ==========================================================================
+   CHESSZ 2026 DESIGN SYSTEM TOKENS
+   Palettes: 🌿 Sage | 🪨 Periwinkle | 🏺 Terracotta
+   Modes: Light | Dark
+   Motion: Apple cubic-bezier(0.16, 1, 0.3, 1)
+   ========================================================================== */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --ease-apple: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-micro: 150ms;
+  --duration-normal: 240ms;
+  --duration-reveal: 360ms;
+
+  /* Default theme: Sage Light */
+  --bg-canvas: #f6f8f5;
+  --bg-card: #ffffff;
+  --bg-card-subtle: #eef2ed;
+  --border-subtle: rgba(40, 60, 48, 0.10);
+  --border-focus: rgba(61, 102, 84, 0.35);
+  --text-primary: #17211b;
+  --text-secondary: #49574f;
+  --text-muted: #7a8a81;
+  --accent-primary: #3d6654;
+  --accent-hover: #335546;
+  --accent-subtle: rgba(61, 102, 84, 0.10);
+  --accent-contrast: #ffffff;
+  --board-light: #f2f5ed;
+  --board-dark: #7d9985;
+  --shadow-card: 0 2px 10px -2px rgba(25, 45, 35, 0.05), 0 1px 3px rgba(25, 45, 35, 0.03);
+  --shadow-hover: 0 12px 30px -6px rgba(25, 45, 35, 0.10), 0 4px 12px -2px rgba(25, 45, 35, 0.05);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ==========================================================================
+   THEME 1: 🌿 ATELIER SAGE & CELADON (Apple Pro / Nordic Ceramics)
+   ========================================================================== */
+[data-theme="sage"][data-mode="light"],
+:root:not([data-theme])[data-mode="light"],
+:root:not([data-theme]):not([data-mode]) {
+  --bg-canvas: #f6f8f5;
+  --bg-card: #ffffff;
+  --bg-card-subtle: #eef2ed;
+  --border-subtle: rgba(40, 60, 48, 0.10);
+  --border-focus: rgba(61, 102, 84, 0.35);
+  --text-primary: #17211b;
+  --text-secondary: #49574f;
+  --text-muted: #7a8a81;
+  --accent-primary: #3d6654;
+  --accent-hover: #335546;
+  --accent-subtle: rgba(61, 102, 84, 0.10);
+  --accent-contrast: #ffffff;
+  --board-light: #f2f5ed;
+  --board-dark: #7d9985;
+  --shadow-card: 0 2px 10px -2px rgba(25, 45, 35, 0.05), 0 1px 3px rgba(25, 45, 35, 0.03);
+  --shadow-hover: 0 12px 30px -6px rgba(25, 45, 35, 0.10), 0 4px 12px -2px rgba(25, 45, 35, 0.05);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+[data-theme="sage"][data-mode="dark"],
+:root:not([data-theme])[data-mode="dark"] {
+  --bg-canvas: #111613;
+  --bg-card: #18201b;
+  --bg-card-subtle: #202924;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-focus: rgba(114, 169, 146, 0.40);
+  --text-primary: #ecf3ee;
+  --text-secondary: #a3b5aa;
+  --text-muted: #6d8074;
+  --accent-primary: #72a992;
+  --accent-hover: #85b8a2;
+  --accent-subtle: rgba(114, 169, 146, 0.15);
+  --accent-contrast: #0c1510;
+  --board-light: #dce4dc;
+  --board-dark: #476654;
+  --shadow-card: 0 2px 12px -2px rgba(0, 0, 0, 0.4);
+  --shadow-hover: 0 12px 32px -6px rgba(0, 0, 0, 0.6);
+}
+
+/* ==========================================================================
+   THEME 2: 🪨 NORDIC PERIWINKLE & MIST SLATE (Google Material 2026 / Sony Audio)
+   ========================================================================== */
+[data-theme="periwinkle"][data-mode="light"] {
+  --bg-canvas: #f6f8fb;
+  --bg-card: #ffffff;
+  --bg-card-subtle: #edf1f7;
+  --border-subtle: rgba(30, 50, 80, 0.10);
+  --border-focus: rgba(66, 97, 153, 0.35);
+  --text-primary: #111928;
+  --text-secondary: #424d62;
+  --text-muted: #738096;
+  --accent-primary: #426199;
+  --accent-hover: #365080;
+  --accent-subtle: rgba(66, 97, 153, 0.10);
+  --accent-contrast: #ffffff;
+  --board-light: #eff3f9;
+  --board-dark: #748cb4;
+  --shadow-card: 0 2px 10px -2px rgba(25, 35, 60, 0.05), 0 1px 3px rgba(25, 35, 60, 0.03);
+  --shadow-hover: 0 12px 30px -6px rgba(25, 35, 60, 0.10), 0 4px 12px -2px rgba(25, 35, 60, 0.05);
+}
+
+[data-theme="periwinkle"][data-mode="dark"] {
+  --bg-canvas: #0f131a;
+  --bg-card: #161c27;
+  --bg-card-subtle: #1f2736;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-focus: rgba(122, 152, 214, 0.40);
+  --text-primary: #ebf0f8;
+  --text-secondary: #a2b1cb;
+  --text-muted: #687794;
+  --accent-primary: #7a98d6;
+  --accent-hover: #8ea8e2;
+  --accent-subtle: rgba(122, 152, 214, 0.15);
+  --accent-contrast: #0a101d;
+  --board-light: #dbe3ee;
+  --board-dark: #475d82;
+  --shadow-card: 0 2px 12px -2px rgba(0, 0, 0, 0.4);
+  --shadow-hover: 0 12px 32px -6px rgba(0, 0, 0, 0.6);
+}
+
+/* ==========================================================================
+   THEME 3: 🏺 KYOTO TERRACOTTA & WARM SAND (Sony Alpha / Kinfolk Editorial)
+   ========================================================================== */
+[data-theme="terracotta"][data-mode="light"] {
+  --bg-canvas: #f8f6f2;
+  --bg-card: #ffffff;
+  --bg-card-subtle: #f1ece4;
+  --border-subtle: rgba(70, 45, 35, 0.10);
+  --border-focus: rgba(168, 84, 63, 0.35);
+  --text-primary: #231a17;
+  --text-secondary: #574742;
+  --text-muted: #8a7771;
+  --accent-primary: #a8543f;
+  --accent-hover: #8f4432;
+  --accent-subtle: rgba(168, 84, 63, 0.10);
+  --accent-contrast: #ffffff;
+  --board-light: #f7f0e7;
+  --board-dark: #a97061;
+  --shadow-card: 0 2px 10px -2px rgba(50, 30, 20, 0.05), 0 1px 3px rgba(50, 30, 20, 0.03);
+  --shadow-hover: 0 12px 30px -6px rgba(50, 30, 20, 0.10), 0 4px 12px -2px rgba(50, 30, 20, 0.05);
+}
+
+[data-theme="terracotta"][data-mode="dark"] {
+  --bg-canvas: #151211;
+  --bg-card: #1d1816;
+  --bg-card-subtle: #28211e;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-focus: rgba(206, 118, 95, 0.40);
+  --text-primary: #f5ece7;
+  --text-secondary: #c2b1aa;
+  --text-muted: #85746e;
+  --accent-primary: #ce765f;
+  --accent-hover: #dd8a74;
+  --accent-subtle: rgba(206, 118, 95, 0.15);
+  --accent-contrast: #180e0b;
+  --board-light: #ebdcd4;
+  --board-dark: #6e4338;
+  --shadow-card: 0 2px 12px -2px rgba(0, 0, 0, 0.4);
+  --shadow-hover: 0 12px 32px -6px rgba(0, 0, 0, 0.6);
+}
+
+/* ==========================================================================
+   GLOBAL BASE STYLING
+   ========================================================================== */
+body {
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
+  font-family: var(--font-geist-sans, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+  transition: background-color 220ms var(--ease-apple), color 220ms var(--ease-apple);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ==========================================================================
+   KEYFRAME ANIMATIONS & TRANSITIONS
+   ========================================================================== */
+@keyframes cardEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@keyframes successPulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 var(--border-focus);
+  }
+  50% {
+    transform: scale(1.015);
+    box-shadow: 0 0 0 8px transparent;
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+@keyframes refutationNudge {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  20%, 60% {
+    transform: translateX(-4px);
+  }
+  40%, 80% {
+    transform: translateX(4px);
+  }
+}
+
+.animate-card-entrance {
+  animation: cardEntrance 380ms var(--ease-apple) both;
+}
+
+.animate-success-pulse {
+  animation: successPulse 450ms var(--ease-apple) forwards;
+}
+
+.animate-refutation-nudge {
+  animation: refutationNudge 280ms var(--ease-apple) forwards;
+}
+
+/* ==========================================================================
+   SEMANTIC UTILITY CLASSES FOR CLEAN THEMED COMPONENTS
+   ========================================================================== */
+.theme-surface {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-card);
+  transition: background-color 220ms var(--ease-apple), border-color 220ms var(--ease-apple), box-shadow 220ms var(--ease-apple), transform 220ms var(--ease-apple);
+}
+
+.theme-surface-hover:hover {
+  border-color: var(--border-focus);
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-2px);
+}
+
+.theme-surface-subtle {
+  background-color: var(--bg-card-subtle);
+  border: 1px solid var(--border-subtle);
+}
+
+.theme-text-primary {
+  color: var(--text-primary);
+}
+
+.theme-text-secondary {
+  color: var(--text-secondary);
+}
+
+.theme-text-muted {
+  color: var(--text-muted);
+}
+
+.theme-accent-btn {
+  background-color: var(--accent-primary);
+  color: var(--accent-contrast);
+  transition: background-color 150ms var(--ease-apple), transform 150ms var(--ease-apple), opacity 150ms var(--ease-apple);
+}
+
+.theme-accent-btn:hover {
+  background-color: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+.theme-accent-btn:active {
+  transform: scale(0.98);
+}
+
+.theme-pill {
+  background-color: var(--accent-subtle);
+  color: var(--accent-primary);
+  border: 1px solid var(--border-focus);
 }
 
 /* Arrow visual differentiation & contrast across highlighted squares */
