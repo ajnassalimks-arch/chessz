@@ -786,10 +786,10 @@ export default function DiagnosePage() {
             {/* Primary Action Button */}
             <button
               onClick={handleStartPersonalizedTraining}
-              className="w-full py-3 px-4 rounded-xl theme-accent-btn font-bold text-sm sm:text-base tracking-wide flex items-center justify-center gap-2 shadow-md transition-all duration-150 active:scale-[0.98] cursor-pointer mt-2"
+              className="group relative w-full py-3 px-4 rounded-xl theme-accent-btn font-bold text-sm sm:text-base tracking-wide flex items-center justify-center gap-2 shadow-md transition-all duration-200 active:scale-[0.98] cursor-pointer mt-2 animate-next-btn btn-shimmer-effect hover:-translate-y-0.5 hover:shadow-lg"
             >
-              <span>Start My Personalized Training</span>
-              <ArrowRight className="w-4 h-4" />
+              <span className="relative z-10">Start My Personalized Training</span>
+              <ArrowRight className="w-4 h-4 relative z-10 group-hover:translate-x-1.5 transition-transform duration-200 ease-out animate-arrow-nudge" />
             </button>
           </div>
         </section>
