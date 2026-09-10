@@ -691,10 +691,10 @@ export default function DiagnosePage() {
               {puzzleStatus === "success" && (
                 <button
                   onClick={handleProceedNext}
-                  className="w-full py-2.5 px-4 rounded-xl theme-accent-btn font-bold text-xs sm:text-sm tracking-wide flex items-center justify-center gap-2 shadow-sm transition-all duration-150 active:scale-[0.98] cursor-pointer"
+                  className="group relative w-full py-2.5 px-4 rounded-xl theme-accent-btn font-bold text-xs sm:text-sm tracking-wide flex items-center justify-center gap-2 shadow-sm transition-all duration-200 active:scale-[0.98] cursor-pointer animate-next-btn btn-shimmer-effect hover:-translate-y-0.5 hover:shadow-md"
                 >
-                  <span>{puzzleIndex === 2 ? "View Final Diagnosis" : "Next Puzzle"}</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <span className="relative z-10">{puzzleIndex === 2 ? "View Final Diagnosis" : "Next Puzzle"}</span>
+                  <ArrowRight className="w-4 h-4 relative z-10 group-hover:translate-x-1.5 transition-transform duration-200 ease-out animate-arrow-nudge" />
                 </button>
               )}
 

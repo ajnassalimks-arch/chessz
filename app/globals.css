@@ -292,6 +292,95 @@ div[data-board] img {
 }
 
 /* ==========================================================================
+   NEXT PUZZLE BUTTON ANIMATIONS (Linear / Apple Spring & Shimmer)
+   ========================================================================== */
+@keyframes nextBtnEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-2px) scale(1.018);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes shimmerSweep {
+  0% {
+    transform: translateX(-130%) skewX(-20deg);
+  }
+  45%, 100% {
+    transform: translateX(230%) skewX(-20deg);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 4px 14px -2px var(--accent-subtle), 0 0 0 1px var(--border-focus);
+  }
+  50% {
+    box-shadow: 0 6px 20px 0px var(--accent-subtle), 0 0 0 2px var(--accent-primary);
+  }
+}
+
+@keyframes subtleFloatArrow {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(3px);
+  }
+}
+
+.animate-next-btn {
+  animation: nextBtnEntrance 400ms cubic-bezier(0.16, 1, 0.3, 1) both,
+             pulseGlow 2.8s ease-in-out infinite 450ms;
+}
+
+.btn-shimmer-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-shimmer-effect::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0) 35%,
+    rgba(255, 255, 255, 0.28) 50%,
+    rgba(255, 255, 255, 0) 65%,
+    transparent 100%
+  );
+  animation: shimmerSweep 3.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  pointer-events: none;
+}
+
+[data-mode="dark"] .btn-shimmer-effect::after {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0) 35%,
+    rgba(255, 255, 255, 0.22) 50%,
+    rgba(255, 255, 255, 0) 65%,
+    transparent 100%
+  );
+}
+
+.animate-arrow-nudge {
+  animation: subtleFloatArrow 1.8s ease-in-out infinite;
+}
+
+/* ==========================================================================
    SEMANTIC UTILITY CLASSES FOR CLEAN THEMED COMPONENTS
    ========================================================================== */
 .theme-surface {

@@ -1617,10 +1617,10 @@ export default function Home() {
                   curriculumIndex < 4 ? (
                     <button
                       onClick={handleAdvanceCurriculum}
-                      className="w-full py-2.5 px-3 rounded-xl theme-accent-btn font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition shadow-sm cursor-pointer"
+                      className="group relative w-full py-2.5 px-3 rounded-xl theme-accent-btn font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all duration-200 shadow-sm cursor-pointer animate-next-btn btn-shimmer-effect hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]"
                     >
-                      <span>Next Curriculum Puzzle ({curriculumIndex + 2}/5)</span>
-                      <ArrowRight className="w-4 h-4" />
+                      <span className="relative z-10">Next Curriculum Puzzle ({curriculumIndex + 2}/5)</span>
+                      <ArrowRight className="w-4 h-4 relative z-10 group-hover:translate-x-1.5 transition-transform duration-200 ease-out animate-arrow-nudge" />
                     </button>
                   ) : (
                     <div className="space-y-2">
@@ -1634,20 +1634,20 @@ export default function Home() {
                       </div>
                       <button
                         onClick={continueToUnlimitedPractice}
-                        className="w-full py-2.5 px-3 rounded-xl theme-accent-btn font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition shadow-sm cursor-pointer"
+                        className="group relative w-full py-2.5 px-3 rounded-xl theme-accent-btn font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all duration-200 shadow-sm cursor-pointer animate-next-btn btn-shimmer-effect hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]"
                       >
-                        <span>Continue to Unlimited Practice</span>
-                        <Zap className="w-4 h-4 fill-current" />
+                        <span className="relative z-10">Continue to Unlimited Practice</span>
+                        <Zap className="w-4 h-4 fill-current relative z-10 group-hover:scale-110 transition-transform duration-200" />
                       </button>
                     </div>
                   )
                 ) : (
                   <button
                     onClick={() => nextPuzzle()}
-                    className="w-full py-2.5 px-3 rounded-xl theme-accent-btn font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition shadow-sm cursor-pointer"
+                    className="group relative w-full py-2.5 px-3 rounded-xl theme-accent-btn font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all duration-200 shadow-sm cursor-pointer animate-next-btn btn-shimmer-effect hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]"
                   >
-                    <span>Next Puzzle</span>
-                    <ArrowRight className="w-4 h-4" />
+                    <span className="relative z-10">Next Puzzle</span>
+                    <ArrowRight className="w-4 h-4 relative z-10 group-hover:translate-x-1.5 transition-transform duration-200 ease-out animate-arrow-nudge" />
                   </button>
                 )}
               </div>
@@ -1797,10 +1797,10 @@ export default function Home() {
                     curriculumIndex < 4 ? (
                       <button
                         onClick={handleAdvanceCurriculum}
-                        className="w-full py-2.5 px-3 rounded-xl theme-accent-btn font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition shadow-sm cursor-pointer hover:opacity-95"
+                        className="group relative w-full py-2.5 px-3 rounded-xl theme-accent-btn font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all duration-200 shadow-sm cursor-pointer animate-next-btn btn-shimmer-effect hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]"
                       >
-                        <span>Next Curriculum Puzzle ({curriculumIndex + 2}/5)</span>
-                        <ArrowRight className="w-4 h-4" />
+                        <span className="relative z-10">Next Curriculum Puzzle ({curriculumIndex + 2}/5)</span>
+                        <ArrowRight className="w-4 h-4 relative z-10 group-hover:translate-x-1.5 transition-transform duration-200 ease-out animate-arrow-nudge" />
                       </button>
                     ) : (
                       <div className="space-y-2">
@@ -1814,20 +1814,20 @@ export default function Home() {
                         </div>
                         <button
                           onClick={continueToUnlimitedPractice}
-                          className="w-full py-2.5 px-3 rounded-xl theme-accent-btn font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition shadow-sm cursor-pointer hover:opacity-95"
+                          className="group relative w-full py-2.5 px-3 rounded-xl theme-accent-btn font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all duration-200 shadow-sm cursor-pointer animate-next-btn btn-shimmer-effect hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]"
                         >
-                          <span>Continue to Unlimited Practice</span>
-                          <Zap className="w-4 h-4 fill-current" />
+                          <span className="relative z-10">Continue to Unlimited Practice</span>
+                          <Zap className="w-4 h-4 fill-current relative z-10 group-hover:scale-110 transition-transform duration-200" />
                         </button>
                       </div>
                     )
                   ) : (
                     <button
                       onClick={() => nextPuzzle()}
-                      className="w-full py-2.5 px-3 rounded-xl theme-accent-btn font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition shadow-sm cursor-pointer hover:opacity-95"
+                      className="group relative w-full py-2.5 px-3 rounded-xl theme-accent-btn font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all duration-200 shadow-sm cursor-pointer animate-next-btn btn-shimmer-effect hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]"
                     >
-                      <span>Next Puzzle</span>
-                      <ArrowRight className="w-4 h-4" />
+                      <span className="relative z-10">Next Puzzle</span>
+                      <ArrowRight className="w-4 h-4 relative z-10 group-hover:translate-x-1.5 transition-transform duration-200 ease-out animate-arrow-nudge" />
                     </button>
                   )}
                 </div>
