@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import { Chess } from "chess.js";
 import { Chessboard, defaultArrowOptions } from "react-chessboard";
 import { ChessboardFrame } from "@/components/ChessboardFrame";
@@ -418,6 +419,7 @@ export default function Home() {
   const [authStatusMessage, setAuthStatusMessage] = useState<string>("");
   const [shareCopied, setShareCopied] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(false);
+  const [savedDiagnosisProfile, setSavedDiagnosisProfile] = useState<any>(null);
 
   // Live Theme State & Board Synchronization
   const [themePalette, setThemePalette] = useState<ThemePalette>("periwinkle");
@@ -459,6 +461,16 @@ export default function Home() {
         const muted = JSON.parse(savedMute);
         setIsMuted(muted);
         sounds.setMuted(muted);
+      }
+      const savedDiag = localStorage.getItem("chessz_diagnosis_profile");
+      if (savedDiag) {
+        const parsed = JSON.parse(savedDiag);
+        setSavedDiagnosisProfile(parsed);
+        if (typeof window !== "undefined" && window.location.search.includes("source=diagnosis")) {
+          window.history.replaceState({}, document.title, window.location.pathname);
+          const targetLevel = LEVEL_OPTIONS.find((l) => l.id === parsed.tierId) || LEVEL_OPTIONS[2];
+          handleStartDiagnosedTraining(parsed, targetLevel);
+        }
       }
     } catch {}
   }, []);
@@ -558,6 +570,37 @@ export default function Home() {
     setCurriculumCompleted(false);
     const starter = DIAGNOSTIC_PUZZLES[level.starterPuzzleId] || DIAGNOSTIC_PUZZLES["beginner_1a"];
     loadPuzzle(starter);
+  };
+
+  // Start Personalized Training from Diagnosis Profile
+  const handleStartDiagnosedTraining = (profile: any, level: LevelOption) => {
+    setSelectedLevel(level);
+    setCalibratedRating(profile.finalElo || level.approxRating);
+    setIsQuizActive(false);
+    setIsAnalyzing(false);
+    setShowDiagnosisModal(false);
+    setIsCalibrated(true);
+    setIsCurriculumActive(true);
+    setCurriculumIndex(0);
+    setCurriculumCompleted(false);
+
+    const matching = CONTINUOUS_PUZZLES.filter((p) => p.tier === level.id);
+    const playlist = matching.length >= 5 ? matching.slice(0, 5) : CONTINUOUS_PUZZLES.slice(0, 5);
+    setCoachDiagnosis({
+      archetypeTitle: profile.behavioralPattern || "The Calibrated Player",
+      headline: `Diagnosed Level: ${profile.finalLevel}`,
+      ruleTitle: "Personalized Training Regimen",
+      ruleBody: `Behavioral Pattern: ${profile.behavioralPattern}. Focus on ${profile.weakness} to unlock your next rating milestone.`,
+      targetFocus: profile.weakness || "Tactical Precision",
+      leakName: profile.weakness || "Tactical Verification",
+      leakDetail: profile.weakness || "Verification of candidate ideas under time pressure",
+      strategicAntidote: `Strength: ${profile.strength}. Channel this into systematic candidate checks.`,
+      composureTip: "Take a 2-second pause before touching a piece to verify safety.",
+      starterPuzzleId: playlist[0]?.id || "beginner_1a",
+      personalizedSummary: profile.insightShown || "Based on how you calculate under pressure, this curriculum is tailored for you.",
+      curatedPlaylist: playlist,
+    });
+    loadPuzzle(playlist[0]);
   };
 
   // Answer a Question in the 4-Question Quiz
@@ -1105,7 +1148,7 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Action 1: The 1-Minute Diagnostic Hook Card */}
+          {/* Action 1: The Level Diagnosis Benchmark Card */}
           <div className="w-full max-w-3xl mb-3">
             <div className="relative rounded-2xl p-4 sm:p-5 theme-surface theme-surface-hover shadow-md overflow-hidden group">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 relative z-10">
@@ -1115,26 +1158,51 @@ export default function Home() {
                   </div>
                   <div>
                     <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md theme-pill text-[10px] font-bold uppercase tracking-wider mb-1">
-                      <span>4-Question Diagnostic</span>
+                      <span>3-Puzzle Benchmark</span>
                       <span>•</span>
-                      <span>Mathematical Calibration</span>
+                      <span>Under 2.5 Minutes</span>
                     </div>
                     <h3 className="text-sm sm:text-base font-bold theme-text-primary">
-                      Diagnose Your Exact Rating & Hidden Leaks
+                      Diagnose My Level
                     </h3>
                     <p className="text-xs theme-text-secondary mt-0.5 max-w-lg leading-relaxed">
-                      Answer 4 simple questions. Our algorithm calculates your rating and curates a custom 5-puzzle prescription.
+                      3 rapid tactical puzzles + cognitive commitment test. Discover your true FIDE/Lichess level and unlock your personalized training.
                     </p>
+                    {savedDiagnosisProfile && (
+                      <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] font-mono">
+                        <span className="px-2 py-0.5 rounded theme-surface-subtle font-bold theme-text-primary border">
+                          ✓ Diagnosed: {savedDiagnosisProfile.finalLevel}
+                        </span>
+                        <span className="theme-text-muted">
+                          Pattern: {savedDiagnosisProfile.behavioralPattern}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                <button
-                  onClick={startDiagnosticQuiz}
-                  className="w-full sm:w-auto shrink-0 px-4 py-2.5 rounded-xl theme-accent-btn font-bold text-xs sm:text-sm tracking-wide flex items-center justify-center gap-2 shadow-sm transition-all duration-150 active:scale-[0.98] cursor-pointer"
-                >
-                  <span>Start Diagnostic</span>
-                  <ChevronRight className="w-4 h-4" />
-                </button>
+                <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto shrink-0">
+                  {savedDiagnosisProfile && (
+                    <button
+                      onClick={() => {
+                        const targetLevel =
+                          LEVEL_OPTIONS.find((l) => l.id === savedDiagnosisProfile.tierId) ||
+                          LEVEL_OPTIONS[2];
+                        handleStartDiagnosedTraining(savedDiagnosisProfile, targetLevel);
+                      }}
+                      className="w-full sm:w-auto px-3.5 py-2.5 rounded-xl theme-surface hover:theme-surface-subtle font-bold text-xs sm:text-sm tracking-wide border transition cursor-pointer"
+                    >
+                      <span>Start Training</span>
+                    </button>
+                  )}
+                  <Link
+                    href="/diagnose"
+                    className="w-full sm:w-auto px-4 py-2.5 rounded-xl theme-accent-btn font-bold text-xs sm:text-sm tracking-wide flex items-center justify-center gap-2 shadow-sm transition-all duration-150 active:scale-[0.98] cursor-pointer"
+                  >
+                    <span>{savedDiagnosisProfile ? "Retake Diagnosis" : "Diagnose My Level"}</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </Link>
+                </div>
               </div>
             </div>
           </div>

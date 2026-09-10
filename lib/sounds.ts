@@ -126,6 +126,10 @@ class ChessAudio {
       });
     } catch {}
   }
+
+  playSuccess() {
+    this.playVictory();
+  }
 }
 
 export const sounds = new ChessAudio();
