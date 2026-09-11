@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Chess } from "chess.js";
 import { Chessboard, defaultArrowOptions } from "react-chessboard";
@@ -555,10 +556,17 @@ export default function DiagnosePage() {
         <div className="flex items-center gap-2.5">
           <Link
             href="/"
-            className="w-7 h-7 rounded-xl flex items-center justify-center font-black text-xs theme-accent-btn shadow-xs cursor-pointer hover:opacity-90"
+            className="w-7 h-7 rounded-xl overflow-hidden shrink-0 border border-[var(--border-subtle)] shadow-xs bg-[#0b0f17] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity"
             title="ChessZ Home"
           >
-            Z
+            <Image
+              src="/logo-icon.png"
+              alt="ChessZ Logo"
+              width={28}
+              height={28}
+              className="w-full h-full object-cover"
+              priority
+            />
           </Link>
           <span className="font-extrabold text-sm sm:text-base tracking-tight theme-text-primary">
             ChessZ

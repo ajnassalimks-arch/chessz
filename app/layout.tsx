@@ -1,16 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://chesszapp.vercel.app"),
@@ -39,6 +28,10 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
   },
+  icons: {
+    icon: "/icon.png",
+    apple: "/apple-icon.png",
+  },
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -46,11 +39,20 @@ export const metadata: Metadata = {
     siteName: "ChessZ",
     title: "ChessZ — Free Offline Chess Tactics & Level Diagnosis",
     description: "Discover your true chess level in 3 diagnostic puzzles. 100% offline, zero paywalls, FIDE coach telemetry.",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1024,
+        height: 1024,
+        alt: "ChessZ — Master Identity",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "ChessZ — Free Offline Chess Tactics & Level Diagnosis",
     description: "Discover your true chess level in 3 diagnostic puzzles. 100% offline, zero paywalls, FIDE coach telemetry.",
+    images: ["/og-image.jpg"],
   },
   robots: {
     index: true,
@@ -75,7 +77,7 @@ export default function RootLayout({
       lang="en"
       data-theme="periwinkle"
       data-mode="light"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className="h-full antialiased"
       suppressHydrationWarning
     >
       <head>
