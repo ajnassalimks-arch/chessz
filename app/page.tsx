@@ -29,7 +29,8 @@ import {
   Share2,
   Check,
   Volume2,
-  VolumeX
+  VolumeX,
+  Settings
 } from "lucide-react";
 import {
   DIAGNOSTIC_PUZZLES,
@@ -47,6 +48,7 @@ import {
   ThemePalette,
   ThemeMode,
 } from "@/components/ThemeSwitcher";
+import { SettingsModal } from "@/components/SettingsModal";
 
 interface CoachDiagnosis {
   archetypeTitle: string;
@@ -415,6 +417,7 @@ export default function Home() {
   // Modals (Save Progress & Credits)
   const [showSaveModal, setShowSaveModal] = useState<boolean>(false);
   const [showCreditsModal, setShowCreditsModal] = useState<boolean>(false);
+  const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
   const [emailInput, setEmailInput] = useState<string>("");
   const [authStatusMessage, setAuthStatusMessage] = useState<string>("");
   const [shareCopied, setShareCopied] = useState<boolean>(false);
@@ -1081,18 +1084,29 @@ export default function Home() {
         </div>
 
         <div className="flex items-center gap-1.5">
-          {/* Sound Mute/Unmute Toggle */}
+          {/* Mute Toggle */}
           <button
             onClick={toggleMute}
-            className="p-1.5 rounded-xl theme-surface theme-surface-hover text-xs transition cursor-pointer"
-            title={isMuted ? "Unmute sound" : "Mute sound"}
-            aria-label={isMuted ? "Unmute sound" : "Mute sound"}
+            className="w-8 h-8 rounded-xl theme-surface theme-surface-hover flex items-center justify-center cursor-pointer transition border"
+            title={isMuted ? "Unmute Sound" : "Mute Sound"}
+            aria-label={isMuted ? "Unmute Sound" : "Mute Sound"}
           >
             {isMuted ? (
               <VolumeX className="w-4 h-4 opacity-50" />
             ) : (
               <Volume2 className="w-4 h-4 text-[var(--accent-primary)]" />
             )}
+          </button>
+
+          {/* Settings & Theme Studio Button */}
+          <button
+            onClick={() => setShowSettingsModal(true)}
+            className="flex items-center gap-1.5 text-[11px] font-mono font-semibold theme-surface theme-surface-hover px-2.5 py-1.5 rounded-xl cursor-pointer transition border"
+            title="Settings & Theme Studio"
+            aria-label="Settings and themes"
+          >
+            <Settings className="w-3.5 h-3.5 text-[var(--accent-primary)]" />
+            <span className="hidden sm:inline">Settings</span>
           </button>
 
           {isCalibrated && (
@@ -1542,18 +1556,23 @@ export default function Home() {
                     clearArrowsOnClick: true,
                     arrowOptions: {
                       ...defaultArrowOptions,
-                      opacity: 0.95,
-                      activeOpacity: 0.85,
                       colors: {
-                        default: "var(--accent-primary)",
-                        shift: "#06b6d4",
+                        default: "#10b981",
+                        shift: "#0284c7",
                         ctrl: "#ef4444",
                         alt: "#f59e0b",
-                        meta: "#ef4444",
+                        meta: "#8b5cf6",
                       },
-                      color: "var(--accent-primary)",
-                      secondaryColor: "#06b6d4",
+                      color: "#10b981",
+                      secondaryColor: "#0284c7",
                       tertiaryColor: "#ef4444",
+                      opacity: 0.88,
+                      activeOpacity: 0.95,
+                      arrowStartOffset: 0.18,
+                      arrowLengthReducerDenominator: 2.8,
+                      sameTargetArrowLengthReducerDenominator: 3.2,
+                      arrowWidthDenominator: 5.5,
+                      activeArrowWidthMultiplier: 1.15,
                     },
                     onSquareClick: ({ square }) => handleSquareClick({ square }),
                     onSquareRightClick: ({ square }) => handleSquareRightClick({ square }),
@@ -1966,6 +1985,12 @@ export default function Home() {
           Credits & License
         </button>
       </footer>
+
+      {/* Settings & Theme Studio Modal */}
+      <SettingsModal
+        isOpen={showSettingsModal}
+        onClose={() => setShowSettingsModal(false)}
+      />
     </main>
   );
 }

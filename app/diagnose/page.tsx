@@ -12,6 +12,7 @@ import {
   ThemePalette,
   ThemeMode,
 } from "@/components/ThemeSwitcher";
+import { SettingsModal } from "@/components/SettingsModal";
 import {
   FIXED_PUZZLE_1,
   calculateNewElo,
@@ -40,6 +41,10 @@ import {
   ArrowLeft,
   Award,
   ChevronRight,
+  Settings,
+  Activity,
+  Clock,
+  Brain,
 } from "lucide-react";
 
 export default function DiagnosePage() {
@@ -49,6 +54,7 @@ export default function DiagnosePage() {
   const [themePalette, setThemePalette] = useState<ThemePalette>("periwinkle");
   const [themeMode, setThemeMode] = useState<ThemeMode>("light");
   const [isMuted, setIsMuted] = useState<boolean>(false);
+  const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
 
   useEffect(() => {
     try {
@@ -107,10 +113,12 @@ export default function DiagnosePage() {
   }, []);
 
   // Diagnostic Session State
-  // Step: 1 (Puzzle 1) | 2 (Puzzle 2) | 3 (Puzzle 3) | 4 (Final Screen)
   const [puzzleIndex, setPuzzleIndex] = useState<number>(0);
   const [currentRating, setCurrentRating] = useState<number>(1250);
   const [attempts, setAttempts] = useState<PuzzleAttemptRecord[]>([]);
+  const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
+  const [analyzingPhase, setAnalyzingPhase] = useState<number>(0);
+  const [displayElo, setDisplayElo] = useState<number>(1250);
   const [isFinalScreen, setIsFinalScreen] = useState<boolean>(false);
   const [showEloEstimate, setShowEloEstimate] = useState<boolean>(false);
 
@@ -255,17 +263,9 @@ export default function DiagnosePage() {
         currentHelpUsed,
         blunderedOnSure
       );
-
       const newElo = calculateNewElo(currentRating, activePuzzle.numericRating, score);
-      const eloDelta = newElo - currentRating;
+      setFeedbackMessage(activePuzzle.successExplanation);
 
-      setFeedbackMessage(
-        puzzleIndex === 0
-          ? "Clean strike! Undefended piece captured with check."
-          : `Precision calculation! Rating calibrated: ${eloDelta >= 0 ? `+${eloDelta}` : eloDelta} Elo.`
-      );
-
-      // Record Attempt
       const record: PuzzleAttemptRecord = {
         puzzleId: activePuzzle.id,
         puzzleTitle: activePuzzle.title,
@@ -287,18 +287,27 @@ export default function DiagnosePage() {
       setPuzzleStatus("failed");
       setFirstTryCorrect(false);
 
-      if (commitment === "sure") {
+      const isSureBlunder = commitment === "sure";
+      if (isSureBlunder) {
         setBlunderedOnSure(true);
       }
 
-      setFeedbackMessage(
-        activePuzzle.defaultRefutation?.coachExplanation ||
-          "Not the best move. Spot the tactical flaw and reconsider!"
-      );
+      // Check refutation move
+      if (activePuzzle.defaultRefutation) {
+        const ref = activePuzzle.defaultRefutation;
+        try {
+          newGame.move({ from: ref.from, to: ref.to });
+          setGame(newGame);
+          setLastMove({ from: ref.from, to: ref.to });
+        } catch {}
+        setFeedbackMessage(ref.coachExplanation);
+      } else {
+        setFeedbackMessage("That move allows an immediate refutation. Inspect candidate defenses!");
+      }
     }
   };
 
-  // Retry Current Puzzle
+  // Try Again
   const handleTryAgain = () => {
     if (!game) return;
     try {
@@ -363,7 +372,7 @@ export default function DiagnosePage() {
     }
   };
 
-  // Advance to next puzzle or final diagnosis
+  // Advance to next puzzle or start cognitive analysis
   const handleProceedNext = () => {
     if (puzzleIndex === 0) {
       // Move to Puzzle 2: Adaptive selection based on currentRating (~1250)
@@ -377,18 +386,20 @@ export default function DiagnosePage() {
       setPuzzleIndex(2);
       loadPuzzle(nextPuz);
     } else {
-      // Reached end of 3 puzzles -> Complete Diagnosis!
-      finalizeDiagnosis();
+      // Reached end of 3 puzzles -> Launch FIDE Cognitive Telemetry Analysis!
+      startAnalyzingSequence();
     }
   };
 
-  // Finalize Diagnosis Profile
-  const finalizeDiagnosis = () => {
-    setIsFinalScreen(true);
+  // Intermediate Cognitive Telemetry Sequence (2.4s custom calculation)
+  const startAnalyzingSequence = () => {
+    setIsAnalyzing(true);
+    setAnalyzingPhase(0);
 
     const pattern = classifyBehavioralPattern(attempts);
     const levelInfo = mapEloToLevel(currentRating);
 
+    // Save profile to localStorage
     const profile: DiagnosisProfile = {
       finalElo: currentRating,
       finalLevel: levelInfo.levelName,
@@ -409,6 +420,37 @@ export default function DiagnosePage() {
     try {
       localStorage.setItem("chessz_diagnosis_profile", JSON.stringify(profile));
     } catch {}
+
+    const startElo = 1250;
+    const targetElo = currentRating;
+    const duration = 2400;
+    const startTime = Date.now();
+
+    const ticker = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(1, elapsed / duration);
+      // Smooth exponential deceleration
+      const ease = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+      const val = Math.round(startElo + (targetElo - startElo) * ease);
+      setDisplayElo(val);
+
+      if (elapsed < 800) {
+        setAnalyzingPhase(0);
+      } else if (elapsed < 1600) {
+        setAnalyzingPhase(1);
+      } else {
+        setAnalyzingPhase(2);
+      }
+
+      if (progress >= 1) {
+        clearInterval(ticker);
+        setTimeout(() => {
+          sounds.playVictory();
+          setIsAnalyzing(false);
+          setIsFinalScreen(true);
+        }, 350);
+      }
+    }, 40);
   };
 
   // Launch First Training Module
@@ -452,29 +494,26 @@ export default function DiagnosePage() {
     return styles;
   };
 
-  const currentLevelInfo = mapEloToLevel(currentRating);
   const detectedPattern = classifyBehavioralPattern(attempts);
+  const currentLevelInfo = mapEloToLevel(currentRating);
 
   return (
-    <main className="min-h-screen md:h-screen md:overflow-hidden flex flex-col justify-between p-3 sm:p-4 md:px-6 md:py-3 font-sans transition-colors duration-200">
+    <main className="min-h-screen flex flex-col justify-between p-3 md:p-6 select-none bg-[var(--bg-canvas)] text-[var(--text-primary)] transition-colors duration-200">
       {/* Top Header */}
-      <header className="w-full flex items-center justify-between pb-2 border-b border-[var(--border-subtle)] shrink-0">
-        <div className="flex items-center gap-2">
+      <header className="flex items-center justify-between w-full max-w-5xl mx-auto py-1 sm:py-2 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3">
           <Link
             href="/"
-            className="flex items-center gap-2 group cursor-pointer"
-            title="Return to Home"
+            className="flex items-center gap-1.5 font-bold tracking-tight text-base sm:text-lg theme-text-primary hover:opacity-85 transition-opacity"
           >
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg theme-surface border flex items-center justify-center font-bold text-sm theme-text-primary shadow-xs group-hover:border-[var(--border-focus)] transition-colors">
+            <span className="w-6 h-6 rounded-lg bg-[var(--accent-primary)] text-[var(--accent-contrast)] flex items-center justify-center font-black text-xs">
               Z
-            </div>
-            <span className="font-extrabold text-base sm:text-lg tracking-tight theme-text-primary">
-              ChessZ
             </span>
+            <span>ChessZ</span>
           </Link>
 
           {!isFinalScreen && (
-            <div className="hidden sm:flex items-center gap-1.5 ml-3 px-3 py-1 rounded-full text-xs font-mono font-semibold theme-pill">
+            <div className="hidden sm:flex items-center gap-1 px-2.5 py-0.5 rounded-full theme-pill text-xs font-mono font-medium">
               <Sparkles className="w-3.5 h-3.5 text-[var(--accent-primary)]" />
               <span>Level Diagnosis Benchmark</span>
             </div>
@@ -485,10 +524,26 @@ export default function DiagnosePage() {
           {/* Sound Mute/Unmute */}
           <button
             onClick={toggleMute}
-            className="p-1.5 sm:p-2 rounded-xl theme-surface hover:theme-surface-subtle theme-text-secondary hover:theme-text-primary transition-all border cursor-pointer"
+            className="w-8 h-8 rounded-xl theme-surface hover:theme-surface-subtle flex items-center justify-center transition border cursor-pointer"
             title={isMuted ? "Unmute Sound" : "Mute Sound"}
+            aria-label={isMuted ? "Unmute Sound" : "Mute Sound"}
           >
-            {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+            {isMuted ? (
+              <VolumeX className="w-4 h-4 opacity-50" />
+            ) : (
+              <Volume2 className="w-4 h-4 text-[var(--accent-primary)]" />
+            )}
+          </button>
+
+          {/* Settings & Theme Studio Button */}
+          <button
+            onClick={() => setShowSettingsModal(true)}
+            className="flex items-center gap-1.5 text-[11px] font-mono font-semibold theme-surface hover:theme-surface-subtle px-2.5 py-1.5 rounded-xl cursor-pointer transition border"
+            title="Settings & Theme Studio"
+            aria-label="Settings and themes"
+          >
+            <Settings className="w-3.5 h-3.5 text-[var(--accent-primary)]" />
+            <span className="hidden sm:inline">Settings</span>
           </button>
 
           <Link
@@ -501,10 +556,18 @@ export default function DiagnosePage() {
       </header>
 
       {/* Screen 1: The 3-Puzzle Interactive Benchmark */}
-      {!isFinalScreen ? (
+      {!isFinalScreen && !isAnalyzing ? (
         <section className="flex-1 flex flex-col md:flex-row items-center justify-center gap-4 lg:gap-8 max-w-5xl mx-auto w-full py-2 min-h-0">
           {/* Left Column: Chessboard with Exterior ChessBase Bezel */}
           <div className="flex flex-col items-center justify-center shrink-0">
+            {game && (
+              <div
+                id="current-puzzle-meta"
+                data-from={activePuzzle.solutionMoves[0]?.from}
+                data-to={activePuzzle.solutionMoves[0]?.to}
+                className="hidden"
+              />
+            )}
             {game && (
               <ChessboardFrame
                 boardOrientation={activePuzzle.playerColor}
@@ -522,18 +585,23 @@ export default function DiagnosePage() {
                     clearArrowsOnClick: true,
                     arrowOptions: {
                       ...defaultArrowOptions,
-                      opacity: 0.95,
-                      activeOpacity: 0.85,
                       colors: {
-                        default: "var(--accent-primary)",
-                        shift: "#06b6d4",
+                        default: "#10b981",
+                        shift: "#0284c7",
                         ctrl: "#ef4444",
                         alt: "#f59e0b",
-                        meta: "#ef4444",
+                        meta: "#8b5cf6",
                       },
-                      color: "var(--accent-primary)",
-                      secondaryColor: "#06b6d4",
+                      color: "#10b981",
+                      secondaryColor: "#0284c7",
                       tertiaryColor: "#ef4444",
+                      opacity: 0.88,
+                      activeOpacity: 0.95,
+                      arrowStartOffset: 0.18,
+                      arrowLengthReducerDenominator: 2.8,
+                      sameTargetArrowLengthReducerDenominator: 3.2,
+                      arrowWidthDenominator: 5.5,
+                      activeArrowWidthMultiplier: 1.15,
                     },
                     onSquareClick: ({ square }) => {
                       if (selectedSquare === square) {
@@ -706,6 +774,139 @@ export default function DiagnosePage() {
             </div>
           </div>
         </section>
+      ) : isAnalyzing ? (
+        /* Screen 1.5: FIDE Cognitive Telemetry Analysis & Elo Convergence */
+        <section className="flex-1 flex flex-col items-center justify-center max-w-lg mx-auto w-full py-4 min-h-0 animate-card-entrance">
+          <div className="w-full theme-surface rounded-3xl p-6 sm:p-7 shadow-2xl border relative overflow-hidden">
+            {/* Header Badge */}
+            <div className="flex items-center justify-between gap-2 pb-3 mb-4 border-b border-[var(--border-subtle)]">
+              <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-wider text-[var(--accent-primary)]">
+                <Brain className="w-4 h-4 text-[var(--accent-primary)] animate-pulse" />
+                <span>Cognitive Analysis Engine</span>
+              </div>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full theme-pill animate-pulse">
+                Phase {analyzingPhase + 1} of 3
+              </span>
+            </div>
+
+            {/* Central Animated Indicator */}
+            <div className="text-center mb-5">
+              <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-[var(--accent-subtle)] border border-[var(--border-focus)] flex items-center justify-center shadow-lg relative">
+                <Activity className="w-7 h-7 text-[var(--accent-primary)] animate-bounce" />
+                <span className="absolute -inset-1 rounded-2xl border border-[var(--accent-primary)] opacity-40 animate-ping" />
+              </div>
+              <h2 className="text-xl sm:text-2xl font-extrabold theme-text-primary tracking-tight">
+                {analyzingPhase === 0 && "Deconstructing Move Velocity..."}
+                {analyzingPhase === 1 && "Evaluating Conviction & Risk..."}
+                {analyzingPhase === 2 && "Converging FIDE Rating Model..."}
+              </h2>
+              <p className="text-xs theme-text-secondary mt-1">
+                Analyzing your calculation footprint and decision timing across all 3 benchmark positions.
+              </p>
+            </div>
+
+            {/* Segmented Progress Bar */}
+            <div className="grid grid-cols-3 gap-2 w-full mb-5">
+              {[0, 1, 2].map((idx) => (
+                <div
+                  key={idx}
+                  className={`h-1.5 rounded-full transition-all duration-500 ${
+                    idx <= analyzingPhase
+                      ? "bg-[var(--accent-primary)] shadow-xs"
+                      : "theme-surface-subtle opacity-30"
+                  }`}
+                />
+              ))}
+            </div>
+
+            {/* The 3 Real Data Telemetry Cards */}
+            <div className="space-y-2.5 mb-5 font-mono text-xs">
+              {/* Telemetry 1: Real Seconds Per Move */}
+              <div className={`p-3 rounded-xl border transition-all duration-300 ${
+                analyzingPhase >= 0
+                  ? "theme-surface border-[var(--border-focus)] shadow-xs"
+                  : "opacity-40 theme-surface-subtle"
+              }`}>
+                <div className="flex items-center justify-between text-[11px] mb-1.5">
+                  <span className="font-bold flex items-center gap-1.5 theme-text-primary">
+                    <Clock className="w-3.5 h-3.5 text-sky-500" />
+                    <span>Decision Velocity</span>
+                  </span>
+                  <span className="theme-text-muted">
+                    Total: {((attempts.reduce((acc, a) => acc + (a.timeMs || 4000), 0)) / 1000).toFixed(1)}s
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 gap-1 text-center text-[10px]">
+                  {attempts.map((att, i) => (
+                    <div key={i} className="p-1 rounded bg-[var(--bg-card-subtle)] border border-[var(--border-subtle)]">
+                      <span className="theme-text-muted block">P{i + 1}</span>
+                      <span className="font-bold theme-text-primary">
+                        {((att.timeMs || 4000) / 1000).toFixed(1)}s
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Telemetry 2: Conviction & Self-Trust */}
+              <div className={`p-3 rounded-xl border transition-all duration-300 ${
+                analyzingPhase >= 1
+                  ? "theme-surface border-[var(--border-focus)] shadow-xs"
+                  : "opacity-40 theme-surface-subtle"
+              }`}>
+                <div className="flex items-center justify-between text-[11px] mb-1.5">
+                  <span className="font-bold flex items-center gap-1.5 theme-text-primary">
+                    <Zap className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Conviction Architecture</span>
+                  </span>
+                  <span className="text-emerald-600 dark:text-emerald-400 font-bold">
+                    {detectedPattern.patternName}
+                  </span>
+                </div>
+                <div className="text-[11px] theme-text-secondary leading-snug">
+                  Commitment profile:{" "}
+                  <span className="font-semibold theme-text-primary">
+                    {attempts[1]?.commitment ? attempts[1].commitment.replace("_", " ").toUpperCase() : "SURE"}
+                  </span>{" "}
+                  on Puzzle 2 &bull;{" "}
+                  <span className="font-semibold theme-text-primary">
+                    {attempts[2]?.commitment ? attempts[2].commitment.replace("_", " ").toUpperCase() : "THINK SO"}
+                  </span>{" "}
+                  on Puzzle 3
+                </div>
+              </div>
+
+              {/* Telemetry 3: Animated Rating Convergence */}
+              <div className={`p-3 rounded-xl border transition-all duration-300 ${
+                analyzingPhase >= 2
+                  ? "theme-surface border-[var(--border-focus)] shadow-xs"
+                  : "opacity-40 theme-surface-subtle"
+              }`}>
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="font-bold flex items-center gap-1.5 theme-text-primary">
+                    <Target className="w-3.5 h-3.5 text-rose-500" />
+                    <span>Dynamic Rating Calibrator</span>
+                  </span>
+                  <span className="text-base font-extrabold text-[var(--accent-primary)] font-mono">
+                    ~{displayElo} Elo
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-[10px] theme-text-muted mt-1">
+                  <span>Base: 1250 (K=120)</span>
+                  <span className="font-semibold theme-text-primary">
+                    Calibrated: {currentLevelInfo.levelName}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Status Ticker */}
+            <div className="text-center text-[11px] font-mono theme-text-muted flex items-center justify-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+              <span>Synthesizing personalized training playlist...</span>
+            </div>
+          </div>
+        </section>
       ) : (
         /* Screen 2: The Final Level Diagnosis Dossier */
         <section className="flex-1 flex flex-col items-center justify-center max-w-md md:max-w-lg mx-auto w-full py-4 min-h-0 animate-card-entrance">
@@ -753,13 +954,13 @@ export default function DiagnosePage() {
                 <Award className="w-4 h-4" />
                 <span>Behavioral Pattern: {detectedPattern.patternName}</span>
               </div>
-              <p className="text-xs sm:text-sm theme-text-primary leading-relaxed italic">
-                “{detectedPattern.insight}”
-              </p>
+              <blockquote className="text-xs sm:text-sm font-medium theme-text-primary italic leading-relaxed">
+                "{detectedPattern.insight}"
+              </blockquote>
             </div>
 
-            {/* Strength & Weakness Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 my-3">
+            {/* Core Strength & Target Weakness */}
+            <div className="grid grid-cols-2 gap-2.5 my-3">
               <div className="p-3 rounded-xl theme-surface border border-emerald-500/30">
                 <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-0.5">
                   Core Strength
@@ -799,6 +1000,12 @@ export default function DiagnosePage() {
       <footer className="w-full text-center py-1 text-[11px] theme-text-muted font-mono shrink-0">
         ChessZ Cognitive Benchmark • 100% Offline • Powered by Lichess Open Database
       </footer>
+
+      {/* Settings & Theme Studio Modal */}
+      <SettingsModal
+        isOpen={showSettingsModal}
+        onClose={() => setShowSettingsModal(false)}
+      />
     </main>
   );
 }

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -60,7 +59,6 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col selection:bg-neutral-300 dark:selection:bg-neutral-700">
         {children}
-        <ThemeSwitcher />
       </body>
     </html>
   );
