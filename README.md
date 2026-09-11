@@ -3,7 +3,7 @@
 > **"Why Pay ₹1,500/yr For Diamond? Unlimited Training • No Subscription Needed."**  
 > Built by FIDE rated coaches at Premier Chess Academy (PCA), Ernakulam.
 
-[![Live Production](https://img.shields.io/badge/Production-Live%20on%20Vercel-emerald)](https://chessz-eight.vercel.app/)
+[![Live Production](https://img.shields.io/badge/Production-Live%20on%20Vercel-emerald)](https://chesszapp.vercel.app/)
 [![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-blue.svg)](https://creativecommons.org/licenses/by/4.0/)
 [![Framework: Next.js 16](https://img.shields.io/badge/Framework-Next.js%2016-black)](https://nextjs.org/)
 [![Database: Supabase](https://img.shields.io/badge/Database-Supabase%20Free%20Tier-green)](https://supabase.com/)
@@ -11,7 +11,7 @@
 ---
 
 ## 🌐 Live URLs & Links
-* **Production App:** [https://chessz-eight.vercel.app/](https://chessz-eight.vercel.app/)
+* **Production App:** [https://chesszapp.vercel.app/](https://chesszapp.vercel.app/)
 * **GitHub Repository:** [https://github.com/ajnassalimks-arch/chessz](https://github.com/ajnassalimks-arch/chessz)
 
 ---
