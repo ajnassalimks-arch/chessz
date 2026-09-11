@@ -16,6 +16,7 @@ import { SettingsModal } from "@/components/SettingsModal";
 import {
   FIXED_PUZZLE_1,
   calculateNewElo,
+  evaluatePuzzle1Move,
   mapEloToLevel,
   selectAdaptivePuzzle,
   computeMoveScore,
@@ -199,81 +200,20 @@ export default function DiagnosePage() {
 
     if (!moveResult) return false;
 
-    // PUZZLE 1 (Légal's Trap): Special trap detection and 2-step combo
+    // PUZZLE 1: Multi-Branch Tactical Benchmark (Unbiased Diagnostic Engine)
     if (puzzleIndex === 0) {
-      const isTrapBlunder =
-        (from === "h5" && to === "d1") ||
-        (activePuzzle.defaultRefutation &&
-          from === activePuzzle.defaultRefutation.from &&
-          to === activePuzzle.defaultRefutation.to);
+      if (solutionStepIndex === 0) {
+        const evalResult = evaluatePuzzle1Move(from, to, currentRating);
 
-      if (isTrapBlunder) {
-        // Player grabbed the poisoned Queen!
-        sounds.playRefutation();
-        setPuzzleStatus("failed");
-        setFirstTryCorrect(false);
+        if (evalResult.branchType === "best") {
+          // Player played 1... Nxe5! Master move
+          sounds.playMove();
+          const nextGame = new Chess(game.fen());
+          nextGame.move({ from, to, promotion: "q" });
+          setGame(nextGame);
+          setLastMove({ from, to });
+          setFeedbackMessage(evalResult.coachFeedback);
 
-        const bGame = new Chess(game.fen());
-        bGame.move({ from, to, promotion: "q" });
-        setGame(bGame);
-        setLastMove({ from, to });
-
-        // Animate the famous checkmate refutation (2. Bxf7+ Ke7 3. Nd5#)
-        setTimeout(() => {
-          try {
-            const ref1 = new Chess(bGame.fen());
-            ref1.move({ from: "c4", to: "f7" }); // Bxf7+
-            ref1.move({ from: "e8", to: "e7" }); // Ke7
-            setGame(ref1);
-            sounds.playMove();
-
-            setTimeout(() => {
-              try {
-                const ref2 = new Chess(ref1.fen());
-                ref2.move({ from: "c3", to: "d5" }); // Nd5# Checkmate!
-                setGame(ref2);
-                sounds.playRefutation();
-                setLastMove({ from: "c3", to: "d5" });
-              } catch {}
-            }, 600);
-          } catch {}
-        }, 500);
-
-        const newElo = calculateNewElo(currentRating, activePuzzle.numericRating, 0, true);
-        setCurrentRating(newElo);
-        setFeedbackMessage(activePuzzle.defaultRefutation.coachExplanation);
-
-        const record: PuzzleAttemptRecord = {
-          puzzleId: activePuzzle.id,
-          puzzleTitle: activePuzzle.title,
-          rating: activePuzzle.numericRating,
-          userEloBefore: currentRating,
-          userEloAfter: newElo,
-          score: 0,
-          commitment: null,
-          helpUsed: "none",
-          firstTryCorrect: false,
-          timeMs: Date.now() - puzzleStartTimeRef.current,
-          moveSan: moveResult.san,
-        };
-        setAttempts((prev) => [...prev, record]);
-        return true;
-      }
-
-      // Check if player played the correct solution step
-      const currentStep = activePuzzle.solutionMoves[solutionStepIndex];
-      const isBest = currentStep && currentStep.from === from && currentStep.to === to;
-
-      if (isBest) {
-        sounds.playMove();
-        const nextGame = new Chess(game.fen());
-        nextGame.move({ from, to, promotion: "q" });
-        setGame(nextGame);
-        setLastMove({ from, to });
-
-        if (solutionStepIndex === 0) {
-          // Step 1: 1... Nxe5! White replies with 2. Qxh5
-          setFeedbackMessage("Accurate! You neutralized the mating knight. White recaptures on h5...");
           setTimeout(() => {
             try {
               const replyGame = new Chess(nextGame.fen());
@@ -285,10 +225,82 @@ export default function DiagnosePage() {
               setFeedbackMessage("Now complete the combination: capture White's bishop on c4!");
             } catch {}
           }, 500);
-        } else {
-          // Step 2: 2... Nxc4! Combo completed!
+          return true;
+        }
+
+        // Branch: blunder_trap, inaccurate_recapture, or threat_missed
+        sounds.playRefutation();
+        setPuzzleStatus("failed");
+        setFirstTryCorrect(false);
+        setFeedbackMessage(evalResult.coachFeedback);
+
+        const bGame = new Chess(game.fen());
+        bGame.move({ from, to, promotion: "q" });
+        setGame(bGame);
+        setLastMove({ from, to });
+
+        if (evalResult.branchType === "blunder_trap" || evalResult.branchType === "threat_missed") {
+          // Animate the checkmate refutation (2. Bxf7+ Ke7 3. Nd5#)
+          setTimeout(() => {
+            try {
+              const ref1 = new Chess(bGame.fen());
+              ref1.move({ from: "c4", to: "f7" }); // Bxf7+
+              ref1.move({ from: "e8", to: "e7" }); // Ke7
+              setGame(ref1);
+              sounds.playMove();
+
+              setTimeout(() => {
+                try {
+                  const ref2 = new Chess(ref1.fen());
+                  ref2.move({ from: "c3", to: "d5" }); // Nd5# Checkmate!
+                  setGame(ref2);
+                  sounds.playRefutation();
+                  setLastMove({ from: "c3", to: "d5" });
+                } catch {}
+              }, 600);
+            } catch {}
+          }, 500);
+        } else if (evalResult.branchType === "inaccurate_recapture") {
+          // Animate 2. Qxh5 winning the bishop
+          setTimeout(() => {
+            try {
+              const refGame = new Chess(bGame.fen());
+              refGame.move({ from: "d1", to: "h5" }); // 2. Qxh5
+              setGame(refGame);
+              sounds.playRefutation();
+              setLastMove({ from: "d1", to: "h5" });
+            } catch {}
+          }, 500);
+        }
+
+        const newElo = evalResult.calibratedElo;
+        setCurrentRating(newElo);
+
+        const record: PuzzleAttemptRecord = {
+          puzzleId: activePuzzle.id,
+          puzzleTitle: activePuzzle.title,
+          rating: activePuzzle.numericRating,
+          userEloBefore: currentRating,
+          userEloAfter: newElo,
+          score: evalResult.score,
+          commitment: null,
+          helpUsed: "none",
+          firstTryCorrect: false,
+          timeMs: Date.now() - puzzleStartTimeRef.current,
+          moveSan: moveResult.san,
+        };
+        setAttempts((prev) => [...prev, record]);
+        return true;
+      } else {
+        // Step 2 of winning combination: 2... Nxc4!
+        if (from === "e5" && to === "c4") {
           sounds.playSuccess();
+          const nextGame = new Chess(game.fen());
+          nextGame.move({ from, to, promotion: "q" });
+          setGame(nextGame);
+          setLastMove({ from, to });
           setPuzzleStatus("success");
+
           const newElo = calculateNewElo(currentRating, activePuzzle.numericRating, 1.0);
           setCurrentRating(newElo);
           setFeedbackMessage(activePuzzle.successExplanation);
@@ -307,15 +319,12 @@ export default function DiagnosePage() {
             moveSan: moveResult.san,
           };
           setAttempts((prev) => [...prev, record]);
+          return true;
+        } else {
+          sounds.playRefutation();
+          setFeedbackMessage("White's bishop on c4 is undefended! Play 2... Nxc4! to win the piece.");
+          return false;
         }
-        return true;
-      } else {
-        // Wrong move on Puzzle 1
-        sounds.playRefutation();
-        setPuzzleStatus("failed");
-        setFirstTryCorrect(false);
-        setFeedbackMessage("Incorrect move. White's knight on e5 threatens Bxf7+ checkmate! Find the move that eliminates the threat.");
-        return false;
       }
     }
 
@@ -786,7 +795,7 @@ export default function DiagnosePage() {
                 </div>
                 <span className="text-[11px] font-mono theme-text-muted">
                   {puzzleIndex === 0
-                    ? "Poisoned Bait Radar"
+                    ? "Tactical Benchmark"
                     : `Adaptive Calibration`}
                 </span>
               </div>
@@ -896,6 +905,13 @@ export default function DiagnosePage() {
                       <Eye className="w-3 h-3" />
                     </button>
                   </div>
+                  <button
+                    onClick={handleProceedNext}
+                    className="w-full mt-2 py-1.5 px-3 rounded-lg theme-surface hover:theme-surface-subtle border font-semibold text-xs theme-text-secondary flex items-center justify-center gap-1.5 transition cursor-pointer"
+                  >
+                    <span>Continue to Next Puzzle</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               )}
             </div>

@@ -44,16 +44,24 @@ export interface DiagnosisProfile {
 
 // Fixed Puzzle 1: The Immortal Légal's Queen-Bait Trap (~1350 FIDE Benchmark)
 // White has sacrificed the Queen with Nxe5! Black must reject the poisoned Queen on d1 and play 1... Nxe5!
+export interface Puzzle1BranchResult {
+  branchType: "best" | "blunder_trap" | "inaccurate_recapture" | "threat_missed";
+  score: number;
+  coachFeedback: string;
+  calibratedElo: number;
+  refutationMoves?: { from: string; to: string; san: string }[];
+}
+
 export const FIXED_PUZZLE_1: ChessPuzzle = {
   id: "trap_legal_queen_bait",
   lichessId: "legal_1750",
   tier: "intermediate",
   track: "tactical",
-  title: "Level Calibrator 1: The Poisoned Queen Trap",
-  ratingBadge: "Master Trap: ~1350",
+  title: "Tactical Benchmark: Opening Awareness",
+  ratingBadge: "Benchmark 1",
   initialFen: "r2qkbnr/ppp2ppp/2np4/4N2b/2B1P3/2N4P/PPPP1PP1/R1BQK2R b KQkq - 0 6",
   playerColor: "black",
-  prompt: "Black to move: White has jumped their knight to e5, leaving their Queen on d1 completely undefended. Is that Queen really free to take, or is it a lethal trap? Calculate the critical line!",
+  prompt: "Black to move: White just played 6. Nxe5. Find the strongest tactical move for Black.",
   ruleTitle: "The Poisoned Bait Rule",
   ruleBody: "When an opponent leaves a major piece undefended, stop! Calculate forcing counter-attacks before touching the bait.",
   solutionMoves: [
@@ -82,10 +90,66 @@ export const FIXED_PUZZLE_1: ChessPuzzle = {
     from: "h5",
     to: "d1",
     san: "Bxd1",
-    coachExplanation: "Tactical Trap! The Queen on d1 was poisoned bait. Taking it walked straight into 2. Bxf7+ Ke7 3. Nd5# (Checkmate)!"
+    coachExplanation: "Tactical Trap! Capturing the Queen on d1 walked into Légal's famous trap. White delivers forced checkmate with 2. Bxf7+ Ke7 3. Nd5# (Checkmate)!"
   },
-  successExplanation: "Masterclass Calculation! You saw right through the famous Légal's Trap. Instead of falling for the poisoned Queen on d1, you eliminated the key attacker on e5 and won a full piece!"
+  successExplanation: "Masterclass Calculation! You saw right through White's trap. Instead of taking the bait on d1, you eliminated the key attacker on e5, parried the checkmate threat, and won White's bishop on c4 (+3.5 piece advantage)!"
 };
+
+/**
+ * Evaluates any move made in Puzzle 1 across all 4 tactical branches
+ */
+export function evaluatePuzzle1Move(from: string, to: string, currentRating: number = 1250): Puzzle1BranchResult {
+  // 1. Masterclass Winning Move: 1... Nxe5! (c6 -> e5)
+  if (from === "c6" && to === "e5") {
+    return {
+      branchType: "best",
+      score: 1.0,
+      calibratedElo: calculateNewElo(currentRating, 1350, 1.0),
+      coachFeedback: "Masterclass Calculation! You neutralized the mating knight on e5. White recaptures on h5...",
+    };
+  }
+
+  // 2. Fatal Trap Blunder: 1... Bxd1?? (h5 -> d1)
+  if (from === "h5" && to === "d1") {
+    return {
+      branchType: "blunder_trap",
+      score: 0.0,
+      calibratedElo: 820,
+      coachFeedback: "Tactical Trap! Capturing the Queen on d1 walked straight into Légal's famous trap. White delivers forced checkmate with 2. Bxf7+ Ke7 3. Nd5# (Checkmate)!",
+      refutationMoves: [
+        { from: "c4", to: "f7", san: "Bxf7+" },
+        { from: "e8", to: "e7", san: "Ke7" },
+        { from: "c3", to: "d5", san: "Nd5#" }
+      ]
+    };
+  }
+
+  // 3. Inaccurate Recapture: 1... dxe5? (d6 -> e5)
+  if (from === "d6" && to === "e5") {
+    return {
+      branchType: "inaccurate_recapture",
+      score: 0.35,
+      calibratedElo: 1080,
+      coachFeedback: "Inaccurate Recapture: 1... dxe5 parries the checkmate, but leaves your bishop on h5 undefended. White plays 2. Qxh5 winning a piece! 1... Nxe5! was the master move, eliminating the threat while defending your bishop.",
+      refutationMoves: [
+        { from: "d1", to: "h5", san: "Qxh5" }
+      ]
+    };
+  }
+
+  // 4. Any other passive move (e.g. Be7, h6, etc.)
+  return {
+    branchType: "threat_missed",
+    score: 0.0,
+    calibratedElo: 850,
+    coachFeedback: "Threat Missed: White's knight on e5 threatens immediate checkmate with 2. Bxf7+ Ke7 3. Nd5#. You must eliminate the attacking knight with 1... Nxe5!",
+    refutationMoves: [
+      { from: "c4", to: "f7", san: "Bxf7+" },
+      { from: "e8", to: "e7", san: "Ke7" },
+      { from: "c3", to: "d5", san: "Nd5#" }
+    ]
+  };
+}
 
 /**
  * Elo Rating Calculation
