@@ -435,8 +435,14 @@ export default function DiagnosePage() {
       loadPuzzle(nextPuz);
     } else if (puzzleIndex === 1) {
       // Move to Puzzle 3: Adaptive selection based on updated rating
+      const p2Sure = attempts[1]?.commitment === "sure" && attempts[1]?.firstTryCorrect;
+      const p1Clean = attempts[0]?.firstTryCorrect;
+      const target = (p1Clean && p2Sure && currentRating >= 1600)
+        ? Math.max(currentRating, 1850)
+        : currentRating;
+
       const excluded = [FIXED_PUZZLE_1.id, activePuzzle.id];
-      const nextPuz = selectAdaptivePuzzle(currentRating, excluded);
+      const nextPuz = selectAdaptivePuzzle(target, excluded);
       setPuzzleIndex(2);
       loadPuzzle(nextPuz);
     } else {
@@ -946,7 +952,7 @@ export default function DiagnosePage() {
               {/* Optional Show Estimated Elo Toggle */}
               <div className="mt-2 flex items-center justify-center gap-2">
                 {showEloEstimate ? (
-                  <span className="text-xs font-mono font-bold px-3 py-1 rounded-full theme-pill animate-in fade-in duration-150">
+                  <span id="diagnosed-elo-badge" className="text-xs font-mono font-bold px-3 py-1 rounded-full theme-pill animate-in fade-in duration-150">
                     Estimated Elo: ~{currentRating}
                   </span>
                 ) : (

@@ -121,7 +121,7 @@ export function evaluatePuzzle1Move(from: string, to: string, currentRating: num
       score: 1.0,
       userMoveSan: "1... Nxe5",
       bestMoveSan: "1... Nxe5! 2. Qxh5 Nxc4!",
-      calibratedElo: calculateNewElo(currentRating, 1350, 1.0),
+      calibratedElo: 1480, // High-performance tactical baseline anchor
       coachFeedback: "Masterclass Calculation: You saw through the poisoned Queen trap on d1, neutralized White's f7 checkmate threat by eliminating the knight on e5, and followed up by capturing White's bishop on c4 (+3.5 advantage).",
       ruleTitle,
       ruleBody,
@@ -198,14 +198,19 @@ export function calculateNewElo(
 ): number {
   if (isBlunderOnTrap) {
     // Falling for an elementary opening trap routes to the Beginner bracket (<900)
-    return Math.min(880, Math.round(userRating - 320));
+    return Math.min(880, Math.round(userRating - 370));
   }
 
-  // Dynamic K-factor to allow full calibration range (800 - 2050) across 3 puzzles
-  let K = 140;
-  if (score >= 0.9) K = 180;
-  else if (score >= 0.8) K = 150;
-  else if (score <= 0.2) K = 160;
+  // Dynamic K-factor to allow full calibration range (600 - 2100) across 3 puzzles
+  let K = 160;
+  if (score >= 0.95) {
+    // High conviction + accurate: accelerate climb to allow High Intermediate and Advanced tiers
+    K = userRating >= 1650 ? 320 : 270;
+  } else if (score >= 0.8) {
+    K = 180;
+  } else if (score <= 0.2) {
+    K = 220;
+  }
 
   const expected = 1 / (1 + Math.pow(10, (puzzleRating - userRating) / 400));
   const newRating = userRating + K * (score - expected);
