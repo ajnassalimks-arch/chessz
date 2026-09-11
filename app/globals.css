@@ -8,6 +8,7 @@
    ========================================================================== */
 
 :root {
+  color-scheme: light;
   --ease-apple: cubic-bezier(0.16, 1, 0.3, 1);
   --duration-micro: 150ms;
   --duration-normal: 240ms;
@@ -464,5 +465,112 @@ svg[viewBox*="2048"] marker polygon {
 [data-mode="dark"] svg[viewBox*="2048"] path[marker-end],
 [data-mode="dark"] svg[viewBox*="2048"] marker polygon {
   filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.55));
+}
+
+/* ==========================================================================
+   COLOR SCHEME & LUXURY CUSTOM SCROLLBAR (Apple / Linear / Raycast Studio)
+   ========================================================================== */
+[data-mode="dark"],
+:root:not([data-theme])[data-mode="dark"],
+[data-theme][data-mode="dark"] {
+  color-scheme: dark;
+}
+
+[data-mode="light"],
+:root:not([data-theme])[data-mode="light"],
+[data-theme][data-mode="light"] {
+  color-scheme: light;
+}
+
+/* Universal sleek scrollbars across all modern browsers */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+}
+
+[data-mode="light"] * {
+  scrollbar-color: rgba(0, 0, 0, 0.22) transparent;
+}
+
+/* WebKit / Chromium / Edge / Safari / Chrome */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.22);
+  border-radius: 9999px;
+  transition: background-color 160ms var(--ease-apple);
+}
+
+[data-mode="light"] ::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.22);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.45);
+}
+
+[data-mode="light"] ::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.42);
+}
+
+/* Remove clunky Windows arrow buttons completely */
+::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent !important;
+}
+
+/* Dedicated .custom-scrollbar class for card surfaces and scroll containers */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+}
+
+[data-mode="light"] .custom-scrollbar {
+  scrollbar-color: rgba(0, 0, 0, 0.25) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.25);
+  border-radius: 9999px;
+  transition: background-color 160ms var(--ease-apple);
+}
+
+[data-mode="light"] .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.25);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.50);
+}
+
+[data-mode="light"] .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.45);
+}
+
+.custom-scrollbar::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
