@@ -122,11 +122,12 @@ export default function DiagnosePage() {
   const [isFinalScreen, setIsFinalScreen] = useState<boolean>(false);
   const [showEloEstimate, setShowEloEstimate] = useState<boolean>(false);
 
-  // Active Puzzle & Chess.js State
+  // Active Puzzle & Multi-Step Solution State
   const [activePuzzle, setActivePuzzle] = useState<ChessPuzzle & { numericRating: number }>(() => ({
     ...FIXED_PUZZLE_1,
-    numericRating: 881,
+    numericRating: 1350,
   }));
+  const [solutionStepIndex, setSolutionStepIndex] = useState<number>(0);
   const [game, setGame] = useState<Chess | null>(null);
   const [boardKey, setBoardKey] = useState<number>(0);
 
@@ -157,6 +158,7 @@ export default function DiagnosePage() {
       const g = new Chess(puzzle.initialFen);
       setGame(g);
       setActivePuzzle(puzzle);
+      setSolutionStepIndex(0);
       setBoardKey((prev) => prev + 1);
       setSelectedSquare(null);
       setLastMove(null);
@@ -197,18 +199,131 @@ export default function DiagnosePage() {
 
     if (!moveResult) return false;
 
-    sounds.playMove();
+    // PUZZLE 1 (Légal's Trap): Special trap detection and 2-step combo
+    if (puzzleIndex === 0) {
+      const isTrapBlunder =
+        (from === "h5" && to === "d1") ||
+        (activePuzzle.defaultRefutation &&
+          from === activePuzzle.defaultRefutation.from &&
+          to === activePuzzle.defaultRefutation.to);
 
+      if (isTrapBlunder) {
+        // Player grabbed the poisoned Queen!
+        sounds.playRefutation();
+        setPuzzleStatus("failed");
+        setFirstTryCorrect(false);
+
+        const bGame = new Chess(game.fen());
+        bGame.move({ from, to, promotion: "q" });
+        setGame(bGame);
+        setLastMove({ from, to });
+
+        // Animate the famous checkmate refutation (2. Bxf7+ Ke7 3. Nd5#)
+        setTimeout(() => {
+          try {
+            const ref1 = new Chess(bGame.fen());
+            ref1.move({ from: "c4", to: "f7" }); // Bxf7+
+            ref1.move({ from: "e8", to: "e7" }); // Ke7
+            setGame(ref1);
+            sounds.playMove();
+
+            setTimeout(() => {
+              try {
+                const ref2 = new Chess(ref1.fen());
+                ref2.move({ from: "c3", to: "d5" }); // Nd5# Checkmate!
+                setGame(ref2);
+                sounds.playRefutation();
+                setLastMove({ from: "c3", to: "d5" });
+              } catch {}
+            }, 600);
+          } catch {}
+        }, 500);
+
+        const newElo = calculateNewElo(currentRating, activePuzzle.numericRating, 0, true);
+        setCurrentRating(newElo);
+        setFeedbackMessage(activePuzzle.defaultRefutation.coachExplanation);
+
+        const record: PuzzleAttemptRecord = {
+          puzzleId: activePuzzle.id,
+          puzzleTitle: activePuzzle.title,
+          rating: activePuzzle.numericRating,
+          userEloBefore: currentRating,
+          userEloAfter: newElo,
+          score: 0,
+          commitment: null,
+          helpUsed: "none",
+          firstTryCorrect: false,
+          timeMs: Date.now() - puzzleStartTimeRef.current,
+          moveSan: moveResult.san,
+        };
+        setAttempts((prev) => [...prev, record]);
+        return true;
+      }
+
+      // Check if player played the correct solution step
+      const currentStep = activePuzzle.solutionMoves[solutionStepIndex];
+      const isBest = currentStep && currentStep.from === from && currentStep.to === to;
+
+      if (isBest) {
+        sounds.playMove();
+        const nextGame = new Chess(game.fen());
+        nextGame.move({ from, to, promotion: "q" });
+        setGame(nextGame);
+        setLastMove({ from, to });
+
+        if (solutionStepIndex === 0) {
+          // Step 1: 1... Nxe5! White replies with 2. Qxh5
+          setFeedbackMessage("Accurate! You neutralized the mating knight. White recaptures on h5...");
+          setTimeout(() => {
+            try {
+              const replyGame = new Chess(nextGame.fen());
+              replyGame.move({ from: "d1", to: "h5" }); // 2. Qxh5
+              setGame(replyGame);
+              setLastMove({ from: "d1", to: "h5" });
+              sounds.playMove();
+              setSolutionStepIndex(1);
+              setFeedbackMessage("Now complete the combination: capture White's bishop on c4!");
+            } catch {}
+          }, 500);
+        } else {
+          // Step 2: 2... Nxc4! Combo completed!
+          sounds.playSuccess();
+          setPuzzleStatus("success");
+          const newElo = calculateNewElo(currentRating, activePuzzle.numericRating, 1.0);
+          setCurrentRating(newElo);
+          setFeedbackMessage(activePuzzle.successExplanation);
+
+          const record: PuzzleAttemptRecord = {
+            puzzleId: activePuzzle.id,
+            puzzleTitle: activePuzzle.title,
+            rating: activePuzzle.numericRating,
+            userEloBefore: currentRating,
+            userEloAfter: newElo,
+            score: 1.0,
+            commitment: null,
+            helpUsed: currentHelpUsed,
+            firstTryCorrect,
+            timeMs: Date.now() - puzzleStartTimeRef.current,
+            moveSan: moveResult.san,
+          };
+          setAttempts((prev) => [...prev, record]);
+        }
+        return true;
+      } else {
+        // Wrong move on Puzzle 1
+        sounds.playRefutation();
+        setPuzzleStatus("failed");
+        setFirstTryCorrect(false);
+        setFeedbackMessage("Incorrect move. White's knight on e5 threatens Bxf7+ checkmate! Find the move that eliminates the threat.");
+        return false;
+      }
+    }
+
+    // PUZZLE 2 & 3: Standard Adaptive puzzles with Mandatory Commitment Step!
+    sounds.playMove();
     const bestStep = activePuzzle.solutionMoves[0];
     const isBest = bestStep && bestStep.from === from && bestStep.to === to;
 
-    // Puzzle 1: No commitment step! Evaluate immediately
-    if (puzzleIndex === 0) {
-      executeMoveDirectly(from, to, moveResult.san, isBest, null);
-      return true;
-    }
-
-    // Puzzle 2 & 3: Mandatory Commitment Step!
     setPendingMove({
       from,
       to,
@@ -234,7 +349,7 @@ export default function DiagnosePage() {
     );
   };
 
-  // Finalize Move & Score
+  // Finalize Move & Score for Puzzle 2 & 3
   const executeMoveDirectly = (
     from: string,
     to: string,
@@ -313,6 +428,7 @@ export default function DiagnosePage() {
     try {
       const g = new Chess(activePuzzle.initialFen);
       setGame(g);
+      setSolutionStepIndex(0);
       setBoardKey((prev) => prev + 1);
       setLastMove(null);
       setPuzzleStatus("solving");
@@ -327,7 +443,7 @@ export default function DiagnosePage() {
   // Use Hint
   const handleUseHint = () => {
     if (!game) return;
-    const bestStep = activePuzzle.solutionMoves[0];
+    const bestStep = activePuzzle.solutionMoves[solutionStepIndex] || activePuzzle.solutionMoves[0];
     if (bestStep) {
       setHintSquare(bestStep.from);
       setCurrentHelpUsed("hint");
@@ -338,6 +454,42 @@ export default function DiagnosePage() {
   // View Solution
   const handleViewSolution = () => {
     if (!game) return;
+    if (puzzleIndex === 0) {
+      try {
+        const solGame = new Chess(activePuzzle.initialFen);
+        solGame.move({ from: "c6", to: "e5" });
+        solGame.move({ from: "d1", to: "h5" });
+        solGame.move({ from: "e5", to: "c4" });
+        setGame(solGame);
+        setBoardKey((prev) => prev + 1);
+        setLastMove({ from: "e5", to: "c4" });
+        setPuzzleStatus("success");
+        setCurrentHelpUsed("solution");
+        setFirstTryCorrect(false);
+
+        const score = computeMoveScore(false, false, null, "solution", false);
+        const newElo = calculateNewElo(currentRating, activePuzzle.numericRating, score);
+        setCurrentRating(newElo);
+        setFeedbackMessage("Solution: 1... Nxe5! 2. Qxh5 Nxc4! Eliminates White's knight, stops checkmate, and wins a full piece.");
+
+        const record: PuzzleAttemptRecord = {
+          puzzleId: activePuzzle.id,
+          puzzleTitle: activePuzzle.title,
+          rating: activePuzzle.numericRating,
+          userEloBefore: currentRating,
+          userEloAfter: newElo,
+          score,
+          commitment: null,
+          helpUsed: "solution",
+          firstTryCorrect: false,
+          timeMs: Date.now() - puzzleStartTimeRef.current,
+          moveSan: "Nxe5",
+        };
+        setAttempts((prev) => [...prev, record]);
+      } catch {}
+      return;
+    }
+
     const bestStep = activePuzzle.solutionMoves[0];
     if (bestStep) {
       const g = new Chess(activePuzzle.initialFen);
@@ -375,12 +527,12 @@ export default function DiagnosePage() {
   // Advance to next puzzle or start cognitive analysis
   const handleProceedNext = () => {
     if (puzzleIndex === 0) {
-      // Move to Puzzle 2: Adaptive selection based on currentRating (~1250)
+      // Move to Puzzle 2: Adaptive selection based on updated rating
       const nextPuz = selectAdaptivePuzzle(currentRating, [FIXED_PUZZLE_1.id]);
       setPuzzleIndex(1);
       loadPuzzle(nextPuz);
     } else if (puzzleIndex === 1) {
-      // Move to Puzzle 3: Adaptive selection based on updated currentRating
+      // Move to Puzzle 3: Adaptive selection based on updated rating
       const excluded = [FIXED_PUZZLE_1.id, activePuzzle.id];
       const nextPuz = selectAdaptivePuzzle(currentRating, excluded);
       setPuzzleIndex(2);
@@ -421,74 +573,59 @@ export default function DiagnosePage() {
       localStorage.setItem("chessz_diagnosis_profile", JSON.stringify(profile));
     } catch {}
 
-    const startElo = 1250;
-    const targetElo = currentRating;
-    const duration = 2400;
-    const startTime = Date.now();
+    // 3-Phase Telemetry Progression
+    setTimeout(() => {
+      setAnalyzingPhase(1);
+    }, 800);
 
-    const ticker = setInterval(() => {
-      const elapsed = Date.now() - startTime;
-      const progress = Math.min(1, elapsed / duration);
-      // Smooth exponential deceleration
-      const ease = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
-      const val = Math.round(startElo + (targetElo - startElo) * ease);
-      setDisplayElo(val);
+    setTimeout(() => {
+      setAnalyzingPhase(2);
+    }, 1600);
 
-      if (elapsed < 800) {
-        setAnalyzingPhase(0);
-      } else if (elapsed < 1600) {
-        setAnalyzingPhase(1);
-      } else {
-        setAnalyzingPhase(2);
+    // Dynamic ticker count-up to target rating
+    const startRating = 1250;
+    const targetRating = currentRating;
+    const steps = 24;
+    let stepCount = 0;
+    const interval = setInterval(() => {
+      stepCount++;
+      const progress = stepCount / steps;
+      const current = Math.round(startRating + (targetRating - startRating) * progress);
+      setDisplayElo(current);
+      if (stepCount >= steps) {
+        clearInterval(interval);
+        setDisplayElo(targetRating);
       }
+    }, 90);
 
-      if (progress >= 1) {
-        clearInterval(ticker);
-        setTimeout(() => {
-          sounds.playVictory();
-          setIsAnalyzing(false);
-          setIsFinalScreen(true);
-        }, 350);
-      }
-    }, 40);
+    // Transition to final diagnosis screen after 2.5 seconds
+    setTimeout(() => {
+      setIsAnalyzing(false);
+      setIsFinalScreen(true);
+    }, 2500);
   };
 
-  // Launch First Training Module
+  // Start Personalized Training
   const handleStartPersonalizedTraining = () => {
-    router.push("/?source=diagnosis");
+    const levelInfo = mapEloToLevel(currentRating);
+    router.push(`/?source=diagnosis&tier=${levelInfo.tierId}`);
   };
 
-  // Toggle Mute
-  const toggleMute = () => {
-    const next = !isMuted;
-    setIsMuted(next);
-    sounds.setMuted(next);
-    try {
-      localStorage.setItem("chessz_muted", String(next));
-    } catch {}
-  };
-
-  // Square Styles (Last Move & Hint)
+  // Custom square styles for hints and last move
   const getCustomSquareStyles = () => {
-    const styles: Record<string, React.CSSProperties> = {};
-    if (lastMove) {
-      styles[lastMove.from] = {
-        backgroundColor: "var(--board-last-move, rgba(100, 135, 195, 0.30))",
-      };
-      styles[lastMove.to] = {
-        backgroundColor: "var(--board-last-move, rgba(100, 135, 195, 0.38))",
-      };
-    }
-    if (selectedSquare) {
-      styles[selectedSquare] = {
-        backgroundColor: "var(--board-last-move, rgba(100, 135, 195, 0.35))",
-        boxShadow: "inset 0 0 0 2.5px var(--accent-primary, #426199)",
-      };
-    }
+    const styles: Record<string, any> = {};
     if (hintSquare) {
       styles[hintSquare] = {
-        backgroundColor: "rgba(52, 211, 153, 0.4)",
-        boxShadow: "inset 0 0 0 3px #10b981",
+        backgroundColor: "rgba(245, 158, 11, 0.45)",
+        boxShadow: "inset 0 0 0 3px #f59e0b",
+      };
+    }
+    if (lastMove) {
+      styles[lastMove.from] = {
+        backgroundColor: "rgba(59, 130, 246, 0.25)",
+      };
+      styles[lastMove.to] = {
+        backgroundColor: "rgba(59, 130, 246, 0.35)",
       };
     }
     return styles;
@@ -498,33 +635,43 @@ export default function DiagnosePage() {
   const currentLevelInfo = mapEloToLevel(currentRating);
 
   return (
-    <main className="min-h-screen flex flex-col justify-between p-3 md:p-6 select-none bg-[var(--bg-canvas)] text-[var(--text-primary)] transition-colors duration-200">
+    <main className="min-h-screen md:h-screen md:overflow-hidden flex flex-col justify-between p-3 sm:p-4 md:px-6 md:py-3 font-sans transition-colors duration-200">
+      {/* Settings Modal Component */}
+      <SettingsModal
+        isOpen={showSettingsModal}
+        onClose={() => setShowSettingsModal(false)}
+      />
+
       {/* Top Header */}
-      <header className="flex items-center justify-between w-full max-w-5xl mx-auto py-1 sm:py-2 shrink-0">
-        <div className="flex items-center gap-2 sm:gap-3">
+      <header className="w-full max-w-md md:max-w-5xl lg:max-w-6xl mx-auto flex items-center justify-between py-2 px-3 sm:px-4 rounded-2xl theme-surface mb-2 shrink-0 border shadow-xs">
+        <div className="flex items-center gap-2.5">
           <Link
             href="/"
-            className="flex items-center gap-1.5 font-bold tracking-tight text-base sm:text-lg theme-text-primary hover:opacity-85 transition-opacity"
+            className="w-7 h-7 rounded-xl flex items-center justify-center font-black text-xs theme-accent-btn shadow-xs cursor-pointer hover:opacity-90"
+            title="ChessZ Home"
           >
-            <span className="w-6 h-6 rounded-lg bg-[var(--accent-primary)] text-[var(--accent-contrast)] flex items-center justify-center font-black text-xs">
-              Z
-            </span>
-            <span>ChessZ</span>
+            Z
           </Link>
-
-          {!isFinalScreen && (
-            <div className="hidden sm:flex items-center gap-1 px-2.5 py-0.5 rounded-full theme-pill text-xs font-mono font-medium">
-              <Sparkles className="w-3.5 h-3.5 text-[var(--accent-primary)]" />
-              <span>Level Diagnosis Benchmark</span>
-            </div>
-          )}
+          <span className="font-extrabold text-sm sm:text-base tracking-tight theme-text-primary">
+            ChessZ
+          </span>
+          <div className="flex items-center gap-1.5 ml-2 px-2.5 py-0.5 rounded-full text-[11px] font-medium theme-pill">
+            <Sparkles className="w-3 h-3 text-[var(--accent-primary)] animate-pulse" />
+            <span>Level Diagnosis Benchmark</span>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* Sound Mute/Unmute */}
+        <div className="flex items-center gap-1.5">
           <button
-            onClick={toggleMute}
-            className="w-8 h-8 rounded-xl theme-surface hover:theme-surface-subtle flex items-center justify-center transition border cursor-pointer"
+            onClick={() => {
+              const nextMuted = !isMuted;
+              setIsMuted(nextMuted);
+              sounds.setMuted(nextMuted);
+              try {
+                localStorage.setItem("chessz_muted", String(nextMuted));
+              } catch {}
+            }}
+            className="w-8 h-8 rounded-xl theme-surface hover:theme-surface-subtle flex items-center justify-center cursor-pointer transition border"
             title={isMuted ? "Unmute Sound" : "Mute Sound"}
             aria-label={isMuted ? "Unmute Sound" : "Mute Sound"}
           >
@@ -535,7 +682,6 @@ export default function DiagnosePage() {
             )}
           </button>
 
-          {/* Settings & Theme Studio Button */}
           <button
             onClick={() => setShowSettingsModal(true)}
             className="flex items-center gap-1.5 text-[11px] font-mono font-semibold theme-surface hover:theme-surface-subtle px-2.5 py-1.5 rounded-xl cursor-pointer transition border"
@@ -563,8 +709,8 @@ export default function DiagnosePage() {
             {game && (
               <div
                 id="current-puzzle-meta"
-                data-from={activePuzzle.solutionMoves[0]?.from}
-                data-to={activePuzzle.solutionMoves[0]?.to}
+                data-from={activePuzzle.solutionMoves[solutionStepIndex]?.from || activePuzzle.solutionMoves[0]?.from}
+                data-to={activePuzzle.solutionMoves[solutionStepIndex]?.to || activePuzzle.solutionMoves[0]?.to}
                 className="hidden"
               />
             )}
@@ -640,7 +786,7 @@ export default function DiagnosePage() {
                 </div>
                 <span className="text-[11px] font-mono theme-text-muted">
                   {puzzleIndex === 0
-                    ? "Fixed Onboarding"
+                    ? "Poisoned Bait Radar"
                     : `Adaptive Calibration`}
                 </span>
               </div>
@@ -652,9 +798,9 @@ export default function DiagnosePage() {
                     key={idx}
                     className={`h-1.5 rounded-full transition-all duration-300 ${
                       idx < puzzleIndex
-                        ? "bg-[var(--accent-primary)]"
+                        ? "bg-emerald-500"
                         : idx === puzzleIndex
-                        ? "bg-[var(--accent-primary)] opacity-80"
+                        ? "bg-[var(--accent-primary)]"
                         : "theme-surface-subtle opacity-40"
                     }`}
                   />
@@ -892,7 +1038,7 @@ export default function DiagnosePage() {
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-[10px] theme-text-muted mt-1">
-                  <span>Base: 1250 (K=120)</span>
+                  <span>Base: 1250 (K=140)</span>
                   <span className="font-semibold theme-text-primary">
                     Calibrated: {currentLevelInfo.levelName}
                   </span>
@@ -954,58 +1100,53 @@ export default function DiagnosePage() {
                 <Award className="w-4 h-4" />
                 <span>Behavioral Pattern: {detectedPattern.patternName}</span>
               </div>
-              <blockquote className="text-xs sm:text-sm font-medium theme-text-primary italic leading-relaxed">
+              <p className="text-xs sm:text-sm theme-text-primary italic mt-1 leading-relaxed">
                 "{detectedPattern.insight}"
-              </blockquote>
+              </p>
             </div>
 
-            {/* Core Strength & Target Weakness */}
+            {/* Dual Core Strength / Target Weakness Cards */}
             <div className="grid grid-cols-2 gap-2.5 my-3">
-              <div className="p-3 rounded-xl theme-surface border border-emerald-500/30">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-0.5">
+              <div className="p-3 rounded-2xl theme-surface border">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block mb-1">
                   Core Strength
-                </div>
-                <div className="text-xs font-semibold theme-text-primary">
+                </span>
+                <span className="text-xs font-semibold theme-text-primary leading-tight block">
                   {detectedPattern.strength}
-                </div>
+                </span>
               </div>
-              <div className="p-3 rounded-xl theme-surface border border-amber-500/30">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 mb-0.5">
+
+              <div className="p-3 rounded-2xl theme-surface border">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-500 block mb-1">
                   Target Weakness
-                </div>
-                <div className="text-xs font-semibold theme-text-primary">
+                </span>
+                <span className="text-xs font-semibold theme-text-primary leading-tight block">
                   {detectedPattern.weakness}
-                </div>
+                </span>
               </div>
             </div>
 
-            {/* The Bridge Sentence */}
-            <p className="text-xs sm:text-sm theme-text-secondary text-center my-3 leading-relaxed">
+            {/* Bottom Callout */}
+            <p className="text-xs text-center theme-text-secondary mt-2 mb-4">
               Based on how you think, here’s the best place for you to start training.
             </p>
 
-            {/* Primary Action Button */}
+            {/* Primary CTA: 1-Click Start Personalized Training */}
             <button
               onClick={handleStartPersonalizedTraining}
-              className="group relative w-full py-3 px-4 rounded-xl theme-accent-btn font-bold text-sm sm:text-base tracking-wide flex items-center justify-center gap-2 shadow-md transition-all duration-200 active:scale-[0.98] cursor-pointer mt-2 animate-next-btn btn-shimmer-effect hover:-translate-y-0.5 hover:shadow-lg"
+              className="w-full py-3.5 px-6 rounded-2xl theme-accent-btn font-bold text-sm tracking-wide flex items-center justify-center gap-2 shadow-lg transition cursor-pointer"
             >
-              <span className="relative z-10">Start My Personalized Training</span>
-              <ArrowRight className="w-4 h-4 relative z-10 group-hover:translate-x-1.5 transition-transform duration-200 ease-out animate-arrow-nudge" />
+              <span>Start My Personalized Training</span>
+              <ArrowRight className="w-4 h-4" />
             </button>
           </div>
         </section>
       )}
 
-      {/* Subtle Footer */}
-      <footer className="w-full text-center py-1 text-[11px] theme-text-muted font-mono shrink-0">
-        ChessZ Cognitive Benchmark • 100% Offline • Powered by Lichess Open Database
+      {/* Footer Branding */}
+      <footer className="w-full text-center py-1 shrink-0 text-[11px] font-mono theme-text-muted">
+        ChessZ Cognitive Benchmark &bull; 100% Offline &bull; Powered by Public Domain & Lichess Open Database
       </footer>
-
-      {/* Settings & Theme Studio Modal */}
-      <SettingsModal
-        isOpen={showSettingsModal}
-        onClose={() => setShowSettingsModal(false)}
-      />
     </main>
   );
 }

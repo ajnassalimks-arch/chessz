@@ -42,45 +42,73 @@ export interface DiagnosisProfile {
   completedAt: string;
 }
 
-// Fixed Puzzle 1: Clean, easy hanging piece (~880–950 Elo, no commitment)
+// Fixed Puzzle 1: The Immortal Légal's Queen-Bait Trap (~1350 FIDE Benchmark)
+// White has sacrificed the Queen with Nxe5! Black must reject the poisoned Queen on d1 and play 1... Nxe5!
 export const FIXED_PUZZLE_1: ChessPuzzle = {
-  id: "lichess_00dzT",
-  lichessId: "00dzT",
-  tier: "adv_beginner",
+  id: "trap_legal_queen_bait",
+  lichessId: "legal_1750",
+  tier: "intermediate",
   track: "tactical",
-  title: "Level Calibrator 1: Hanging Piece Radar",
-  ratingBadge: "Lichess: ~881",
-  initialFen: "6k1/1Q4p1/p1p4p/3pP3/P3bq2/2N4P/1P4P1/5B1K b - - 2 26",
+  title: "Level Calibrator 1: The Poisoned Queen Trap",
+  ratingBadge: "Master Trap: ~1350",
+  initialFen: "r2qkbnr/ppp2ppp/2np4/4N2b/2B1P3/2N4P/PPPP1PP1/R1BQK2R b KQkq - 0 6",
   playerColor: "black",
-  prompt: "Black to move: White's bishop on f1 is completely unguarded. Find the killer strike!",
-  ruleTitle: "The 2-Second Bodyguard Rule",
-  ruleBody: "Before touching any piece, scan the board for undefended pieces. Never miss free material.",
+  prompt: "Black to move: White has jumped their knight to e5, leaving their Queen on d1 completely undefended. Is that Queen really free to take, or is it a lethal trap? Calculate the critical line!",
+  ruleTitle: "The Poisoned Bait Rule",
+  ruleBody: "When an opponent leaves a major piece undefended, stop! Calculate forcing counter-attacks before touching the bait.",
   solutionMoves: [
     {
-      from: "f4",
-      to: "f1",
-      san: "Qxf1+",
-      explanation: "Qxf1+ captures the hanging bishop with check!"
+      from: "c6",
+      to: "e5",
+      san: "Nxe5",
+      explanation: "Nxe5! Eliminates White's attacking knight, parries the mate on f7, and defends the bishop on h5."
+    },
+    {
+      from: "e5",
+      to: "c4",
+      san: "Nxc4",
+      explanation: "Nxc4! White's bishop falls. Black is up a full piece with a completely winning position (+3.5)."
+    }
+  ],
+  opponentResponses: [
+    {
+      from: "d1",
+      to: "h5",
+      san: "Qxh5",
+      explanation: "White recaptures the bishop on h5."
     }
   ],
   defaultRefutation: {
-    from: "h1",
-    to: "h2",
-    san: "Kh2",
-    coachExplanation: "Opponent plays Kh2 to escape. Always take undefended pieces first!"
+    from: "h5",
+    to: "d1",
+    san: "Bxd1",
+    coachExplanation: "Tactical Trap! The Queen on d1 was poisoned bait. Taking it walked straight into 2. Bxf7+ Ke7 3. Nd5# (Checkmate)!"
   },
-  successExplanation: "Spot on! The bishop was undefended. Capturing with check seals the tactical win."
+  successExplanation: "Masterclass Calculation! You saw right through the famous Légal's Trap. Instead of falling for the poisoned Queen on d1, you eliminated the key attacker on e5 and won a full piece!"
 };
 
 /**
  * Elo Rating Calculation
  * Starting Rating: 1250
- * K-factor: 120
- * Expected = 1 / (1 + 10^((PuzzleRating - UserRating) / 400))
- * NewRating = OldRating + 120 * (Score - Expected)
+ * Dynamic K-factor with trap detection and high-conviction bonuses
  */
-export function calculateNewElo(userRating: number, puzzleRating: number, score: number): number {
-  const K = 120;
+export function calculateNewElo(
+  userRating: number,
+  puzzleRating: number,
+  score: number,
+  isBlunderOnTrap: boolean = false
+): number {
+  if (isBlunderOnTrap) {
+    // Falling for an elementary opening trap routes to the Beginner bracket (<900)
+    return Math.min(880, Math.round(userRating - 320));
+  }
+
+  // Dynamic K-factor to allow full calibration range (800 - 2050) across 3 puzzles
+  let K = 140;
+  if (score >= 0.9) K = 180;
+  else if (score >= 0.8) K = 150;
+  else if (score <= 0.2) K = 160;
+
   const expected = 1 / (1 + Math.pow(10, (puzzleRating - userRating) / 400));
   const newRating = userRating + K * (score - expected);
   return Math.round(newRating);
@@ -259,74 +287,73 @@ export const INSIGHT_TEMPLATES: Record<string, BehavioralInsight> = {
   low_conviction_accurate: {
     patternId: "low_conviction_accurate",
     patternName: "Low Conviction + Accurate",
-    insight: "You see the right ideas more often than you trust them. Your intuition is better than you think.",
-    strength: "Good underlying vision",
-    weakness: "Confidence in your own reads",
+    insight: "You play good moves, but you doubt yourself too much. Trust your instincts.",
+    strength: "Accurate tactical vision",
+    weakness: "Self-trust under pressure",
   },
-  low_conviction_inaccurate: {
-    patternId: "low_conviction_inaccurate",
-    patternName: "Low Conviction + Inaccurate",
-    insight: "You are still building both accuracy and confidence. Focus on clear, forcing moves first.",
-    strength: "Openness to improvement",
-    weakness: "Both accuracy and decisiveness",
+  mixed_profile: {
+    patternId: "mixed_profile",
+    patternName: "Balanced Pragmatist",
+    insight: "You balance calculation with pragmatic risk. Targeted practice will stabilize your peak level.",
+    strength: "Pragmatic adaptability",
+    weakness: "Complex calculation depth",
   },
 };
 
-export function classifyBehavioralPattern(attempts: PuzzleAttemptRecord[]): BehavioralInsight {
-  if (!attempts || attempts.length === 0) {
+/**
+ * Classify behavioral pattern based on attempt history
+ */
+export function classifyBehavioralPattern(history: PuzzleAttemptRecord[]): BehavioralInsight {
+  if (!history || history.length === 0) {
     return INSIGHT_TEMPLATES.clean_run;
   }
 
-  const cleanAll = attempts.every((a) => a.helpUsed === "none" && a.firstTryCorrect);
-  const helpCount = attempts.filter((a) => a.helpUsed === "hint" || a.helpUsed === "solution").length;
-  const p1Missed = !attempts[0]?.firstTryCorrect;
-  const p2Missed = attempts[1] && !attempts[1].firstTryCorrect;
-  const p3Clean = attempts[2] && attempts[2].helpUsed === "none" && attempts[2].firstTryCorrect;
+  const p1 = history[0];
+  const p2 = history[1];
+  const p3 = history[2];
 
-  // 1. Heavy Help Usage (>= 2 hints or solutions)
-  if (helpCount >= 2) {
+  const totalHelpCount = history.filter((h) => h.helpUsed !== "none").length;
+  const allFirstTry = history.every((h) => h.firstTryCorrect);
+  const p2Sure = p2?.commitment === "sure";
+  const p3Sure = p3?.commitment === "sure";
+  const p2Accurate = p2?.firstTryCorrect;
+  const p3Accurate = p3?.firstTryCorrect;
+
+  // 1. Heavy Help Usage
+  if (totalHelpCount >= 2) {
     return INSIGHT_TEMPLATES.heavy_help;
   }
 
-  // 2. High Conviction + Inaccurate (Chose "Sure" but blundered/needed help in p2 or p3)
-  const overconfident = attempts.some(
-    (a) => a.commitment === "sure" && !a.firstTryCorrect
-  );
-  if (overconfident) {
+  // 2. High Conviction + Accurate
+  if ((p2Sure && p2Accurate) || (p3Sure && p3Accurate)) {
+    if ((p2Sure && !p2Accurate) || (p3Sure && !p3Accurate)) {
+      return INSIGHT_TEMPLATES.high_conviction_inaccurate;
+    }
+    return INSIGHT_TEMPLATES.high_conviction_accurate;
+  }
+
+  // 3. High Conviction + Inaccurate
+  if ((p2Sure && !p2Accurate) || (p3Sure && !p3Accurate)) {
     return INSIGHT_TEMPLATES.high_conviction_inaccurate;
   }
 
-  // 3. Clean Run (All 3 solved first try without help)
-  if (cleanAll) {
-    // If they were confident, highlight High Conviction + Accurate
-    const confident = attempts.some((a) => a.commitment === "sure" || a.commitment === "think_so");
-    if (confident && attempts.every((a) => a.commitment !== "guessing")) {
-      return INSIGHT_TEMPLATES.high_conviction_accurate;
-    }
-    return INSIGHT_TEMPLATES.clean_run;
-  }
-
-  // 4. Strong Recovery (Struggled in P1 or P2, but solved P3 cleanly)
-  if ((p1Missed || p2Missed) && p3Clean) {
-    return INSIGHT_TEMPLATES.strong_recovery;
-  }
-
-  // 5. Low Conviction + Accurate (Guessed/unsure on p2 or p3, but got it right!)
-  const underconfident = attempts.some(
-    (a) => (a.commitment === "guessing" || a.commitment === "think_so") && a.firstTryCorrect
-  );
-  if (underconfident) {
+  // 4. Low Conviction + Accurate
+  const lowConviction =
+    (p2?.commitment === "guessing" || p2?.commitment === "think_so") &&
+    (p3?.commitment === "guessing" || p3?.commitment === "think_so");
+  if (lowConviction && p2Accurate && p3Accurate) {
     return INSIGHT_TEMPLATES.low_conviction_accurate;
   }
 
-  // 6. Low Conviction + Inaccurate (Guessed and missed)
-  const guessedAndMissed = attempts.some(
-    (a) => a.commitment === "guessing" && !a.firstTryCorrect
-  );
-  if (guessedAndMissed) {
-    return INSIGHT_TEMPLATES.low_conviction_inaccurate;
+  // 5. Strong Recovery (failed P1/P2 then cleanly solved P3)
+  if (!p1.firstTryCorrect && p3?.firstTryCorrect) {
+    return INSIGHT_TEMPLATES.strong_recovery;
   }
 
-  // Fallback default
-  return INSIGHT_TEMPLATES.high_conviction_accurate;
+  // 6. Clean Run
+  if (allFirstTry && totalHelpCount === 0) {
+    return INSIGHT_TEMPLATES.clean_run;
+  }
+
+  return INSIGHT_TEMPLATES.mixed_profile;
 }
