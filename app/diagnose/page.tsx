@@ -200,132 +200,41 @@ export default function DiagnosePage() {
 
     if (!moveResult) return false;
 
-    // PUZZLE 1: Multi-Branch Tactical Benchmark (Unbiased Diagnostic Engine)
+    // PUZZLE 1: Pure Assessment Mode (Silent Record, Zero Spoilers)
     if (puzzleIndex === 0) {
-      if (solutionStepIndex === 0) {
-        const evalResult = evaluatePuzzle1Move(from, to, currentRating);
+      sounds.playMove();
+      const nextGame = new Chess(game.fen());
+      nextGame.move({ from, to, promotion: "q" });
+      setGame(nextGame);
+      setLastMove({ from, to });
 
-        if (evalResult.branchType === "best") {
-          // Player played 1... Nxe5! Master move
-          sounds.playMove();
-          const nextGame = new Chess(game.fen());
-          nextGame.move({ from, to, promotion: "q" });
-          setGame(nextGame);
-          setLastMove({ from, to });
-          setFeedbackMessage(evalResult.coachFeedback);
+      const evalResult = evaluatePuzzle1Move(from, to, currentRating);
+      const elapsed = Date.now() - puzzleStartTimeRef.current;
 
-          setTimeout(() => {
-            try {
-              const replyGame = new Chess(nextGame.fen());
-              replyGame.move({ from: "d1", to: "h5" }); // 2. Qxh5
-              setGame(replyGame);
-              setLastMove({ from: "d1", to: "h5" });
-              sounds.playMove();
-              setSolutionStepIndex(1);
-              setFeedbackMessage("Now complete the combination: capture White's bishop on c4!");
-            } catch {}
-          }, 500);
-          return true;
-        }
+      const record: PuzzleAttemptRecord = {
+        puzzleId: activePuzzle.id,
+        puzzleTitle: activePuzzle.title,
+        rating: activePuzzle.numericRating,
+        userEloBefore: currentRating,
+        userEloAfter: evalResult.calibratedElo,
+        score: evalResult.score,
+        commitment: null,
+        helpUsed: "none",
+        firstTryCorrect: evalResult.status === "best",
+        timeMs: elapsed,
+        moveSan: moveResult.san,
+        status: evalResult.status,
+        userMoveSan: evalResult.userMoveSan,
+        bestMoveSan: evalResult.bestMoveSan,
+        coachExplanation: evalResult.coachFeedback,
+        ruleTitle: evalResult.ruleTitle,
+        ruleBody: evalResult.ruleBody,
+      };
 
-        // Branch: blunder_trap, inaccurate_recapture, or threat_missed
-        sounds.playRefutation();
-        setPuzzleStatus("failed");
-        setFirstTryCorrect(false);
-        setFeedbackMessage(evalResult.coachFeedback);
-
-        const bGame = new Chess(game.fen());
-        bGame.move({ from, to, promotion: "q" });
-        setGame(bGame);
-        setLastMove({ from, to });
-
-        if (evalResult.branchType === "blunder_trap" || evalResult.branchType === "threat_missed") {
-          // Animate the checkmate refutation (2. Bxf7+ Ke7 3. Nd5#)
-          setTimeout(() => {
-            try {
-              const ref1 = new Chess(bGame.fen());
-              ref1.move({ from: "c4", to: "f7" }); // Bxf7+
-              ref1.move({ from: "e8", to: "e7" }); // Ke7
-              setGame(ref1);
-              sounds.playMove();
-
-              setTimeout(() => {
-                try {
-                  const ref2 = new Chess(ref1.fen());
-                  ref2.move({ from: "c3", to: "d5" }); // Nd5# Checkmate!
-                  setGame(ref2);
-                  sounds.playRefutation();
-                  setLastMove({ from: "c3", to: "d5" });
-                } catch {}
-              }, 600);
-            } catch {}
-          }, 500);
-        } else if (evalResult.branchType === "inaccurate_recapture") {
-          // Animate 2. Qxh5 winning the bishop
-          setTimeout(() => {
-            try {
-              const refGame = new Chess(bGame.fen());
-              refGame.move({ from: "d1", to: "h5" }); // 2. Qxh5
-              setGame(refGame);
-              sounds.playRefutation();
-              setLastMove({ from: "d1", to: "h5" });
-            } catch {}
-          }, 500);
-        }
-
-        const newElo = evalResult.calibratedElo;
-        setCurrentRating(newElo);
-
-        const record: PuzzleAttemptRecord = {
-          puzzleId: activePuzzle.id,
-          puzzleTitle: activePuzzle.title,
-          rating: activePuzzle.numericRating,
-          userEloBefore: currentRating,
-          userEloAfter: newElo,
-          score: evalResult.score,
-          commitment: null,
-          helpUsed: "none",
-          firstTryCorrect: false,
-          timeMs: Date.now() - puzzleStartTimeRef.current,
-          moveSan: moveResult.san,
-        };
-        setAttempts((prev) => [...prev, record]);
-        return true;
-      } else {
-        // Step 2 of winning combination: 2... Nxc4!
-        if (from === "e5" && to === "c4") {
-          sounds.playSuccess();
-          const nextGame = new Chess(game.fen());
-          nextGame.move({ from, to, promotion: "q" });
-          setGame(nextGame);
-          setLastMove({ from, to });
-          setPuzzleStatus("success");
-
-          const newElo = calculateNewElo(currentRating, activePuzzle.numericRating, 1.0);
-          setCurrentRating(newElo);
-          setFeedbackMessage(activePuzzle.successExplanation);
-
-          const record: PuzzleAttemptRecord = {
-            puzzleId: activePuzzle.id,
-            puzzleTitle: activePuzzle.title,
-            rating: activePuzzle.numericRating,
-            userEloBefore: currentRating,
-            userEloAfter: newElo,
-            score: 1.0,
-            commitment: null,
-            helpUsed: currentHelpUsed,
-            firstTryCorrect,
-            timeMs: Date.now() - puzzleStartTimeRef.current,
-            moveSan: moveResult.san,
-          };
-          setAttempts((prev) => [...prev, record]);
-          return true;
-        } else {
-          sounds.playRefutation();
-          setFeedbackMessage("White's bishop on c4 is undefended! Play 2... Nxc4! to win the piece.");
-          return false;
-        }
-      }
+      setAttempts((prev) => [...prev, record]);
+      setCurrentRating(evalResult.calibratedElo);
+      setPuzzleStatus("success");
+      return true;
     }
 
     // PUZZLE 2 & 3: Standard Adaptive puzzles with Mandatory Commitment Step!
@@ -376,59 +285,43 @@ export default function DiagnosePage() {
 
     const elapsed = Date.now() - puzzleStartTimeRef.current;
 
-    if (isBestMove) {
-      sounds.playSuccess();
-      setPuzzleStatus("success");
+    // Pure Assessment: Silent Record, No In-Test Reveals
+    sounds.playMove();
+    setPuzzleStatus("success");
 
-      const score = computeMoveScore(
-        true,
-        false,
-        commitment,
-        currentHelpUsed,
-        blunderedOnSure
-      );
-      const newElo = calculateNewElo(currentRating, activePuzzle.numericRating, score);
-      setFeedbackMessage(activePuzzle.successExplanation);
+    const score = computeMoveScore(
+      isBestMove,
+      false,
+      commitment,
+      "none",
+      commitment === "sure" && !isBestMove
+    );
+    const newElo = calculateNewElo(currentRating, activePuzzle.numericRating, score);
 
-      const record: PuzzleAttemptRecord = {
-        puzzleId: activePuzzle.id,
-        puzzleTitle: activePuzzle.title,
-        rating: activePuzzle.numericRating,
-        userEloBefore: currentRating,
-        userEloAfter: newElo,
-        score,
-        commitment,
-        helpUsed: currentHelpUsed,
-        firstTryCorrect,
-        timeMs: elapsed,
-        moveSan: san,
-      };
+    const record: PuzzleAttemptRecord = {
+      puzzleId: activePuzzle.id,
+      puzzleTitle: activePuzzle.title,
+      rating: activePuzzle.numericRating,
+      userEloBefore: currentRating,
+      userEloAfter: newElo,
+      score,
+      commitment,
+      helpUsed: "none",
+      firstTryCorrect: isBestMove,
+      timeMs: elapsed,
+      moveSan: san,
+      status: isBestMove ? "best" : "blunder",
+      userMoveSan: san,
+      bestMoveSan: activePuzzle.solutionMoves.map((m) => m.san).join(" "),
+      coachExplanation: isBestMove
+        ? activePuzzle.successExplanation
+        : (activePuzzle.defaultRefutation?.coachExplanation || "Missed tactical defense or counter-attack in this position."),
+      ruleTitle: activePuzzle.ruleTitle,
+      ruleBody: activePuzzle.ruleBody,
+    };
 
-      setAttempts((prev) => [...prev, record]);
-      setCurrentRating(newElo);
-    } else {
-      sounds.playRefutation();
-      setPuzzleStatus("failed");
-      setFirstTryCorrect(false);
-
-      const isSureBlunder = commitment === "sure";
-      if (isSureBlunder) {
-        setBlunderedOnSure(true);
-      }
-
-      // Check refutation move
-      if (activePuzzle.defaultRefutation) {
-        const ref = activePuzzle.defaultRefutation;
-        try {
-          newGame.move({ from: ref.from, to: ref.to });
-          setGame(newGame);
-          setLastMove({ from: ref.from, to: ref.to });
-        } catch {}
-        setFeedbackMessage(ref.coachExplanation);
-      } else {
-        setFeedbackMessage("That move allows an immediate refutation. Inspect candidate defenses!");
-      }
-    }
+    setAttempts((prev) => [...prev, record]);
+    setCurrentRating(newElo);
   };
 
   // Try Again
@@ -859,59 +752,16 @@ export default function DiagnosePage() {
                 </div>
               )}
 
-              {/* Feedback Alert Banners */}
+              {/* Move Submitted Quiet Banner (No In-Test Spoilers) */}
               {puzzleStatus === "success" && (
-                <div className="theme-surface border border-emerald-500/40 p-3 rounded-xl shadow-xs mb-3 animate-card-entrance">
-                  <div className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-bold text-xs mb-1">
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>Solved Cleanly!</span>
+                <div className="theme-surface border border-[var(--border-focus)] p-3 rounded-xl shadow-xs mb-3 flex items-center justify-between animate-card-entrance">
+                  <div className="flex items-center gap-2 text-xs font-semibold theme-text-primary">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                    <span>Move recorded for diagnosis</span>
                   </div>
-                  <p className="text-xs theme-text-primary leading-relaxed">
-                    {feedbackMessage}
-                  </p>
-                </div>
-              )}
-
-              {puzzleStatus === "failed" && (
-                <div className="theme-surface border border-rose-500/40 p-3 rounded-xl shadow-xs mb-3 animate-card-entrance">
-                  <div className="flex items-center gap-1.5 text-rose-500 font-bold text-xs mb-1">
-                    <AlertTriangle className="w-4 h-4" />
-                    <span>Tactical Refutation</span>
-                  </div>
-                  <p className="text-xs theme-text-primary leading-relaxed mb-2.5">
-                    {feedbackMessage}
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={handleTryAgain}
-                      className="flex-1 py-1.5 px-2 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center justify-center gap-1 transition cursor-pointer"
-                    >
-                      <RefreshCw className="w-3 h-3" />
-                      <span>Try Again</span>
-                    </button>
-                    <button
-                      onClick={handleUseHint}
-                      className="py-1.5 px-2.5 rounded-lg theme-surface hover:theme-surface-subtle font-semibold text-xs border flex items-center gap-1 transition cursor-pointer"
-                      title="Reveal key piece hint"
-                    >
-                      <HelpCircle className="w-3 h-3" />
-                      <span>Hint</span>
-                    </button>
-                    <button
-                      onClick={handleViewSolution}
-                      className="py-1.5 px-2 rounded-lg theme-surface hover:theme-surface-subtle font-semibold text-xs border flex items-center gap-1 transition cursor-pointer"
-                      title="View correct master move"
-                    >
-                      <Eye className="w-3 h-3" />
-                    </button>
-                  </div>
-                  <button
-                    onClick={handleProceedNext}
-                    className="w-full mt-2 py-1.5 px-3 rounded-lg theme-surface hover:theme-surface-subtle border font-semibold text-xs theme-text-secondary flex items-center justify-center gap-1.5 transition cursor-pointer"
-                  >
-                    <span>Continue to Next Puzzle</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
+                  <span className="text-[11px] font-mono theme-text-muted">
+                    {attempts[puzzleIndex]?.timeMs ? `${(attempts[puzzleIndex].timeMs / 1000).toFixed(1)}s` : "Saved"}
+                  </span>
                 </div>
               )}
             </div>
@@ -1072,7 +922,7 @@ export default function DiagnosePage() {
       ) : (
         /* Screen 2: The Final Level Diagnosis Dossier */
         <section className="flex-1 flex flex-col items-center justify-center max-w-md md:max-w-lg mx-auto w-full py-4 min-h-0 animate-card-entrance">
-          <div className="w-full theme-surface rounded-3xl p-5 sm:p-6 shadow-2xl border relative overflow-hidden">
+          <div className="w-full max-h-[88vh] overflow-y-auto custom-scrollbar theme-surface rounded-3xl p-5 sm:p-6 shadow-2xl border relative">
             {/* Top Badge */}
             <div className="flex items-center justify-between gap-2 mb-3 pb-3 border-b border-[var(--border-subtle)]">
               <div className="flex items-center gap-1.5 text-xs font-mono font-bold uppercase tracking-wider text-[var(--accent-primary)]">
@@ -1139,6 +989,100 @@ export default function DiagnosePage() {
                 <span className="text-xs font-semibold theme-text-primary leading-tight block">
                   {detectedPattern.weakness}
                 </span>
+              </div>
+            </div>
+
+            {/* Benchmark Test Review & Master Solutions */}
+            <div className="my-4">
+              <div className="flex items-center justify-between mb-2.5">
+                <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider theme-text-primary">
+                  <Target className="w-4 h-4 text-[var(--accent-primary)]" />
+                  <span>Benchmark Review & Solutions</span>
+                </div>
+                <span className="text-[10px] font-mono theme-text-muted">
+                  3 Puzzles Analyzed
+                </span>
+              </div>
+
+              <div className="space-y-2.5">
+                {attempts.map((att, idx) => {
+                  const isBest = att.status === "best";
+                  const isInaccurate = att.status === "inaccurate";
+                  return (
+                    <div
+                      key={idx}
+                      className="p-3.5 rounded-2xl theme-surface border border-[var(--border-subtle)] hover:border-[var(--border-focus)] transition shadow-xs"
+                    >
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <div>
+                          <div className="text-[10px] font-mono uppercase tracking-wider theme-text-muted">
+                            Puzzle {idx + 1} &bull; {att.puzzleTitle}
+                          </div>
+                          <div className="text-xs font-bold theme-text-primary mt-0.5">
+                            Your Move:{" "}
+                            <span className="font-mono">
+                              {att.userMoveSan || att.moveSan || "—"}
+                            </span>
+                            {att.commitment && (
+                              <span className="ml-1.5 font-normal text-[10px] theme-text-muted">
+                                ({att.commitment.replace("_", " ")})
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Status Badge */}
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                            isBest
+                              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
+                              : isInaccurate
+                              ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30"
+                              : "bg-rose-500/10 text-rose-500 border-rose-500/30"
+                          }`}
+                        >
+                          {isBest
+                            ? "Best Move"
+                            : isInaccurate
+                            ? "Inaccurate"
+                            : "Tactical Blunder"}
+                        </span>
+                      </div>
+
+                      {/* Master Solution */}
+                      <div className="text-[11px] theme-text-secondary mb-2 bg-[var(--bg-card-subtle)] p-2 rounded-xl border border-[var(--border-subtle)] font-mono">
+                        <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                          Master Solution:{" "}
+                        </span>
+                        <span className="theme-text-primary">
+                          {att.bestMoveSan || "—"}
+                        </span>
+                      </div>
+
+                      {/* Coach Explanation */}
+                      {att.coachExplanation && (
+                        <p className="text-xs theme-text-primary leading-relaxed mb-2">
+                          {att.coachExplanation}
+                        </p>
+                      )}
+
+                      {/* Pedagogical Takeaway Box */}
+                      {att.ruleTitle && att.ruleBody && (
+                        <div className="text-[11px] theme-surface-subtle p-2 rounded-xl border border-[var(--border-focus)]/40 flex items-start gap-1.5">
+                          <span className="text-amber-500 font-bold">💡</span>
+                          <div>
+                            <span className="font-bold theme-text-primary">
+                              {att.ruleTitle}:{" "}
+                            </span>
+                            <span className="theme-text-secondary">
+                              {att.ruleBody}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
 

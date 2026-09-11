@@ -15,6 +15,12 @@ export interface PuzzleAttemptRecord {
   firstTryCorrect: boolean;
   timeMs: number;
   moveSan?: string;
+  userMoveSan?: string;
+  status?: "best" | "inaccurate" | "blunder";
+  bestMoveSan?: string;
+  coachExplanation?: string;
+  ruleTitle?: string;
+  ruleBody?: string;
 }
 
 export interface BehavioralInsight {
@@ -46,9 +52,14 @@ export interface DiagnosisProfile {
 // White has sacrificed the Queen with Nxe5! Black must reject the poisoned Queen on d1 and play 1... Nxe5!
 export interface Puzzle1BranchResult {
   branchType: "best" | "blunder_trap" | "inaccurate_recapture" | "threat_missed";
+  status: "best" | "inaccurate" | "blunder";
   score: number;
+  userMoveSan: string;
+  bestMoveSan: string;
   coachFeedback: string;
   calibratedElo: number;
+  ruleTitle: string;
+  ruleBody: string;
   refutationMoves?: { from: string; to: string; san: string }[];
 }
 
@@ -99,13 +110,21 @@ export const FIXED_PUZZLE_1: ChessPuzzle = {
  * Evaluates any move made in Puzzle 1 across all 4 tactical branches
  */
 export function evaluatePuzzle1Move(from: string, to: string, currentRating: number = 1250): Puzzle1BranchResult {
+  const ruleTitle = "The Poisoned Bait Rule";
+  const ruleBody = "When an opponent leaves a major piece undefended, calculate forcing counter-attacks and checks before grabbing the bait.";
+
   // 1. Masterclass Winning Move: 1... Nxe5! (c6 -> e5)
   if (from === "c6" && to === "e5") {
     return {
       branchType: "best",
+      status: "best",
       score: 1.0,
+      userMoveSan: "1... Nxe5",
+      bestMoveSan: "1... Nxe5! 2. Qxh5 Nxc4!",
       calibratedElo: calculateNewElo(currentRating, 1350, 1.0),
-      coachFeedback: "Masterclass Calculation! You neutralized the mating knight on e5. White recaptures on h5...",
+      coachFeedback: "Masterclass Calculation: You saw through the poisoned Queen trap on d1, neutralized White's f7 checkmate threat by eliminating the knight on e5, and followed up by capturing White's bishop on c4 (+3.5 advantage).",
+      ruleTitle,
+      ruleBody,
     };
   }
 
@@ -113,9 +132,14 @@ export function evaluatePuzzle1Move(from: string, to: string, currentRating: num
   if (from === "h5" && to === "d1") {
     return {
       branchType: "blunder_trap",
+      status: "blunder",
       score: 0.0,
+      userMoveSan: "1... Bxd1??",
+      bestMoveSan: "1... Nxe5! 2. Qxh5 Nxc4!",
       calibratedElo: 820,
-      coachFeedback: "Tactical Trap! Capturing the Queen on d1 walked straight into Légal's famous trap. White delivers forced checkmate with 2. Bxf7+ Ke7 3. Nd5# (Checkmate)!",
+      coachFeedback: "Tactical Blunder: Capturing the undefended Queen on d1 walked directly into the famous Légal's Trap. White delivers forced checkmate with 2. Bxf7+ Ke7 3. Nd5#.",
+      ruleTitle,
+      ruleBody,
       refutationMoves: [
         { from: "c4", to: "f7", san: "Bxf7+" },
         { from: "e8", to: "e7", san: "Ke7" },
@@ -128,9 +152,14 @@ export function evaluatePuzzle1Move(from: string, to: string, currentRating: num
   if (from === "d6" && to === "e5") {
     return {
       branchType: "inaccurate_recapture",
+      status: "inaccurate",
       score: 0.35,
+      userMoveSan: "1... dxe5?",
+      bestMoveSan: "1... Nxe5! 2. Qxh5 Nxc4!",
       calibratedElo: 1080,
-      coachFeedback: "Inaccurate Recapture: 1... dxe5 parries the checkmate, but leaves your bishop on h5 undefended. White plays 2. Qxh5 winning a piece! 1... Nxe5! was the master move, eliminating the threat while defending your bishop.",
+      coachFeedback: "Inaccurate Recapture: 1... dxe5 parried the mate on f7, but left your bishop on h5 undefended. White plays 2. Qxh5 winning a piece. 1... Nxe5! was required to eliminate the knight while safeguarding the bishop.",
+      ruleTitle,
+      ruleBody,
       refutationMoves: [
         { from: "d1", to: "h5", san: "Qxh5" }
       ]
@@ -140,9 +169,14 @@ export function evaluatePuzzle1Move(from: string, to: string, currentRating: num
   // 4. Any other passive move (e.g. Be7, h6, etc.)
   return {
     branchType: "threat_missed",
+    status: "blunder",
     score: 0.0,
+    userMoveSan: "1... " + from + "-" + to,
+    bestMoveSan: "1... Nxe5! 2. Qxh5 Nxc4!",
     calibratedElo: 850,
-    coachFeedback: "Threat Missed: White's knight on e5 threatens immediate checkmate with 2. Bxf7+ Ke7 3. Nd5#. You must eliminate the attacking knight with 1... Nxe5!",
+    coachFeedback: "Threat Missed: White's knight on e5 threatened immediate checkmate with 2. Bxf7+ Ke7 3. Nd5#. You had to eliminate the attacking knight with 1... Nxe5!",
+    ruleTitle,
+    ruleBody,
     refutationMoves: [
       { from: "c4", to: "f7", san: "Bxf7+" },
       { from: "e8", to: "e7", san: "Ke7" },
