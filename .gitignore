@@ -45,3 +45,4 @@ next-env.d.ts
 *.png
 test-*.js
 scripts/validate-puzzles.js
+scripts/*.js
