@@ -721,6 +721,20 @@ export default function Home() {
     loadPuzzle(playlist[0]);
   };
 
+  // Start Blunder Fix Training from User's Real Lichess Game
+  const handleStartBlunderTraining = (puzzle: ChessPuzzle) => {
+    const tier = LEVEL_OPTIONS.find((l) => l.id === puzzle.tier) || LEVEL_OPTIONS[2];
+    setSelectedLevel(tier);
+    setIsQuizActive(false);
+    setIsAnalyzing(false);
+    setShowDiagnosisModal(false);
+    setShowLichessModal(false);
+    setIsCalibrated(true);
+    setIsCurriculumActive(false);
+    loadPuzzle(puzzle);
+    setEngineEnabled(true);
+  };
+
   // Answer a Question in the 4-Question Quiz
   const handleAnswerDiagnosticQuestion = (optionIndex: number) => {
     const nextAnswers = [...calibrationAnswers, optionIndex];
@@ -2310,6 +2324,7 @@ export default function Home() {
         onRefresh={refreshLichess}
         onConnectUsername={connectLichessUsername}
         diagnosedElo={isCalibrated ? calibratedRating : null}
+        onStartBlunderTraining={handleStartBlunderTraining}
       />
     </main>
   );

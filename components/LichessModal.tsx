@@ -14,8 +14,11 @@ import {
   AlertCircle,
   Award,
   ArrowRight,
+  Target,
+  Cpu,
 } from 'lucide-react';
 import { LichessUser } from '@/lib/lichess';
+import { ChessPuzzle } from '@/lib/puzzles';
 
 // Iconic Lichess Knight SVG Emblem
 export function LichessIcon({ className = 'w-5 h-5' }: { className?: string }) {
@@ -42,6 +45,7 @@ interface LichessModalProps {
   onRefresh: () => void;
   onConnectUsername: (username: string) => Promise<boolean>;
   diagnosedElo?: number | null;
+  onStartBlunderTraining?: (puzzle: ChessPuzzle) => void;
 }
 
 export function LichessModal({
@@ -55,10 +59,37 @@ export function LichessModal({
   onRefresh,
   onConnectUsername,
   diagnosedElo,
+  onStartBlunderTraining,
 }: LichessModalProps) {
   const [usernameInput, setUsernameInput] = useState('');
   const [usernameError, setUsernameError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Lichess Game Blunders State
+  const [blunders, setBlunders] = useState<ChessPuzzle[]>([]);
+  const [isLoadingBlunders, setIsLoadingBlunders] = useState(false);
+  const [blunderError, setBlunderError] = useState<string | null>(null);
+
+  const fetchMyBlunders = async () => {
+    if (!user) return;
+    setIsLoadingBlunders(true);
+    setBlunderError(null);
+    try {
+      const res = await fetch(`/api/lichess/blunders?username=${encodeURIComponent(user.username)}`);
+      const data = await res.json();
+      if (data.blunders && data.blunders.length > 0) {
+        setBlunders(data.blunders);
+      } else {
+        setBlunderError(
+          'No evaluated mistakes found in your last 10 games. Request computer analysis on your recent Lichess games, then click scan again!'
+        );
+      }
+    } catch (e: any) {
+      setBlunderError(e.message || 'Failed to extract blunders from Lichess.');
+    } finally {
+      setIsLoadingBlunders(false);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -269,6 +300,89 @@ export function LichessModal({
                   </div>
                 </div>
               )}
+
+              {/* Personal Lichess Game Blunders & Stockfish Training */}
+              <div className="p-4 rounded-xl theme-surface border border-[var(--border-subtle)] shadow-xs">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-rose-500/15 text-rose-500 flex items-center justify-center border border-rose-500/30 shrink-0">
+                      <Target className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs sm:text-sm font-bold font-display theme-text-primary flex items-center gap-1.5">
+                        <span>Fix Your Real Game Blunders</span>
+                        <span className="px-1.5 py-0.2 rounded text-[9px] font-mono bg-emerald-500/15 text-emerald-400 font-bold">
+                          Stockfish WASM
+                        </span>
+                      </h4>
+                      <p className="text-[11px] theme-text-secondary">
+                        Extract positions where you made a mistake in recent games and master the winning move.
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={fetchMyBlunders}
+                    disabled={isLoadingBlunders}
+                    className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--accent-primary)] hover:opacity-90 text-white text-xs font-bold transition cursor-pointer shadow-xs disabled:opacity-50 shrink-0"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${isLoadingBlunders ? 'animate-spin' : ''}`} />
+                    <span>{isLoadingBlunders ? 'Extracting...' : 'Scan My Games'}</span>
+                  </button>
+                </div>
+
+                {blunderError && (
+                  <div className="mt-2.5 p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/25 text-rose-400 text-xs flex items-start gap-2 animate-in fade-in">
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span className="leading-relaxed">{blunderError}</span>
+                  </div>
+                )}
+
+                {blunders.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-[var(--border-subtle)] space-y-2 animate-in fade-in">
+                    <div className="flex items-center justify-between text-[10px] font-mono theme-text-secondary uppercase tracking-wider font-semibold">
+                      <span>Found {blunders.length} Personal Blunders to Fix:</span>
+                      <span className="text-emerald-400 font-bold">Click to Train</span>
+                    </div>
+
+                    <div className="space-y-1.5 max-h-56 overflow-y-auto custom-scrollbar pr-1">
+                      {blunders.map((p, idx) => (
+                        <div
+                          key={p.id || idx}
+                          className="p-2.5 rounded-xl theme-surface-subtle border border-[var(--border-subtle)] flex items-center justify-between gap-2 hover:border-[var(--border-focus)] transition"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-bold theme-text-primary truncate">
+                                {p.title}
+                              </span>
+                              <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-400 font-bold shrink-0">
+                                {p.ratingBadge}
+                              </span>
+                            </div>
+                            <p className="text-[11px] theme-text-secondary mt-0.5 truncate">
+                              {p.ruleTitle}
+                            </p>
+                          </div>
+
+                          <button
+                            onClick={() => {
+                              if (onStartBlunderTraining) {
+                                onStartBlunderTraining(p);
+                                onClose();
+                              }
+                            }}
+                            className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 text-xs font-bold transition cursor-pointer shrink-0"
+                          >
+                            <span>Fix It</span>
+                            <ArrowRight className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* Re-authenticate with OAuth prompt if only public preview */}
               {!isAuthenticated && (
