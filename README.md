@@ -1,104 +1,139 @@
-# ♟️ ChessZ — 100% Free Core Chess Training Platform
+# ♟️ ChessZ — Zero-Paywall Chess Training Platform
 
-> **"Why Pay ₹1,500/yr For Diamond? Unlimited Training • No Subscription Needed."**  
+> **"Why Pay ₹1,500/yr For Diamond? Unlimited Coach-Verified Training • Free Forever."**  
 > Built by FIDE rated coaches at Premier Chess Academy (PCA), Ernakulam.
 
-[![Live Production](https://img.shields.io/badge/Production-Live%20on%20Vercel-emerald)](https://chesszapp.vercel.app/)
-[![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-blue.svg)](https://creativecommons.org/licenses/by/4.0/)
-[![Framework: Next.js 16](https://img.shields.io/badge/Framework-Next.js%2016-black)](https://nextjs.org/)
-[![Database: Supabase](https://img.shields.io/badge/Database-Supabase%20Free%20Tier-green)](https://supabase.com/)
+[![Live Production](https://img.shields.io/badge/Production-Live%20on%20Vercel-emerald?style=for-the-badge&logo=vercel)](https://chesszapp.vercel.app/)
+[![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-blue.svg?style=for-the-badge)](https://creativecommons.org/licenses/by/4.0/)
+[![Framework: Next.js 16](https://img.shields.io/badge/Framework-Next.js%2016%20Turbopack-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+[![Database: Supabase](https://img.shields.io/badge/Database-Supabase%20Free%20Tier-green?style=for-the-badge&logo=supabase)](https://supabase.com/)
+[![OAuth: Lichess](https://img.shields.io/badge/OAuth-Lichess%20API-orange?style=for-the-badge&logo=lichess)](https://lichess.org)
 
 ---
 
-## 🌐 Live URLs & Links
-* **Production App:** [https://chesszapp.vercel.app/](https://chesszapp.vercel.app/)
+## 🌐 Live Application
+* **Production Deployment:** [https://chesszapp.vercel.app/](https://chesszapp.vercel.app/)
+* **Interactive Level Diagnosis:** [https://chesszapp.vercel.app/diagnose](https://chesszapp.vercel.app/diagnose)
 * **GitHub Repository:** [https://github.com/ajnassalimks-arch/chessz](https://github.com/ajnassalimks-arch/chessz)
 
 ---
 
-## 💡 The Vision & Disruption Hook
-Existing chess platforms cap free users at **3 puzzles per day** and charge ₹1,500 to ₹10,000/year for unlimited training. 
+## 💡 The Disruption Hook: 100% Free Forever
+Traditional platforms restrict free players to **3 puzzles a day** and charge ₹1,500 to ₹10,000/year for unlimited tactical training.
 
-**ChessZ** eliminates this paywall with a Jio-style disruption model:
-* **100% Free Core Access:** Unlimited tactical and positional training forever.
-* **Zero Paywall & Zero Ads:** Clean, distraction-free mobile training.
-* **No Initial Friction:** No forced signup; start playing within 15 seconds.
-
----
-
-## ⚡ Core Features & User Journey
-
-### 1. 60-Second Onboarding & FIDE Coach Calibration
-Instead of asking for confusing rating numbers, players select from 4 rating bands:
-* **Tier 1 (Beginner):** Chess.com 400–900 • Lichess 600–1200 (Unrated FIDE)
-* **Tier 2 (Advanced Beginner):** Chess.com 900–1200 • Lichess 1200–1500 (Unrated FIDE)
-* **Tier 3 (Intermediate):** Chess.com 1200–1600 • Lichess 1500–1850 • ~1400–1650 FIDE
-* **Tier 4 (Advanced):** Chess.com 1900+ • Lichess 2100+ • 1700–2000+ FIDE
-
-A rapid 3-question quiz diagnoses their exact cognitive chess leak (*"The 'Free Gift' Habit"*, *"The 'Knight Geometry' Blindspot"*, *"Confirmation Bias in Deep Lines"*), reveals their personal **Golden Rule**, and presents an instant **"Share My Coach Diagnosis 📸"** card for Instagram bio & stories.
-
-### 2. Instant Learning & Opponent Refutation Engine
-* **Correct Moves:** Triggers instant victory celebration chimes and a tactical coaching breakdown.
-* **Wrong Moves (Cause & Effect):** Instead of just saying "Incorrect", the board pauses for **650ms** and automatically plays the **opponent's punishment move** on the board, followed by a Coach Refutation card explaining why the attempt failed.
-
-### 3. Dual Control & Visual Polish
-* **Touchscreen Optimized:** Seamless support for both **Drag-and-Drop** AND **Tap-to-Move**.
-* **Piece Selection Glow:** Warm gold border (`#eab308`) highlights the selected piece.
-* **Legal Move Dots:** Soft emerald dots for quiet moves, red target rings for capture targets.
-* **Hint System:** Highlights the key piece without giving away the exact solution.
-
-### 4. Dual Training Tracks
-* **Tactics ⚡:** Forks, pins, skewers, Greek gift sacrifices, back-rank corridor mates, clearance blows.
-* **Strategy 🧭:** Positional play, open file control, outposts, pawn chain tension, 7th-rank invasion, and queenside majorities.
-* **Dynamic Switcher:** 1-tap toggle immediately loads a relevant puzzle for that track.
-
-### 5. Zero-Latency Audio Synthesizer
-* Zero external audio files to download; runs entirely via Web Audio API oscillators.
-* Wooden move clicks, deep capture thuds, refutation alarms, and victory arpeggios.
-* Header **Mute / Unmute** toggle with `localStorage` preference sync.
-
-### 6. Cloud Sync & Anonymous Persistence
-* Works out-of-the-box for guest players using local browser storage.
-* Magic Link passwordless authentication via Supabase free tier to sync progress across phones, tablets, and laptops.
+**ChessZ** eliminates this paywall with a clean, high-performance architecture:
+* **Unlimited Training:** 100% free access to verified tactical positions.
+* **Zero Subscriptions & Zero Ads:** Distraction-free, mobile-first interface.
+* **Instant Start:** Zero mandatory signup friction — train immediately as a guest or connect your Lichess account.
 
 ---
 
-## 🛠️ Architecture & Tech Stack
+## 💎 Brand Identity & Visual Language
 
-| Layer | Technology | Cost |
+### 1. Geometric Knight-Z Brandmark (Masterwork A)
+* Handcrafted SVG brand identity with sharp 45-degree facets that fuse a noble knight profile with an integrated geometric **'Z'** monogram.
+* Evokes authority, strategic precision, and institutional prestige.
+
+### 2. Modernistic Typography Hierarchy
+* **Brand & Headers (`Space Grotesk`)**: Algorithmic, proportional geometric sans-serif mirroring the angular cuts of the Knight-Z emblem.
+* **Interface & Controls (`Inter`)**: Clean, neutral micro-scale legibility optimized for rapid calculation.
+* **Notation & Timers (`JetBrains Mono`)**: Monospace tabular numbers (`tnum`) for jitter-free clock recording and move notation.
+
+---
+
+## 🧠 Interactive 3-Puzzle Level Diagnosis (`/diagnose`)
+
+The diagnostic engine benchmarks a player's tactical vision, calculation speed, and psychological conviction in ~2.5 minutes:
+
+### 1. Curated 10-Puzzle Benchmark Pool
+Instead of static tests, `/diagnose` randomly samples 3 balanced, non-repeating puzzles across ratings 850 to 1750:
+1. **Opening Benchmark**: Légal's Counter-Trap (850)
+2. **Central Fork**: Double-Threat Geometry (950)
+3. **Corridor Benchmark**: Back-Rank Overload Decoy (1100)
+4. **Pin Benchmark**: Eliminating the Defender (1150)
+5. **Trapping Benchmark**: Noah's Ark Trap (1200)
+6. **Endgame Benchmark**: Absolute Rank Skewer (1250)
+7. **Mating Net**: Smothered Geometry Decoy (1350)
+8. **Kingside Destruction**: Greek Gift Sacrifice (1450)
+9. **Mating Net**: Anastasia's Corridor (1500)
+10. **Master Benchmark**: Kingside Clearance Sacrifice (1750)
+
+### 2. Pure Assessment Mode (Zero Spoilers)
+* **Puzzle 1**: Runs in silent assessment mode. The move is recorded with millisecond telemetry without hints, answer reveals, or retries.
+* **Puzzles 2 & 3**: Adaptive calibration with mandatory **Psychological Conviction** tracking (*"Sure"*, *"Think so"*, *"Guessing"*).
+
+### 3. Cognitive Dossier Output
+* **Estimated Rating**: Real-time calibrated rating (e.g. `~1420`).
+* **Cognitive Archetype**: Classifies play into archetypes (e.g. *High Conviction + Accurate*, *Impulsive Tactician*, *Hesitant Calculator*).
+* **FIDE Golden Rules**: Actionable coach heuristics targeting the player's primary blindspot.
+
+---
+
+## ⚡ Lichess OAuth 2.0 Integration & Smart Calibration
+
+* **Seamless Connection**: Secure PKCE OAuth 2.0 flow connecting directly to [Lichess.org](https://lichess.org).
+* **Live Stats Sync**: Syncs username, profile avatar, and live Rapid & Blitz ratings.
+* **Smart Tier Auto-Recommendation**: When connected, ChessZ reads your live rating and places a golden badge on your optimal tier:
+  `Recommended for @username (1420 Rapid)`.
+
+---
+
+## 🎯 Tournament-Grade Board & Tactical Annotation Engine
+
+* **Tactical Square Highlights**:
+  * 🟢 **Target / Safe Square**: Right-Click
+  * 🔴 **Threat / Danger Square**: <kbd>Ctrl</kbd> + Right-Click
+  * 🔵 **Plan / Candidate Move**: <kbd>Shift</kbd> + Right-Click
+  * 🟡 **Caution / Critical Square**: <kbd>Alt</kbd> + Right-Click
+  * ✕ **Auto-Clearing**: Clicking empty space or making a move instantly clears markings.
+* **King-in-Check Radial Glow**: Dynamic crimson pulse encircling the defending king when placed in check.
+* **Tactical Vector Arrows**: Right-click and drag to project calculation arrows.
+* **ChessBase 17 Exterior Bezel**: Outer coordinate rail keeping the 64 squares completely unobstructed.
+* **Settings & Help Modal**: Complete shortcuts guide accessible via the Settings icon.
+
+---
+
+## 🎨 Theme Studio & Piece Customization
+
+Players can tailor the board to their preferred study environment via **Settings**:
+* **Board Palettes**:
+  * **Periwinkle Mist** (Slate Modern — Default)
+  * **Emerald Glow** (Brat Cyber Glitter Arena with optional bokeh wallpaper)
+  * **Sage Nordic** (Calm Scandinavian Atelier)
+  * **Terracotta Kyoto** (Warm Japanese Sandstone)
+* **2D Piece Sets**:
+  * **Liquid Chrome** (Y2K Molten Metallic)
+  * **Neo-Arcade** (Streetwear Art Toy)
+  * **Classic** (Standard FIDE Pro)
+* **Interactive Animations**:
+  * **Animated Red Hand**: Graphic hand that snatches captured pieces off the board.
+  * **Light / Dark Mode**: Instant contrast toggle.
+
+---
+
+## 🔊 Zero-Latency Web Audio Synthesizer
+
+* Zero audio assets to fetch — generates sound on-the-fly using the native browser **Web Audio API**.
+* Wooden move clicks, deep capture strikes, refutation alarms, and victory arpeggios.
+* Header mute toggle synchronized to `localStorage`.
+
+---
+
+## 🛠️ Tech Stack & Architecture
+
+| Layer | Technology | Hosting & Cost |
 | :--- | :--- | :--- |
-| **Framework** | Next.js 16 (App Router, Turbopack, React 19) | ₹0 / mo |
-| **Deployment** | Vercel Global Edge Network (Hobby Plan) | ₹0 / mo |
-| **Database & Auth** | Supabase Postgres with Row Level Security (RLS) | ₹0 / mo |
-| **Chess Engines** | `chess.js` & `react-chessboard` | ₹0 / mo |
-| **Audio** | Web Audio API Synthesizer (Zero-dependency) | ₹0 / mo |
-| **Styling** | Tailwind CSS & Lucide React Icons | ₹0 / mo |
+| **Framework** | Next.js 16 (App Router, Turbopack, React 19) | Vercel Hobby ($0/mo) |
+| **Styling** | Tailwind CSS v4 with custom `@theme` tokens | Vercel Edge ($0/mo) |
+| **Chess Engine** | `chess.js` & `react-chessboard` | Client-Side ($0/mo) |
+| **Typography** | Space Grotesk + Inter + JetBrains Mono | Google Fonts CDN ($0/mo) |
+| **OAuth** | Lichess OAuth 2.0 PKCE (`/api/auth/lichess/*`) | Vercel Serverless ($0/mo) |
+| **Audio** | Web Audio API Synthesizer | Native Browser ($0/mo) |
+| **Icons** | Lucide React | Zero Cost ($0/mo) |
 
 ---
 
-## 📁 Repository Structure
-
-```
-chessz-app/
-├── app/
-│   ├── layout.tsx         # Root layout with Geist font & metadata
-│   ├── page.tsx           # Full interactive 3-screen platform flow
-│   └── globals.css        # Tailwind CSS styles & animations
-├── lib/
-│   ├── puzzles.ts         # 12 calibration hook puzzles + continuous streams
-│   ├── sounds.ts          # Zero-dependency Web Audio API synthesizer
-│   └── supabase.ts        # Cloud database client & marketplace integration
-├── public/                # Static assets & icons
-├── scripts/
-│   ├── audit-full-system.js   # Automated end-to-end production audit
-│   └── validate-puzzles.js    # FEN and move validator with chess.js
-├── schema.sql             # Supabase database schema & RLS policies
-└── package.json           # Dependencies & build scripts
-```
-
----
-
-## 🚀 Local Development Setup
+## 🚀 Local Development
 
 ```bash
 # Clone the repository
@@ -108,15 +143,21 @@ cd chessz/chessz-app
 # Install dependencies
 npm install
 
-# Run local development server
+# Start development server
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to view the app locally.
+Visit `http://localhost:3000` in your browser.
+
+To run a production build:
+```bash
+npm run build
+npm run start
+```
 
 ---
 
 ## ⚖️ License & Attribution
-* **Puzzles & Positions:** Powered by open chess datasets including [Lichess.org](https://lichess.org) (licensed under [Creative Commons Attribution 4.0](https://creativecommons.org/licenses/by/4.0/)).
-* **Libraries:** `chess.js` (MIT License, Jeff Hlywa), `react-chessboard` (MIT License, Clariity).
-* **Pedagogy:** Diagnostic framework and Golden Rules designed by FIDE Academy certified coaches at Premier Chess Academy (PCA).
+* **Chess Puzzle Data**: Derived from the public domain and open datasets of [Lichess.org](https://lichess.org) under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+* **Pedagogy & Heuristics**: Diagnostic cognitive framework designed by FIDE coaches at Premier Chess Academy (PCA).
+* **Codebase**: Licensed under the MIT License.

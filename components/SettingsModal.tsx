@@ -228,6 +228,9 @@ export function SettingsModal({ isOpen, onClose, onThemeChange }: SettingsModalP
           <div className="grid grid-cols-3 gap-2">
             {[
               { id: "liquid-chrome" as PieceSetStyle, label: "Liquid Chrome", badge: "Y2K Neon", desc: "Molten metallic" },
+              { id: "lichess-shapes" as PieceSetStyle, label: "Shapes", badge: "Bauhaus", desc: "Pure geometry" },
+              { id: "lichess-spatial" as PieceSetStyle, label: "Spatial", badge: "Wireframe", desc: "3D CAD Vector" },
+              { id: "lichess-mono" as PieceSetStyle, label: "Mono", badge: "Silhouette", desc: "Zero noise" },
               { id: "neo-arcade" as PieceSetStyle, label: "Neo-Arcade", badge: "Art Toy", desc: "Streetwear bots" },
               { id: "default" as PieceSetStyle, label: "Classic", badge: "FIDE Pro", desc: "Standard 2D" },
             ].map((p) => {
@@ -242,10 +245,10 @@ export function SettingsModal({ isOpen, onClose, onThemeChange }: SettingsModalP
                       : "theme-surface hover:theme-surface-subtle border-[var(--border-subtle)] opacity-80 hover:opacity-100"
                   }`}
                 >
-                  <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded-full bg-[var(--accent-primary)]/15 text-[var(--accent-primary)] font-bold">
+                  <span className="text-[9px] uppercase font-mono px-1.5 py-0.5 rounded-full bg-[var(--accent-primary)]/15 text-[var(--accent-primary)] font-bold">
                     {p.badge}
                   </span>
-                  <span className="text-xs font-bold theme-text-primary block mt-0.5">
+                  <span className="text-[11px] font-bold theme-text-primary block mt-0.5 leading-tight">
                     {p.label}
                   </span>
                   <span className="text-[9px] theme-text-muted block">
