@@ -8,12 +8,10 @@ import { Chess } from "chess.js";
 import { Chessboard, defaultArrowOptions } from "react-chessboard";
 import { ChessboardFrame } from "@/components/ChessboardFrame";
 import { sounds } from "@/lib/sounds";
-import {
-  THEME_BOARD_COLORS,
-  ThemePalette,
-  ThemeMode,
-} from "@/components/ThemeSwitcher";
+import { THEME_BOARD_COLORS, ThemePalette, ThemeMode } from "@/components/ThemeSwitcher";
 import { SettingsModal } from "@/components/SettingsModal";
+import { AnimatedCaptureHand } from "@/components/AnimatedCaptureHand";
+import { getPieceSet, PieceSetStyle } from "@/components/pieces/PieceSets2D";
 import {
   BENCHMARK_PUZZLE_POOL,
   getRandomBenchmarkTrio,
@@ -72,16 +70,31 @@ export default function DiagnosePage() {
   const [themeMode, setThemeMode] = useState<ThemeMode>("light");
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
+  const [pieceSet, setPieceSet] = useState<PieceSetStyle>("liquid-chrome");
+  const [captureHandEnabled, setCaptureHandEnabled] = useState<boolean>(true);
+  const [captureHandTarget, setCaptureHandTarget] = useState<{ square: string; key: number } | null>(null);
+
+  const triggerCaptureHand = (square: string) => {
+    if (!captureHandEnabled) return;
+    setCaptureHandTarget({ square, key: Date.now() });
+  };
 
   useEffect(() => {
     try {
       const savedTheme = (localStorage.getItem("chessz_theme") as ThemePalette) || "periwinkle";
       const savedMode = (localStorage.getItem("chessz_mode") as ThemeMode) || "light";
       const savedMute = localStorage.getItem("chessz_muted") === "true";
+      const savedPiece = (localStorage.getItem("chessz_piece_set") as PieceSetStyle) || "liquid-chrome";
+      const savedCapture = localStorage.getItem("chessz_capture_hand");
+
       setThemePalette(savedTheme);
       setThemeMode(savedMode);
+      setPieceSet(savedPiece);
       setIsMuted(savedMute);
       sounds.setMuted(savedMute);
+      if (savedCapture !== null) {
+        setCaptureHandEnabled(JSON.parse(savedCapture));
+      }
     } catch {}
 
     const handleThemeEvent = (e: Event) => {
@@ -91,9 +104,30 @@ export default function DiagnosePage() {
         if (customEvt.detail.mode) setThemeMode(customEvt.detail.mode);
       }
     };
+
+    const handleSettingsEvent = (e: Event) => {
+      const customEvt = e as CustomEvent<{
+        theme?: ThemePalette;
+        mode?: ThemeMode;
+        pieceSet?: PieceSetStyle;
+        wallpaper?: boolean;
+        captureHand?: boolean;
+      }>;
+      if (customEvt.detail) {
+        if (customEvt.detail.theme) setThemePalette(customEvt.detail.theme);
+        if (customEvt.detail.mode) setThemeMode(customEvt.detail.mode);
+        if (customEvt.detail.pieceSet) setPieceSet(customEvt.detail.pieceSet);
+        if (customEvt.detail.captureHand !== undefined) setCaptureHandEnabled(customEvt.detail.captureHand);
+      }
+    };
+
     window.addEventListener("chessz-theme-changed", handleThemeEvent);
-    return () => window.removeEventListener("chessz-theme-changed", handleThemeEvent);
-  }, []);
+    window.addEventListener("chessz-settings-changed", handleSettingsEvent);
+    return () => {
+      window.removeEventListener("chessz-theme-changed", handleThemeEvent);
+      window.removeEventListener("chessz-settings-changed", handleSettingsEvent);
+    };
+  }, [captureHandEnabled]);
 
   const currentBoardColors =
     THEME_BOARD_COLORS[themePalette]?.[themeMode] || THEME_BOARD_COLORS.periwinkle.light;
@@ -879,127 +913,70 @@ export default function DiagnosePage() {
               />
             )}
             {game && (
-              <>
-                <ChessboardFrame
+              <ChessboardFrame
+                boardOrientation={activePuzzle.playerColor}
+                boardSize={boardWidth}
+                bezelSize={bezelSize}
+              >
+                <AnimatedCaptureHand
+                  targetSquare={captureHandTarget?.square || null}
+                  triggerKey={captureHandTarget?.key}
                   boardOrientation={activePuzzle.playerColor}
                   boardSize={boardWidth}
                   bezelSize={bezelSize}
-                >
-                  <Chessboard
-                    key={boardKey}
-                    options={{
-                      position: game.fen(),
-                      boardOrientation: activePuzzle.playerColor,
-                      squareStyles: getCustomSquareStyles(),
-                      showNotation: false,
-                      allowDrawingArrows: true,
-                      clearArrowsOnClick: true,
-                      arrowOptions: {
-                        ...defaultArrowOptions,
-                        colors: {
-                          default: "#10b981",
-                          shift: "#0284c7",
-                          ctrl: "#ef4444",
-                          alt: "#f59e0b",
-                          meta: "#8b5cf6",
-                        },
-                        color: "#10b981",
-                        secondaryColor: "#0284c7",
-                        tertiaryColor: "#ef4444",
-                        opacity: 0.88,
-                        activeOpacity: 0.95,
-                        arrowStartOffset: 0.18,
-                        arrowLengthReducerDenominator: 2.8,
-                        sameTargetArrowLengthReducerDenominator: 3.2,
-                        arrowWidthDenominator: 5.5,
-                        activeArrowWidthMultiplier: 1.15,
+                  enabled={captureHandEnabled}
+                />
+                <Chessboard
+                  key={boardKey}
+                  options={{
+                    position: game.fen(),
+                    boardOrientation: activePuzzle.playerColor,
+                    squareStyles: getCustomSquareStyles(),
+                    showNotation: false,
+                    pieces: getPieceSet(pieceSet),
+                    allowDrawingArrows: true,
+                    clearArrowsOnClick: true,
+                    arrowOptions: {
+                      ...defaultArrowOptions,
+                      colors: {
+                        default: "#10b981",
+                        shift: "#0284c7",
+                        ctrl: "#ef4444",
+                        alt: "#f59e0b",
+                        meta: "#8b5cf6",
                       },
-                      onSquareClick: ({ square }) => handleSquareClick({ square }),
-                      onSquareRightClick: ({ square }) => handleSquareRightClick({ square }),
-                      onSquareMouseDown: ({ square }, e) => {
-                        if (e?.button === 2) {
-                          lastRightClickModifiersRef.current = {
-                            ctrl: !!e.ctrlKey || !!e.metaKey,
-                            shift: !!e.shiftKey,
-                            alt: !!e.altKey,
-                          };
-                        }
-                      },
-                      onPieceDrop: ({ sourceSquare, targetSquare }) => {
-                        if (!targetSquare) return false;
-                        return handleMoveAttempt(sourceSquare, targetSquare);
-                      },
-                      darkSquareStyle: { backgroundColor: currentBoardColors.dark },
-                      lightSquareStyle: { backgroundColor: currentBoardColors.light },
-                      animationDurationInMs: 180,
-                    }}
-                  />
-                </ChessboardFrame>
-
-                {/* Square Highlight Annotation Toolbar (Touch + Desktop Shortcut Reference) */}
-                <div className="flex items-center justify-between w-full max-w-[360px] sm:max-w-[420px] md:max-w-[480px] mx-auto mt-2.5 px-1 text-xs select-none">
-                  <div className="flex items-center gap-1 sm:gap-1.5">
-                    <span className="text-[10px] font-mono theme-text-muted hidden sm:inline mr-0.5">Annotate:</span>
-                    <button
-                      onClick={() => setActiveAnnotationColor((prev) => prev === "green" ? null : "green")}
-                      className={`px-2 py-0.5 sm:py-1 rounded-lg text-[10px] sm:text-[11px] font-bold transition flex items-center gap-1 cursor-pointer border ${
-                        activeAnnotationColor === "green"
-                          ? "bg-emerald-500/20 text-emerald-400 border-emerald-500 ring-1 ring-emerald-500"
-                          : "theme-surface theme-text-secondary border-[var(--border-subtle)] hover:bg-emerald-500/10"
-                      }`}
-                      title="Target / Safe Square (or Right-Click)"
-                    >
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
-                      <span>Target</span>
-                    </button>
-                    <button
-                      onClick={() => setActiveAnnotationColor((prev) => prev === "red" ? null : "red")}
-                      className={`px-2 py-0.5 sm:py-1 rounded-lg text-[10px] sm:text-[11px] font-bold transition flex items-center gap-1 cursor-pointer border ${
-                        activeAnnotationColor === "red"
-                          ? "bg-rose-500/20 text-rose-400 border-rose-500 ring-1 ring-rose-500"
-                          : "theme-surface theme-text-secondary border-[var(--border-subtle)] hover:bg-rose-500/10"
-                      }`}
-                      title="Threat / Danger Square (or Ctrl + Right-Click)"
-                    >
-                      <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0" />
-                      <span>Threat</span>
-                    </button>
-                    <button
-                      onClick={() => setActiveAnnotationColor((prev) => prev === "cyan" ? null : "cyan")}
-                      className={`px-2 py-0.5 sm:py-1 rounded-lg text-[10px] sm:text-[11px] font-bold transition flex items-center gap-1 cursor-pointer border ${
-                        activeAnnotationColor === "cyan"
-                          ? "bg-sky-500/20 text-sky-400 border-sky-500 ring-1 ring-sky-500"
-                          : "theme-surface theme-text-secondary border-[var(--border-subtle)] hover:bg-sky-500/10"
-                      }`}
-                      title="Candidate Plan (or Shift + Right-Click)"
-                    >
-                      <span className="w-2 h-2 rounded-full bg-sky-500 shrink-0" />
-                      <span>Plan</span>
-                    </button>
-                    <button
-                      onClick={() => setActiveAnnotationColor((prev) => prev === "yellow" ? null : "yellow")}
-                      className={`px-2 py-0.5 sm:py-1 rounded-lg text-[10px] sm:text-[11px] font-bold transition flex items-center gap-1 cursor-pointer border ${
-                        activeAnnotationColor === "yellow"
-                          ? "bg-amber-500/20 text-amber-400 border-amber-500 ring-1 ring-amber-500"
-                          : "theme-surface theme-text-secondary border-[var(--border-subtle)] hover:bg-amber-500/10"
-                      }`}
-                      title="Caution Square (or Alt + Right-Click)"
-                    >
-                      <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
-                      <span>Caution</span>
-                    </button>
-                  </div>
-                  {Object.keys(annotatedSquares).length > 0 && (
-                    <button
-                      onClick={() => setAnnotatedSquares({})}
-                      className="px-2 py-0.5 sm:py-1 rounded-lg text-[10px] font-mono theme-text-muted hover:theme-text-primary transition cursor-pointer border theme-surface"
-                      title="Clear all square annotations"
-                    >
-                      Clear
-                    </button>
-                  )}
-                </div>
-              </>
+                      color: "#10b981",
+                      secondaryColor: "#0284c7",
+                      tertiaryColor: "#ef4444",
+                      opacity: 0.88,
+                      activeOpacity: 0.95,
+                      arrowStartOffset: 0.18,
+                      arrowLengthReducerDenominator: 2.8,
+                      sameTargetArrowLengthReducerDenominator: 3.2,
+                      arrowWidthDenominator: 5.5,
+                      activeArrowWidthMultiplier: 1.15,
+                    },
+                    onSquareClick: ({ square }) => handleSquareClick({ square }),
+                    onSquareRightClick: ({ square }) => handleSquareRightClick({ square }),
+                    onSquareMouseDown: ({ square }, e) => {
+                      if (e?.button === 2) {
+                        lastRightClickModifiersRef.current = {
+                          ctrl: !!e.ctrlKey || !!e.metaKey,
+                          shift: !!e.shiftKey,
+                          alt: !!e.altKey,
+                        };
+                      }
+                    },
+                    onPieceDrop: ({ sourceSquare, targetSquare }) => {
+                      if (!targetSquare) return false;
+                      return handleMoveAttempt(sourceSquare, targetSquare);
+                    },
+                    darkSquareStyle: { backgroundColor: currentBoardColors.dark },
+                    lightSquareStyle: { backgroundColor: currentBoardColors.light },
+                    animationDurationInMs: 180,
+                  }}
+                />
+              </ChessboardFrame>
             )}
           </div>
 
