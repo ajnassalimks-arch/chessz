@@ -1097,7 +1097,7 @@ export default function Home() {
           </span>
           <div className="hidden sm:flex items-center gap-1.5 ml-2 px-2.5 py-0.5 rounded-full text-[11px] font-medium theme-pill">
             <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-primary)] animate-pulse" />
-            <span>500 Offline Puzzles • Free Forever</span>
+            <span>Cognitive Benchmark • FIDE Framework</span>
           </div>
         </div>
 
@@ -1202,46 +1202,60 @@ export default function Home() {
             </button>
           )}
 
-          {/* FIDE Coaches Badge */}
-          <div className="inline-flex items-center gap-1.5 text-[11px] font-medium tracking-wide theme-pill px-3 py-1 rounded-full mb-2.5 shadow-xs">
+          {/* Category Eyebrow */}
+          <div className="inline-flex items-center gap-2 text-[11px] font-mono tracking-wide theme-pill px-3 py-1 rounded-full mb-3 shadow-xs">
             <Award className="w-3.5 h-3.5 text-[var(--accent-primary)]" />
-            <span>FIDE Rated Coach Pedagogical Framework</span>
+            <span>FIDE Coaching Pedagogy • Cognitive Telemetry</span>
           </div>
 
-          {/* Punchy Hero Headline */}
-          <div className="text-center mb-3">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight theme-text-primary leading-tight mb-1.5">
-              Stop Paying for Puzzles. <br className="hidden sm:inline" />
-              Master Calculation.
+          {/* Grandmaster Authority Headline */}
+          <div className="text-center mb-4 max-w-2xl mx-auto">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight theme-text-primary leading-[1.15] mb-2">
+              Master Your Calculation. <br className="hidden sm:inline" />
+              <span className="text-[var(--accent-primary)]">Eliminate Every Blindspot.</span>
             </h1>
-            <p className="theme-text-secondary text-xs sm:text-sm max-w-md mx-auto leading-relaxed">
-              500 offline Lichess puzzles, diagnostic tactical assessment, and clear master explanations on every move.
+            <p className="theme-text-secondary text-xs sm:text-sm max-w-lg mx-auto leading-relaxed">
+              Scientific tactical diagnosis, cognitive conviction profiling, and targeted master training calibrated to your true playing strength.
             </p>
           </div>
 
-          {/* Action 1: The Level Diagnosis Benchmark Card */}
+          {/* Action 1: The Level Diagnosis Benchmark Bento Hero Card */}
           <div className="w-full max-w-3xl mb-3">
-            <div className="relative rounded-2xl p-4 sm:p-5 theme-surface theme-surface-hover shadow-md overflow-hidden group">
+            <div className="relative rounded-2xl p-4 sm:p-5 theme-surface theme-surface-hover shadow-md overflow-hidden group border border-[var(--border-subtle)] hover:border-[var(--border-focus)] transition-all">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 relative z-10">
-                <div className="flex items-start gap-3">
-                  <div className="p-2.5 rounded-xl theme-pill shrink-0">
-                    <Sparkles className="w-5 h-5 text-[var(--accent-primary)]" />
+                <div className="flex items-start gap-3.5">
+                  <div className="w-11 h-11 rounded-2xl bg-linear-to-br from-[var(--accent-subtle)] to-[var(--surface-muted)] border border-[var(--border-focus)] flex items-center justify-center shrink-0 shadow-sm text-[var(--accent-primary)]">
+                    <Sparkles className="w-5 h-5 animate-pulse" />
                   </div>
                   <div>
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md theme-pill text-[10px] font-bold uppercase tracking-wider mb-1">
+                    <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full theme-pill text-[10px] font-mono font-bold uppercase tracking-wider mb-1.5">
                       <span>3-Puzzle Benchmark</span>
                       <span>•</span>
-                      <span>Under 2.5 Minutes</span>
+                      <span>~2.5 Minutes</span>
                     </div>
-                    <h3 className="text-sm sm:text-base font-bold theme-text-primary">
-                      Diagnose My Level
+                    <h3 className="text-base sm:text-lg font-extrabold theme-text-primary tracking-tight">
+                      Diagnose Your Tactical Level
                     </h3>
                     <p className="text-xs theme-text-secondary mt-0.5 max-w-lg leading-relaxed">
-                      3 rapid tactical puzzles + cognitive commitment test. Discover your true FIDE/Lichess level and unlock your personalized training.
+                      Evaluate your calculation speed, risk conviction, and tactical blindspots across calibrated tournament positions.
                     </p>
+
+                    {/* Telemetry Micro-Pills */}
+                    <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-md theme-surface-subtle border text-sky-400 font-semibold flex items-center gap-1">
+                        ⚡ Move Velocity
+                      </span>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-md theme-surface-subtle border text-amber-400 font-semibold flex items-center gap-1">
+                        🧠 Conviction Profile
+                      </span>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-md theme-surface-subtle border text-emerald-400 font-semibold flex items-center gap-1">
+                        🎯 Calibrated Elo
+                      </span>
+                    </div>
+
                     {savedDiagnosisProfile && (
-                      <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] font-mono">
-                        <span className="px-2 py-0.5 rounded theme-surface-subtle font-bold theme-text-primary border">
+                      <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[11px] font-mono">
+                        <span className="px-2 py-0.5 rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold">
                           ✓ Diagnosed: {savedDiagnosisProfile.finalLevel}
                         </span>
                         <span className="theme-text-muted">
@@ -1252,7 +1266,7 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto shrink-0">
+                <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto shrink-0 pt-1 sm:pt-0">
                   {savedDiagnosisProfile && (
                     <button
                       onClick={() => {
@@ -1261,17 +1275,17 @@ export default function Home() {
                           LEVEL_OPTIONS[2];
                         handleStartDiagnosedTraining(savedDiagnosisProfile, targetLevel);
                       }}
-                      className="w-full sm:w-auto px-3.5 py-2.5 rounded-xl theme-surface hover:theme-surface-subtle font-bold text-xs sm:text-sm tracking-wide border transition cursor-pointer"
+                      className="w-full sm:w-auto px-4 py-2.5 rounded-xl theme-surface hover:theme-surface-subtle font-bold text-xs sm:text-sm tracking-wide border transition cursor-pointer"
                     >
                       <span>Start Training</span>
                     </button>
                   )}
                   <Link
                     href="/diagnose"
-                    className="w-full sm:w-auto px-4 py-2.5 rounded-xl theme-accent-btn font-bold text-xs sm:text-sm tracking-wide flex items-center justify-center gap-2 shadow-sm transition-all duration-150 active:scale-[0.98] cursor-pointer"
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl theme-accent-btn font-bold text-xs sm:text-sm tracking-wide flex items-center justify-center gap-2 shadow-sm hover:shadow-md transition-all duration-150 active:scale-[0.98] cursor-pointer group"
                   >
-                    <span>{savedDiagnosisProfile ? "Retake Diagnosis" : "Diagnose My Level"}</span>
-                    <ChevronRight className="w-4 h-4" />
+                    <span>{savedDiagnosisProfile ? "Retake Diagnosis" : "Start Level Diagnosis"}</span>
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </Link>
                 </div>
               </div>
@@ -1289,8 +1303,9 @@ export default function Home() {
             </div>
 
             <div className="flex items-center justify-between text-xs theme-text-secondary px-1 mb-2 font-medium">
-              <span>Know your rating? Pick a tier to jump straight into training:</span>
-              <span className="text-[var(--accent-primary)] font-mono text-[11px] font-semibold">Instant Play</span>
+              <span className="font-mono text-[11px] hidden sm:inline">Select your rating bracket for direct tactical training:</span>
+              <span className="font-mono text-[11px] sm:hidden">Select rating bracket:</span>
+              <span className="text-[var(--accent-primary)] font-mono text-[11px] font-semibold shrink-0">Immediate Practice</span>
             </div>
 
             <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-2.5">
@@ -1337,13 +1352,13 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Social Proof Pill */}
-          <div className="mt-1 md:mt-2 flex items-center justify-center gap-3 text-[11px] theme-text-secondary theme-surface px-4 py-1.5 rounded-full border shadow-2xs">
-            <span className="font-semibold text-[var(--accent-primary)]">✓ Zero Ads</span>
-            <span>•</span>
-            <span className="font-semibold text-[var(--accent-primary)]">✓ 100% Free Forever</span>
-            <span>•</span>
-            <span>500 Offline Puzzles</span>
+          {/* Prestigious Trust Markers */}
+          <div className="mt-1 md:mt-2 flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-[11px] theme-text-secondary theme-surface px-4 py-1.5 rounded-full border shadow-2xs font-mono">
+            <span className="font-semibold text-emerald-400">✓ FIDE Coaching Framework</span>
+            <span className="hidden sm:inline theme-text-muted">•</span>
+            <span className="font-semibold text-[var(--accent-primary)]">✓ Cross-Platform Lichess Sync</span>
+            <span className="hidden sm:inline theme-text-muted">•</span>
+            <span className="theme-text-muted">Pure Calculation Training</span>
           </div>
         </section>
       ) : isQuizActive && !showDiagnosisModal ? (
