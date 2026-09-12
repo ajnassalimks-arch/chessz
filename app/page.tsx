@@ -1097,7 +1097,7 @@ export default function Home() {
           </span>
           <div className="hidden sm:flex items-center gap-1.5 ml-2 px-2.5 py-0.5 rounded-full text-[11px] font-medium theme-pill">
             <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-primary)] animate-pulse" />
-            <span>Cognitive Benchmark • FIDE Framework</span>
+            <span>Coach-Verified Tactics • Free Forever</span>
           </div>
         </div>
 
@@ -1205,17 +1205,17 @@ export default function Home() {
           {/* Category Eyebrow */}
           <div className="inline-flex items-center gap-2 text-[11px] font-mono tracking-wide theme-pill px-3 py-1 rounded-full mb-3 shadow-xs">
             <Award className="w-3.5 h-3.5 text-[var(--accent-primary)]" />
-            <span>FIDE Coaching Pedagogy • Cognitive Telemetry</span>
+            <span>Coach-Verified Training • Find Your True Level</span>
           </div>
 
           {/* Grandmaster Authority Headline */}
           <div className="text-center mb-4 max-w-2xl mx-auto">
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight theme-text-primary leading-[1.15] mb-2">
               Master Your Calculation. <br className="hidden sm:inline" />
-              <span className="text-[var(--accent-primary)]">Eliminate Every Blindspot.</span>
+              <span className="text-[var(--accent-primary)]">Eliminate Your Blindspots.</span>
             </h1>
             <p className="theme-text-secondary text-xs sm:text-sm max-w-lg mx-auto leading-relaxed">
-              Scientific tactical diagnosis, cognitive conviction profiling, and targeted master training calibrated to your true playing strength.
+              Test your tactical vision, discover the hidden mistakes holding you back, and train with positions calibrated to your real skill level.
             </p>
           </div>
 
@@ -1229,27 +1229,27 @@ export default function Home() {
                   </div>
                   <div>
                     <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full theme-pill text-[10px] font-mono font-bold uppercase tracking-wider mb-1.5">
-                      <span>3-Puzzle Benchmark</span>
+                      <span>3-Puzzle Quick Test</span>
                       <span>•</span>
                       <span>~2.5 Minutes</span>
                     </div>
                     <h3 className="text-base sm:text-lg font-extrabold theme-text-primary tracking-tight">
-                      Diagnose Your Tactical Level
+                      Test Your Real Chess Level
                     </h3>
                     <p className="text-xs theme-text-secondary mt-0.5 max-w-lg leading-relaxed">
-                      Evaluate your calculation speed, risk conviction, and tactical blindspots across calibrated tournament positions.
+                      Play 3 test positions to see how fast you calculate, check your confidence on critical moves, and find your real rating.
                     </p>
 
                     {/* Telemetry Micro-Pills */}
                     <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
                       <span className="text-[10px] font-mono px-2 py-0.5 rounded-md theme-surface-subtle border text-sky-400 font-semibold flex items-center gap-1">
-                        ⚡ Move Velocity
+                        ⚡ Thinking Speed
                       </span>
                       <span className="text-[10px] font-mono px-2 py-0.5 rounded-md theme-surface-subtle border text-amber-400 font-semibold flex items-center gap-1">
-                        🧠 Conviction Profile
+                        🧠 Confidence Check
                       </span>
                       <span className="text-[10px] font-mono px-2 py-0.5 rounded-md theme-surface-subtle border text-emerald-400 font-semibold flex items-center gap-1">
-                        🎯 Calibrated Elo
+                        🎯 Estimated Rating
                       </span>
                     </div>
 
@@ -1352,13 +1352,13 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Prestigious Trust Markers */}
+          {/* Clear Human-Friendly Trust Markers */}
           <div className="mt-1 md:mt-2 flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-[11px] theme-text-secondary theme-surface px-4 py-1.5 rounded-full border shadow-2xs font-mono">
-            <span className="font-semibold text-emerald-400">✓ FIDE Coaching Framework</span>
+            <span className="font-semibold text-emerald-400">✓ Coach-Approved Training</span>
             <span className="hidden sm:inline theme-text-muted">•</span>
-            <span className="font-semibold text-[var(--accent-primary)]">✓ Cross-Platform Lichess Sync</span>
+            <span className="font-semibold text-[var(--accent-primary)]">✓ Sync with Lichess</span>
             <span className="hidden sm:inline theme-text-muted">•</span>
-            <span className="theme-text-muted">Pure Calculation Training</span>
+            <span className="theme-text-muted">Real Game Tactics</span>
           </div>
         </section>
       ) : isQuizActive && !showDiagnosisModal ? (
