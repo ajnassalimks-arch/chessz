@@ -1092,7 +1092,7 @@ export default function Home() {
               priority
             />
           </div>
-          <span className="font-extrabold text-sm sm:text-base tracking-tight theme-text-primary">
+          <span className="font-extrabold text-sm sm:text-base tracking-tight theme-text-primary font-display">
             ChessZ
           </span>
           <div className="hidden sm:flex items-center gap-1.5 ml-2 px-2.5 py-0.5 rounded-full text-[11px] font-medium theme-pill">
