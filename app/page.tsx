@@ -411,7 +411,22 @@ export default function Home() {
   const [annotatedSquares, setAnnotatedSquares] = useState<
     Record<string, { bg: string; border: string; type: "green" | "red" | "cyan" | "yellow" }>
   >({});
+  const [activeAnnotationColor, setActiveAnnotationColor] = useState<"green" | "red" | "cyan" | "yellow" | null>(null);
   const [boardKey, setBoardKey] = useState<number>(0);
+
+  // Lichess Rating & Smart Tier Recommendation
+  const lichessRating =
+    lichessUser?.perfs?.rapid?.rating ||
+    lichessUser?.perfs?.blitz?.rating ||
+    lichessUser?.perfs?.puzzle?.rating;
+
+  let recommendedTierId: LevelType | null = null;
+  if (lichessRating) {
+    if (lichessRating < 1100) recommendedTierId = "beginner";
+    else if (lichessRating < 1450) recommendedTierId = "adv_beginner";
+    else if (lichessRating < 1750) recommendedTierId = "intermediate";
+    else recommendedTierId = "advanced";
+  }
 
   // Right-click modifier tracking refs for square markings & arrows
   const lastRightClickModifiersRef = useRef<{ ctrl: boolean; shift: boolean; alt: boolean }>({
@@ -790,6 +805,27 @@ export default function Home() {
   const handleSquareClick = ({ square }: { square: string }) => {
     if (!game || !currentPuzzle || puzzleStatus !== "solving") return;
 
+    // 0. If mobile touch annotation color is active, mark the square directly
+    if (activeAnnotationColor) {
+      const palette = {
+        green: { bg: "rgba(16, 185, 129, 0.40)", border: "#10b981" },
+        red: { bg: "rgba(239, 68, 68, 0.40)", border: "#ef4444" },
+        cyan: { bg: "rgba(2, 132, 199, 0.40)", border: "#0284c7" },
+        yellow: { bg: "rgba(245, 158, 11, 0.42)", border: "#f59e0b" },
+      }[activeAnnotationColor];
+
+      setAnnotatedSquares((prev) => {
+        const next = { ...prev };
+        if (next[square] && next[square].type === activeAnnotationColor) {
+          delete next[square];
+        } else {
+          next[square] = { bg: palette.bg, border: palette.border, type: activeAnnotationColor };
+        }
+        return next;
+      });
+      return;
+    }
+
     // Left-clicking empty square clears markings
     if (!selectedSquare && !game.get(square as any) && Object.keys(annotatedSquares).length > 0) {
       setAnnotatedSquares({});
@@ -807,6 +843,9 @@ export default function Home() {
       // 2. If clicking a legal target -> execute move
       const isLegalTarget = legalMoves.some((m) => m.to === square);
       if (isLegalTarget) {
+        if (Object.keys(annotatedSquares).length > 0) {
+          setAnnotatedSquares({});
+        }
         handleMoveAttempt(selectedSquare, square);
         return;
       }
@@ -826,6 +865,9 @@ export default function Home() {
       setSelectedSquare(null);
       setLegalMoves([]);
       setHintSquare(null);
+      if (Object.keys(annotatedSquares).length > 0) {
+        setAnnotatedSquares({});
+      }
       return;
     }
 
@@ -841,14 +883,17 @@ export default function Home() {
       setSelectedSquare(null);
       setLegalMoves([]);
       setHintSquare(null);
+      if (Object.keys(annotatedSquares).length > 0) {
+        setAnnotatedSquares({});
+      }
     }
   };
 
   // Right-click tactical annotation handler:
-  // Default: Green (#52b788)
+  // Default: Green (#10b981)
   // Control: Red (#ef4444)
-  // Shift (swift): Cyan (#06b6d4)
-  // Alt: Yellow (#eab308)
+  // Shift (swift): Blue (#0284c7)
+  // Alt: Yellow (#f59e0b)
   const handleSquareRightClick = ({ square }: { square: string }) => {
     if (!game || puzzleStatus !== "solving") return;
 
@@ -862,12 +907,12 @@ export default function Home() {
 
     if (isAlt) {
       colorType = "yellow";
-      bg = "rgba(234, 179, 8, 0.42)";
-      border = "#eab308";
+      bg = "rgba(245, 158, 11, 0.42)";
+      border = "#f59e0b";
     } else if (isShift) {
       colorType = "cyan";
-      bg = "rgba(6, 182, 212, 0.40)";
-      border = "#06b6d4";
+      bg = "rgba(2, 132, 199, 0.40)";
+      border = "#0284c7";
     } else if (isCtrl) {
       colorType = "red";
       bg = "rgba(239, 68, 68, 0.40)";
@@ -900,11 +945,11 @@ export default function Home() {
   const getCustomSquareStyles = () => {
     const styles: Record<string, React.CSSProperties> = {};
 
-    // 1. Right-click tactical annotations (crisp tile framing with dark perimeter divider so adjacent squares stay distinctly separated)
+    // 1. Right-click tactical annotations (crisp tile framing with modern glowing perimeter)
     Object.entries(annotatedSquares).forEach(([sq, item]) => {
       styles[sq] = {
         backgroundColor: item.bg,
-        boxShadow: `inset 0 0 0 1.5px rgba(0, 0, 0, 0.45), inset 0 0 0 4.5px ${item.border}`,
+        boxShadow: `inset 0 0 0 2.5px ${item.border}, inset 0 0 14px ${item.border}35`,
       };
     });
 
@@ -951,6 +996,25 @@ export default function Home() {
         backgroundColor: "rgba(52, 211, 153, 0.4)",
         boxShadow: "inset 0 0 0 4px #10b981",
       };
+    }
+
+    // 6. Dynamic King-in-Check crimson radial glow
+    if (game && game.inCheck()) {
+      const turn = game.turn();
+      for (let r = 0; r < 8; r++) {
+        for (let f = 0; f < 8; f++) {
+          const sq = `${"abcdefgh"[f]}${8 - r}`;
+          const piece = game.get(sq as any);
+          if (piece && piece.type === "k" && piece.color === turn) {
+            styles[sq] = {
+              ...styles[sq],
+              background:
+                "radial-gradient(circle, rgba(239, 68, 68, 0.85) 0%, rgba(220, 38, 38, 0.50) 45%, rgba(185, 28, 28, 0.20) 75%, transparent 100%)",
+              boxShadow: "inset 0 0 0 2.5px #ef4444, inset 0 0 16px rgba(239, 68, 68, 0.75)",
+            };
+          }
+        }
+      }
     }
 
     return styles;
@@ -1310,13 +1374,24 @@ export default function Home() {
 
             <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-2.5">
               {LEVEL_OPTIONS.map((lvl, idx) => {
+                const isRecommended = lvl.id === recommendedTierId;
                 return (
                   <button
                     key={lvl.id}
                     onClick={() => handleDirectTierSelect(lvl)}
                     style={{ animationDelay: `${idx * 60}ms` }}
-                    className="group relative w-full text-left p-3 rounded-2xl theme-surface theme-surface-hover animate-card-entrance cursor-pointer"
+                    className={`group relative w-full text-left p-3 rounded-2xl theme-surface theme-surface-hover animate-card-entrance cursor-pointer ${
+                      isRecommended
+                        ? "ring-2 ring-amber-500/70 border-amber-500/40 bg-amber-500/[0.03] shadow-md"
+                        : ""
+                    }`}
                   >
+                    {isRecommended && (
+                      <div className="absolute -top-2.5 right-3 flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-linear-to-r from-amber-500 to-amber-600 text-neutral-950 text-[10px] font-extrabold shadow-md z-20 font-display">
+                        <Sparkles className="w-2.5 h-2.5 fill-current" />
+                        <span>Recommended for @{lichessUser?.username} ({lichessRating})</span>
+                      </div>
+                    )}
                     <div className="flex items-start justify-between mb-1">
                       <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-xl theme-surface-subtle flex items-center justify-center text-base font-bold select-none shrink-0">
@@ -1586,11 +1661,11 @@ export default function Home() {
           <div className="w-full flex md:hidden items-center justify-between mb-1.5 px-1 text-xs">
             <div className="flex items-center gap-2">
               <span
-                className={`w-2.5 h-2.5 rounded-full ${
-                  game?.turn() === "w" ? "bg-[var(--accent-primary)]" : "theme-surface-subtle border"
+                className={`w-3 h-3 rounded-full ${
+                  game?.turn() === "w" ? "bg-[var(--accent-primary)] shadow-sm" : "theme-surface-subtle border-2 border-neutral-500"
                 }`}
               />
-              <span className="font-semibold theme-text-primary">{status}</span>
+              <span className="font-extrabold text-xs tracking-wider font-display uppercase theme-text-primary">{status}</span>
             </div>
 
             <div className="flex items-center gap-2">
@@ -1612,61 +1687,127 @@ export default function Home() {
           {/* Chessboard Column (Left / Center) with Exterior ChessBase Bezel */}
           <div className="flex flex-col items-center justify-center shrink-0">
             {game && currentPuzzle && (
-              <ChessboardFrame
-                boardOrientation={currentPuzzle.playerColor}
-                boardSize={boardWidth}
-                bezelSize={bezelSize}
-              >
-                <Chessboard
-                  key={boardKey}
-                  options={{
-                    position: game.fen(),
-                    boardOrientation: currentPuzzle.playerColor,
-                    squareStyles: getCustomSquareStyles(),
-                    showNotation: false,
-                    allowDrawingArrows: true,
-                    clearArrowsOnClick: true,
-                    arrowOptions: {
-                      ...defaultArrowOptions,
-                      colors: {
-                        default: "#10b981",
-                        shift: "#0284c7",
-                        ctrl: "#ef4444",
-                        alt: "#f59e0b",
-                        meta: "#8b5cf6",
+              <>
+                <ChessboardFrame
+                  boardOrientation={currentPuzzle.playerColor}
+                  boardSize={boardWidth}
+                  bezelSize={bezelSize}
+                >
+                  <Chessboard
+                    key={boardKey}
+                    options={{
+                      position: game.fen(),
+                      boardOrientation: currentPuzzle.playerColor,
+                      squareStyles: getCustomSquareStyles(),
+                      showNotation: false,
+                      allowDrawingArrows: true,
+                      clearArrowsOnClick: true,
+                      arrowOptions: {
+                        ...defaultArrowOptions,
+                        colors: {
+                          default: "#10b981",
+                          shift: "#0284c7",
+                          ctrl: "#ef4444",
+                          alt: "#f59e0b",
+                          meta: "#8b5cf6",
+                        },
+                        color: "#10b981",
+                        secondaryColor: "#0284c7",
+                        tertiaryColor: "#ef4444",
+                        opacity: 0.88,
+                        activeOpacity: 0.95,
+                        arrowStartOffset: 0.18,
+                        arrowLengthReducerDenominator: 2.8,
+                        sameTargetArrowLengthReducerDenominator: 3.2,
+                        arrowWidthDenominator: 5.5,
+                        activeArrowWidthMultiplier: 1.15,
                       },
-                      color: "#10b981",
-                      secondaryColor: "#0284c7",
-                      tertiaryColor: "#ef4444",
-                      opacity: 0.88,
-                      activeOpacity: 0.95,
-                      arrowStartOffset: 0.18,
-                      arrowLengthReducerDenominator: 2.8,
-                      sameTargetArrowLengthReducerDenominator: 3.2,
-                      arrowWidthDenominator: 5.5,
-                      activeArrowWidthMultiplier: 1.15,
-                    },
-                    onSquareClick: ({ square }) => handleSquareClick({ square }),
-                    onSquareRightClick: ({ square }) => handleSquareRightClick({ square }),
-                    onSquareMouseDown: ({ square }, e) => {
-                      if (e?.button === 2) {
-                        lastRightClickModifiersRef.current = {
-                          ctrl: !!e.ctrlKey || !!e.metaKey,
-                          shift: !!e.shiftKey,
-                          alt: !!e.altKey,
-                        };
-                      }
-                    },
-                    onPieceDrop: ({ sourceSquare, targetSquare }) => {
-                      if (!targetSquare) return false;
-                      return handleMoveAttempt(sourceSquare, targetSquare);
-                    },
-                    darkSquareStyle: { backgroundColor: currentBoardColors.dark },
-                    lightSquareStyle: { backgroundColor: currentBoardColors.light },
-                    animationDurationInMs: 180,
-                  }}
-                />
-              </ChessboardFrame>
+                      onSquareClick: ({ square }) => handleSquareClick({ square }),
+                      onSquareRightClick: ({ square }) => handleSquareRightClick({ square }),
+                      onSquareMouseDown: ({ square }, e) => {
+                        if (e?.button === 2) {
+                          lastRightClickModifiersRef.current = {
+                            ctrl: !!e.ctrlKey || !!e.metaKey,
+                            shift: !!e.shiftKey,
+                            alt: !!e.altKey,
+                          };
+                        }
+                      },
+                      onPieceDrop: ({ sourceSquare, targetSquare }) => {
+                        if (!targetSquare) return false;
+                        return handleMoveAttempt(sourceSquare, targetSquare);
+                      },
+                      darkSquareStyle: { backgroundColor: currentBoardColors.dark },
+                      lightSquareStyle: { backgroundColor: currentBoardColors.light },
+                      animationDurationInMs: 180,
+                    }}
+                  />
+                </ChessboardFrame>
+
+                {/* Square Highlight Annotation Toolbar (Touch + Desktop Shortcut Reference) */}
+                <div className="flex items-center justify-between w-full max-w-[360px] sm:max-w-[420px] md:max-w-[480px] mx-auto mt-2.5 px-1 text-xs select-none">
+                  <div className="flex items-center gap-1 sm:gap-1.5">
+                    <span className="text-[10px] font-mono theme-text-muted hidden sm:inline mr-0.5">Annotate:</span>
+                    <button
+                      onClick={() => setActiveAnnotationColor((prev) => prev === "green" ? null : "green")}
+                      className={`px-2 py-0.5 sm:py-1 rounded-lg text-[10px] sm:text-[11px] font-bold transition flex items-center gap-1 cursor-pointer border ${
+                        activeAnnotationColor === "green"
+                          ? "bg-emerald-500/20 text-emerald-400 border-emerald-500 ring-1 ring-emerald-500"
+                          : "theme-surface theme-text-secondary border-[var(--border-subtle)] hover:bg-emerald-500/10"
+                      }`}
+                      title="Target / Safe Square (or Right-Click)"
+                    >
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                      <span>Target</span>
+                    </button>
+                    <button
+                      onClick={() => setActiveAnnotationColor((prev) => prev === "red" ? null : "red")}
+                      className={`px-2 py-0.5 sm:py-1 rounded-lg text-[10px] sm:text-[11px] font-bold transition flex items-center gap-1 cursor-pointer border ${
+                        activeAnnotationColor === "red"
+                          ? "bg-rose-500/20 text-rose-400 border-rose-500 ring-1 ring-rose-500"
+                          : "theme-surface theme-text-secondary border-[var(--border-subtle)] hover:bg-rose-500/10"
+                      }`}
+                      title="Threat / Danger Square (or Ctrl + Right-Click)"
+                    >
+                      <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0" />
+                      <span>Threat</span>
+                    </button>
+                    <button
+                      onClick={() => setActiveAnnotationColor((prev) => prev === "cyan" ? null : "cyan")}
+                      className={`px-2 py-0.5 sm:py-1 rounded-lg text-[10px] sm:text-[11px] font-bold transition flex items-center gap-1 cursor-pointer border ${
+                        activeAnnotationColor === "cyan"
+                          ? "bg-sky-500/20 text-sky-400 border-sky-500 ring-1 ring-sky-500"
+                          : "theme-surface theme-text-secondary border-[var(--border-subtle)] hover:bg-sky-500/10"
+                      }`}
+                      title="Candidate Plan (or Shift + Right-Click)"
+                    >
+                      <span className="w-2 h-2 rounded-full bg-sky-500 shrink-0" />
+                      <span>Plan</span>
+                    </button>
+                    <button
+                      onClick={() => setActiveAnnotationColor((prev) => prev === "yellow" ? null : "yellow")}
+                      className={`px-2 py-0.5 sm:py-1 rounded-lg text-[10px] sm:text-[11px] font-bold transition flex items-center gap-1 cursor-pointer border ${
+                        activeAnnotationColor === "yellow"
+                          ? "bg-amber-500/20 text-amber-400 border-amber-500 ring-1 ring-amber-500"
+                          : "theme-surface theme-text-secondary border-[var(--border-subtle)] hover:bg-amber-500/10"
+                      }`}
+                      title="Caution Square (or Alt + Right-Click)"
+                    >
+                      <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
+                      <span>Caution</span>
+                    </button>
+                  </div>
+                  {Object.keys(annotatedSquares).length > 0 && (
+                    <button
+                      onClick={() => setAnnotatedSquares({})}
+                      className="px-2 py-0.5 sm:py-1 rounded-lg text-[10px] font-mono theme-text-muted hover:theme-text-primary transition cursor-pointer border theme-surface"
+                      title="Clear all square annotations"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+              </>
             )}
           </div>
 
@@ -1794,11 +1935,11 @@ export default function Home() {
               <div className="flex items-center justify-between mb-3 px-0.5 text-xs">
                 <div className="flex items-center gap-2">
                   <span
-                    className={`w-2.5 h-2.5 rounded-full ${
-                      game?.turn() === "w" ? "bg-[var(--accent-primary)]" : "theme-surface-subtle border"
+                    className={`w-3 h-3 rounded-full ${
+                      game?.turn() === "w" ? "bg-[var(--accent-primary)] shadow-sm" : "theme-surface-subtle border-2 border-neutral-500"
                     }`}
                   />
-                  <span className="font-semibold theme-text-primary">{status}</span>
+                  <span className="font-extrabold text-xs sm:text-sm tracking-wider font-display uppercase theme-text-primary">{status}</span>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -1829,8 +1970,17 @@ export default function Home() {
                       {currentPuzzle.ratingBadge}
                     </span>
                   </div>
-                  <p className="text-xs font-semibold theme-text-primary mb-1 leading-snug">
-                    {currentPuzzle.prompt}
+                  <p className="text-xs sm:text-sm font-semibold theme-text-primary mb-1 leading-snug">
+                    {currentPuzzle.prompt.includes("to move:") ? (
+                      <>
+                        <strong className="font-extrabold font-display text-[var(--accent-primary)] uppercase tracking-wide mr-1.5">
+                          {currentPuzzle.prompt.split("to move:")[0]}to move:
+                        </strong>
+                        <span>{currentPuzzle.prompt.split("to move:")[1]}</span>
+                      </>
+                    ) : (
+                      currentPuzzle.prompt
+                    )}
                   </p>
                   <p className="text-[11px] theme-text-secondary leading-relaxed">
                     Rule: <span className="theme-text-primary font-medium">{currentPuzzle.ruleTitle}</span>

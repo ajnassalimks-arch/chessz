@@ -15,9 +15,10 @@ import {
 } from "@/components/ThemeSwitcher";
 import { SettingsModal } from "@/components/SettingsModal";
 import {
-  FIXED_PUZZLE_1,
+  BENCHMARK_PUZZLE_POOL,
+  getRandomBenchmarkTrio,
+  evaluateBenchmarkMove,
   calculateNewElo,
-  evaluatePuzzle1Move,
   mapEloToLevel,
   selectAdaptivePuzzle,
   computeMoveScore,
@@ -139,10 +140,8 @@ export default function DiagnosePage() {
   const [showEloEstimate, setShowEloEstimate] = useState<boolean>(false);
 
   // Active Puzzle & Multi-Step Solution State
-  const [activePuzzle, setActivePuzzle] = useState<ChessPuzzle & { numericRating: number }>(() => ({
-    ...FIXED_PUZZLE_1,
-    numericRating: 1350,
-  }));
+  const diagnosticTrioRef = useRef<(ChessPuzzle & { numericRating: number })[] | null>(null);
+  const [activePuzzle, setActivePuzzle] = useState<ChessPuzzle & { numericRating: number }>(() => BENCHMARK_PUZZLE_POOL[0]);
   const [solutionStepIndex, setSolutionStepIndex] = useState<number>(0);
   const [game, setGame] = useState<Chess | null>(null);
   const [boardKey, setBoardKey] = useState<number>(0);
@@ -151,6 +150,10 @@ export default function DiagnosePage() {
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
   const [hintSquare, setHintSquare] = useState<string | null>(null);
+  const [annotatedSquares, setAnnotatedSquares] = useState<
+    Record<string, { bg: string; border: string; type: "green" | "red" | "cyan" | "yellow" }>
+  >({});
+  const [activeAnnotationColor, setActiveAnnotationColor] = useState<"green" | "red" | "cyan" | "yellow" | null>(null);
   const [pendingMove, setPendingMove] = useState<{
     from: string;
     to: string;
@@ -158,6 +161,35 @@ export default function DiagnosePage() {
     isBestMove: boolean;
   } | null>(null);
   const [showCommitmentModal, setShowCommitmentModal] = useState<boolean>(false);
+
+  // Right-click modifier tracking refs for square markings & arrows
+  const lastRightClickModifiersRef = useRef<{ ctrl: boolean; shift: boolean; alt: boolean }>({
+    ctrl: false,
+    shift: false,
+    alt: false,
+  });
+  const activeModifiersRef = useRef<{ ctrl: boolean; shift: boolean; alt: boolean }>({
+    ctrl: false,
+    shift: false,
+    alt: false,
+  });
+
+  // Track keyboard modifier keys globally
+  useEffect(() => {
+    const handleKeyChange = (e: KeyboardEvent) => {
+      activeModifiersRef.current = {
+        ctrl: !!e.ctrlKey || !!e.metaKey,
+        shift: !!e.shiftKey,
+        alt: !!e.altKey,
+      };
+    };
+    window.addEventListener("keydown", handleKeyChange);
+    window.addEventListener("keyup", handleKeyChange);
+    return () => {
+      window.removeEventListener("keydown", handleKeyChange);
+      window.removeEventListener("keyup", handleKeyChange);
+    };
+  }, []);
 
   // Turn evaluation & Feedback state
   const [puzzleStatus, setPuzzleStatus] = useState<"solving" | "success" | "failed">("solving");
@@ -179,6 +211,7 @@ export default function DiagnosePage() {
       setSelectedSquare(null);
       setLastMove(null);
       setHintSquare(null);
+      setAnnotatedSquares({});
       setPendingMove(null);
       setShowCommitmentModal(false);
       setPuzzleStatus("solving");
@@ -197,8 +230,133 @@ export default function DiagnosePage() {
   };
 
   useEffect(() => {
-    loadPuzzle(activePuzzle);
+    const trio = getRandomBenchmarkTrio();
+    diagnosticTrioRef.current = trio;
+    loadPuzzle(trio[0]);
   }, []);
+
+  // Right-click annotation handler
+  const handleSquareRightClick = ({ square }: { square: string }) => {
+    if (!game || puzzleStatus !== "solving") return;
+
+    const isAlt = lastRightClickModifiersRef.current.alt || activeModifiersRef.current.alt;
+    const isShift = lastRightClickModifiersRef.current.shift || activeModifiersRef.current.shift;
+    const isCtrl = lastRightClickModifiersRef.current.ctrl || activeModifiersRef.current.ctrl;
+
+    let colorType: "green" | "red" | "cyan" | "yellow" = "green";
+    let bg = "rgba(16, 185, 129, 0.40)";
+    let border = "#10b981";
+
+    if (isAlt) {
+      colorType = "yellow";
+      bg = "rgba(245, 158, 11, 0.42)";
+      border = "#f59e0b";
+    } else if (isShift) {
+      colorType = "cyan";
+      bg = "rgba(2, 132, 199, 0.40)";
+      border = "#0284c7";
+    } else if (isCtrl) {
+      colorType = "red";
+      bg = "rgba(239, 68, 68, 0.40)";
+      border = "#ef4444";
+    }
+
+    setAnnotatedSquares((prev) => {
+      const next = { ...prev };
+      if (next[square] && next[square].type === colorType) {
+        delete next[square];
+      } else {
+        next[square] = { bg, border, type: colorType };
+      }
+      return next;
+    });
+  };
+
+  // Square tap/click handler with touch annotation toggle & empty-square clearing
+  const handleSquareClick = ({ square }: { square: string }) => {
+    if (!game || puzzleStatus !== "solving" || showCommitmentModal) return;
+
+    // 1. If user has active touch annotation tool selected -> toggle square annotation
+    if (activeAnnotationColor) {
+      let bg = "rgba(16, 185, 129, 0.40)";
+      let border = "#10b981";
+      if (activeAnnotationColor === "red") {
+        bg = "rgba(239, 68, 68, 0.40)";
+        border = "#ef4444";
+      } else if (activeAnnotationColor === "cyan") {
+        bg = "rgba(2, 132, 199, 0.40)";
+        border = "#0284c7";
+      } else if (activeAnnotationColor === "yellow") {
+        bg = "rgba(245, 158, 11, 0.42)";
+        border = "#f59e0b";
+      }
+
+      setAnnotatedSquares((prev) => {
+        const next = { ...prev };
+        if (next[square] && next[square].type === activeAnnotationColor) {
+          delete next[square];
+        } else {
+          next[square] = { bg, border, type: activeAnnotationColor };
+        }
+        return next;
+      });
+      return;
+    }
+
+    // 2. Normal move interaction:
+    if (selectedSquare) {
+      if (selectedSquare === square) {
+        setSelectedSquare(null);
+        return;
+      }
+
+      // Check if moving to this square
+      const testGame = new Chess(game.fen());
+      let isValidMove = false;
+      try {
+        const res = testGame.move({ from: selectedSquare, to: square, promotion: "q" });
+        if (res) isValidMove = true;
+      } catch {
+        isValidMove = false;
+      }
+
+      if (isValidMove) {
+        if (Object.keys(annotatedSquares).length > 0) {
+          setAnnotatedSquares({});
+        }
+        handleMoveAttempt(selectedSquare, square);
+        setSelectedSquare(null);
+        return;
+      }
+
+      // If clicking another friendly piece
+      const pieceOnSquare = game.get(square as any);
+      if (pieceOnSquare && pieceOnSquare.color === game.turn()) {
+        setSelectedSquare(square);
+        sounds.playMove();
+        return;
+      }
+
+      // If clicking empty square or invalid enemy square, clear selection & clear annotations
+      setSelectedSquare(null);
+      if (Object.keys(annotatedSquares).length > 0) {
+        setAnnotatedSquares({});
+      }
+      return;
+    }
+
+    // When no piece is selected yet
+    const piece = game.get(square as any);
+    if (piece && piece.color === game.turn()) {
+      setSelectedSquare(square);
+      sounds.playMove();
+    } else {
+      setSelectedSquare(null);
+      if (Object.keys(annotatedSquares).length > 0) {
+        setAnnotatedSquares({});
+      }
+    }
+  };
 
   // Handle Piece Move Attempt
   const handleMoveAttempt = (from: string, to: string): boolean => {
@@ -215,6 +373,10 @@ export default function DiagnosePage() {
 
     if (!moveResult) return false;
 
+    if (Object.keys(annotatedSquares).length > 0) {
+      setAnnotatedSquares({});
+    }
+
     // PUZZLE 1: Pure Assessment Mode (Silent Record, Zero Spoilers)
     if (puzzleIndex === 0) {
       sounds.playMove();
@@ -223,7 +385,7 @@ export default function DiagnosePage() {
       setGame(nextGame);
       setLastMove({ from, to });
 
-      const evalResult = evaluatePuzzle1Move(from, to, currentRating);
+      const evalResult = evaluateBenchmarkMove(activePuzzle, from, to, currentRating);
       const elapsed = Date.now() - puzzleStartTimeRef.current;
 
       const record: PuzzleAttemptRecord = {
@@ -371,56 +533,27 @@ export default function DiagnosePage() {
   // View Solution
   const handleViewSolution = () => {
     if (!game) return;
-    if (puzzleIndex === 0) {
-      try {
-        const solGame = new Chess(activePuzzle.initialFen);
-        solGame.move({ from: "c6", to: "e5" });
-        solGame.move({ from: "d1", to: "h5" });
-        solGame.move({ from: "e5", to: "c4" });
-        setGame(solGame);
-        setBoardKey((prev) => prev + 1);
-        setLastMove({ from: "e5", to: "c4" });
-        setPuzzleStatus("success");
-        setCurrentHelpUsed("solution");
-        setFirstTryCorrect(false);
-
-        const score = computeMoveScore(false, false, null, "solution", false);
-        const newElo = calculateNewElo(currentRating, activePuzzle.numericRating, score);
-        setCurrentRating(newElo);
-        setFeedbackMessage("Solution: 1... Nxe5! 2. Qxh5 Nxc4! Eliminates White's knight, stops checkmate, and wins a full piece.");
-
-        const record: PuzzleAttemptRecord = {
-          puzzleId: activePuzzle.id,
-          puzzleTitle: activePuzzle.title,
-          rating: activePuzzle.numericRating,
-          userEloBefore: currentRating,
-          userEloAfter: newElo,
-          score,
-          commitment: null,
-          helpUsed: "solution",
-          firstTryCorrect: false,
-          timeMs: Date.now() - puzzleStartTimeRef.current,
-          moveSan: "Nxe5",
-        };
-        setAttempts((prev) => [...prev, record]);
-      } catch {}
-      return;
-    }
-
-    const bestStep = activePuzzle.solutionMoves[0];
-    if (bestStep) {
-      const g = new Chess(activePuzzle.initialFen);
-      g.move({ from: bestStep.from, to: bestStep.to, promotion: "q" });
-      setGame(g);
+    try {
+      const solGame = new Chess(activePuzzle.initialFen);
+      for (let i = 0; i < activePuzzle.solutionMoves.length; i++) {
+        const s = activePuzzle.solutionMoves[i];
+        solGame.move({ from: s.from, to: s.to, promotion: "q" });
+        const opp = activePuzzle.opponentResponses?.[i];
+        if (opp) {
+          solGame.move({ from: opp.from, to: opp.to, promotion: "q" });
+        }
+      }
+      setGame(solGame);
       setBoardKey((prev) => prev + 1);
-      setLastMove({ from: bestStep.from, to: bestStep.to });
+      const lastStep = activePuzzle.solutionMoves[activePuzzle.solutionMoves.length - 1];
+      if (lastStep) setLastMove({ from: lastStep.from, to: lastStep.to });
       setPuzzleStatus("success");
       setCurrentHelpUsed("solution");
       setFirstTryCorrect(false);
 
       const score = computeMoveScore(false, false, null, "solution", blunderedOnSure);
       const newElo = calculateNewElo(currentRating, activePuzzle.numericRating, score);
-      setFeedbackMessage(`Solution: ${bestStep.san} — ${activePuzzle.successExplanation}`);
+      setFeedbackMessage(`Solution: ${activePuzzle.solutionMoves.map((m) => m.san).join(" ")} — ${activePuzzle.successExplanation}`);
 
       const record: PuzzleAttemptRecord = {
         puzzleId: activePuzzle.id,
@@ -433,31 +566,37 @@ export default function DiagnosePage() {
         helpUsed: "solution",
         firstTryCorrect: false,
         timeMs: Date.now() - puzzleStartTimeRef.current,
-        moveSan: bestStep.san,
+        moveSan: activePuzzle.solutionMoves[0]?.san || "",
+        status: "blunder",
+        userMoveSan: "View Solution",
+        bestMoveSan: activePuzzle.solutionMoves.map((m) => m.san).join(" "),
+        coachExplanation: activePuzzle.successExplanation,
+        ruleTitle: activePuzzle.ruleTitle,
+        ruleBody: activePuzzle.ruleBody,
       };
 
       setAttempts((prev) => [...prev, record]);
       setCurrentRating(newElo);
-    }
+    } catch {}
   };
 
   // Advance to next puzzle or start cognitive analysis
   const handleProceedNext = () => {
     if (puzzleIndex === 0) {
-      // Move to Puzzle 2: Adaptive selection based on updated rating
-      const nextPuz = selectAdaptivePuzzle(currentRating, [FIXED_PUZZLE_1.id]);
+      // Move to Puzzle 2: Try from randomized benchmark trio, fallback to adaptive
+      const trioP2 = diagnosticTrioRef.current?.[1];
+      const nextPuz = trioP2 && trioP2.id !== activePuzzle.id
+        ? trioP2
+        : selectAdaptivePuzzle(currentRating, [activePuzzle.id]);
       setPuzzleIndex(1);
       loadPuzzle(nextPuz);
     } else if (puzzleIndex === 1) {
-      // Move to Puzzle 3: Adaptive selection based on updated rating
-      const p2Sure = attempts[1]?.commitment === "sure" && attempts[1]?.firstTryCorrect;
-      const p1Clean = attempts[0]?.firstTryCorrect;
-      const target = (p1Clean && p2Sure && currentRating >= 1600)
-        ? Math.max(currentRating, 1850)
-        : currentRating;
-
-      const excluded = [FIXED_PUZZLE_1.id, activePuzzle.id];
-      const nextPuz = selectAdaptivePuzzle(target, excluded);
+      // Move to Puzzle 3: Try from randomized benchmark trio or adaptive
+      const trioP3 = diagnosticTrioRef.current?.[2];
+      const excluded = [activePuzzle.id, attempts[0]?.puzzleId || ""];
+      const nextPuz = trioP3 && !excluded.includes(trioP3.id)
+        ? trioP3
+        : selectAdaptivePuzzle(currentRating, excluded);
       setPuzzleIndex(2);
       loadPuzzle(nextPuz);
     } else {
@@ -534,23 +673,65 @@ export default function DiagnosePage() {
     router.push(`/?source=diagnosis&tier=${levelInfo.tierId}`);
   };
 
-  // Custom square styles for hints and last move
+  // Custom square styles for annotations, hints, selection, last move, and king in check
   const getCustomSquareStyles = () => {
     const styles: Record<string, any> = {};
+
+    // 1. Right-click tactical annotations (crisp tile framing with modern glowing perimeter)
+    Object.entries(annotatedSquares).forEach(([sq, item]) => {
+      styles[sq] = {
+        backgroundColor: item.bg,
+        boxShadow: `inset 0 0 0 2.5px ${item.border}, inset 0 0 14px ${item.border}35`,
+      };
+    });
+
+    // 2. Hint square
     if (hintSquare) {
       styles[hintSquare] = {
         backgroundColor: "rgba(245, 158, 11, 0.45)",
         boxShadow: "inset 0 0 0 3px #f59e0b",
       };
     }
+
+    // 3. Last move
     if (lastMove) {
       styles[lastMove.from] = {
+        ...styles[lastMove.from],
         backgroundColor: "rgba(59, 130, 246, 0.25)",
       };
       styles[lastMove.to] = {
+        ...styles[lastMove.to],
         backgroundColor: "rgba(59, 130, 246, 0.35)",
       };
     }
+
+    // 4. Selected square
+    if (selectedSquare) {
+      styles[selectedSquare] = {
+        backgroundColor: "rgba(59, 130, 246, 0.35)",
+        boxShadow: "inset 0 0 0 2.5px #3b82f6",
+      };
+    }
+
+    // 5. Dynamic King-in-Check crimson radial glow
+    if (game && game.inCheck()) {
+      const turn = game.turn();
+      for (let r = 0; r < 8; r++) {
+        for (let f = 0; f < 8; f++) {
+          const sq = `${"abcdefgh"[f]}${8 - r}`;
+          const piece = game.get(sq as any);
+          if (piece && piece.type === "k" && piece.color === turn) {
+            styles[sq] = {
+              ...styles[sq],
+              background:
+                "radial-gradient(circle, rgba(239, 68, 68, 0.85) 0%, rgba(220, 38, 38, 0.50) 45%, rgba(185, 28, 28, 0.20) 75%, transparent 100%)",
+              boxShadow: "inset 0 0 0 2.5px #ef4444, inset 0 0 16px rgba(239, 68, 68, 0.75)",
+            };
+          }
+        }
+      }
+    }
+
     return styles;
   };
 
@@ -673,6 +854,23 @@ export default function DiagnosePage() {
           {/* Left Column: Chessboard with Exterior ChessBase Bezel */}
           <div className="flex flex-col items-center justify-center shrink-0">
             {game && (
+              <div className="w-full max-w-[360px] sm:max-w-[420px] md:max-w-[480px] flex items-center justify-between mb-2 px-1 text-xs">
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`w-3 h-3 rounded-full ${
+                      game.turn() === "w" ? "bg-[var(--accent-primary)] shadow-sm" : "theme-surface-subtle border-2 border-neutral-500"
+                    }`}
+                  />
+                  <span className="font-extrabold text-xs sm:text-sm tracking-wider font-display uppercase theme-text-primary">
+                    {game.turn() === "w" ? "White to move" : "Black to move"}
+                  </span>
+                </div>
+                <span className="text-[11px] font-mono theme-text-muted">
+                  {activePuzzle.playerColor === "white" ? "Playing White" : "Playing Black"}
+                </span>
+              </div>
+            )}
+            {game && (
               <div
                 id="current-puzzle-meta"
                 data-from={activePuzzle.solutionMoves[solutionStepIndex]?.from || activePuzzle.solutionMoves[0]?.from}
@@ -681,60 +879,127 @@ export default function DiagnosePage() {
               />
             )}
             {game && (
-              <ChessboardFrame
-                boardOrientation={activePuzzle.playerColor}
-                boardSize={boardWidth}
-                bezelSize={bezelSize}
-              >
-                <Chessboard
-                  key={boardKey}
-                  options={{
-                    position: game.fen(),
-                    boardOrientation: activePuzzle.playerColor,
-                    squareStyles: getCustomSquareStyles(),
-                    showNotation: false,
-                    allowDrawingArrows: true,
-                    clearArrowsOnClick: true,
-                    arrowOptions: {
-                      ...defaultArrowOptions,
-                      colors: {
-                        default: "#10b981",
-                        shift: "#0284c7",
-                        ctrl: "#ef4444",
-                        alt: "#f59e0b",
-                        meta: "#8b5cf6",
+              <>
+                <ChessboardFrame
+                  boardOrientation={activePuzzle.playerColor}
+                  boardSize={boardWidth}
+                  bezelSize={bezelSize}
+                >
+                  <Chessboard
+                    key={boardKey}
+                    options={{
+                      position: game.fen(),
+                      boardOrientation: activePuzzle.playerColor,
+                      squareStyles: getCustomSquareStyles(),
+                      showNotation: false,
+                      allowDrawingArrows: true,
+                      clearArrowsOnClick: true,
+                      arrowOptions: {
+                        ...defaultArrowOptions,
+                        colors: {
+                          default: "#10b981",
+                          shift: "#0284c7",
+                          ctrl: "#ef4444",
+                          alt: "#f59e0b",
+                          meta: "#8b5cf6",
+                        },
+                        color: "#10b981",
+                        secondaryColor: "#0284c7",
+                        tertiaryColor: "#ef4444",
+                        opacity: 0.88,
+                        activeOpacity: 0.95,
+                        arrowStartOffset: 0.18,
+                        arrowLengthReducerDenominator: 2.8,
+                        sameTargetArrowLengthReducerDenominator: 3.2,
+                        arrowWidthDenominator: 5.5,
+                        activeArrowWidthMultiplier: 1.15,
                       },
-                      color: "#10b981",
-                      secondaryColor: "#0284c7",
-                      tertiaryColor: "#ef4444",
-                      opacity: 0.88,
-                      activeOpacity: 0.95,
-                      arrowStartOffset: 0.18,
-                      arrowLengthReducerDenominator: 2.8,
-                      sameTargetArrowLengthReducerDenominator: 3.2,
-                      arrowWidthDenominator: 5.5,
-                      activeArrowWidthMultiplier: 1.15,
-                    },
-                    onSquareClick: ({ square }) => {
-                      if (selectedSquare === square) {
-                        setSelectedSquare(null);
-                      } else if (!selectedSquare) {
-                        setSelectedSquare(square);
-                      } else {
-                        handleMoveAttempt(selectedSquare, square);
-                        setSelectedSquare(null);
-                      }
-                    },
-                    onPieceDrop: ({ sourceSquare, targetSquare }) => {
-                      if (!targetSquare) return false;
-                      return handleMoveAttempt(sourceSquare, targetSquare);
-                    },
-                    darkSquareStyle: { backgroundColor: currentBoardColors.dark },
-                    lightSquareStyle: { backgroundColor: currentBoardColors.light },
-                    animationDurationInMs: 180,
-                  }}
-                />
-              </ChessboardFrame>
+                      onSquareClick: ({ square }) => handleSquareClick({ square }),
+                      onSquareRightClick: ({ square }) => handleSquareRightClick({ square }),
+                      onSquareMouseDown: ({ square }, e) => {
+                        if (e?.button === 2) {
+                          lastRightClickModifiersRef.current = {
+                            ctrl: !!e.ctrlKey || !!e.metaKey,
+                            shift: !!e.shiftKey,
+                            alt: !!e.altKey,
+                          };
+                        }
+                      },
+                      onPieceDrop: ({ sourceSquare, targetSquare }) => {
+                        if (!targetSquare) return false;
+                        return handleMoveAttempt(sourceSquare, targetSquare);
+                      },
+                      darkSquareStyle: { backgroundColor: currentBoardColors.dark },
+                      lightSquareStyle: { backgroundColor: currentBoardColors.light },
+                      animationDurationInMs: 180,
+                    }}
+                  />
+                </ChessboardFrame>
+
+                {/* Square Highlight Annotation Toolbar (Touch + Desktop Shortcut Reference) */}
+                <div className="flex items-center justify-between w-full max-w-[360px] sm:max-w-[420px] md:max-w-[480px] mx-auto mt-2.5 px-1 text-xs select-none">
+                  <div className="flex items-center gap-1 sm:gap-1.5">
+                    <span className="text-[10px] font-mono theme-text-muted hidden sm:inline mr-0.5">Annotate:</span>
+                    <button
+                      onClick={() => setActiveAnnotationColor((prev) => prev === "green" ? null : "green")}
+                      className={`px-2 py-0.5 sm:py-1 rounded-lg text-[10px] sm:text-[11px] font-bold transition flex items-center gap-1 cursor-pointer border ${
+                        activeAnnotationColor === "green"
+                          ? "bg-emerald-500/20 text-emerald-400 border-emerald-500 ring-1 ring-emerald-500"
+                          : "theme-surface theme-text-secondary border-[var(--border-subtle)] hover:bg-emerald-500/10"
+                      }`}
+                      title="Target / Safe Square (or Right-Click)"
+                    >
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+                      <span>Target</span>
+                    </button>
+                    <button
+                      onClick={() => setActiveAnnotationColor((prev) => prev === "red" ? null : "red")}
+                      className={`px-2 py-0.5 sm:py-1 rounded-lg text-[10px] sm:text-[11px] font-bold transition flex items-center gap-1 cursor-pointer border ${
+                        activeAnnotationColor === "red"
+                          ? "bg-rose-500/20 text-rose-400 border-rose-500 ring-1 ring-rose-500"
+                          : "theme-surface theme-text-secondary border-[var(--border-subtle)] hover:bg-rose-500/10"
+                      }`}
+                      title="Threat / Danger Square (or Ctrl + Right-Click)"
+                    >
+                      <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0" />
+                      <span>Threat</span>
+                    </button>
+                    <button
+                      onClick={() => setActiveAnnotationColor((prev) => prev === "cyan" ? null : "cyan")}
+                      className={`px-2 py-0.5 sm:py-1 rounded-lg text-[10px] sm:text-[11px] font-bold transition flex items-center gap-1 cursor-pointer border ${
+                        activeAnnotationColor === "cyan"
+                          ? "bg-sky-500/20 text-sky-400 border-sky-500 ring-1 ring-sky-500"
+                          : "theme-surface theme-text-secondary border-[var(--border-subtle)] hover:bg-sky-500/10"
+                      }`}
+                      title="Candidate Plan (or Shift + Right-Click)"
+                    >
+                      <span className="w-2 h-2 rounded-full bg-sky-500 shrink-0" />
+                      <span>Plan</span>
+                    </button>
+                    <button
+                      onClick={() => setActiveAnnotationColor((prev) => prev === "yellow" ? null : "yellow")}
+                      className={`px-2 py-0.5 sm:py-1 rounded-lg text-[10px] sm:text-[11px] font-bold transition flex items-center gap-1 cursor-pointer border ${
+                        activeAnnotationColor === "yellow"
+                          ? "bg-amber-500/20 text-amber-400 border-amber-500 ring-1 ring-amber-500"
+                          : "theme-surface theme-text-secondary border-[var(--border-subtle)] hover:bg-amber-500/10"
+                      }`}
+                      title="Caution Square (or Alt + Right-Click)"
+                    >
+                      <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
+                      <span>Caution</span>
+                    </button>
+                  </div>
+                  {Object.keys(annotatedSquares).length > 0 && (
+                    <button
+                      onClick={() => setAnnotatedSquares({})}
+                      className="px-2 py-0.5 sm:py-1 rounded-lg text-[10px] font-mono theme-text-muted hover:theme-text-primary transition cursor-pointer border theme-surface"
+                      title="Clear all square annotations"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+              </>
             )}
           </div>
 
@@ -780,7 +1045,16 @@ export default function DiagnosePage() {
                   <span>Tactical Objective</span>
                 </div>
                 <p className="text-xs sm:text-sm theme-text-primary font-medium leading-relaxed">
-                  {activePuzzle.prompt}
+                  {activePuzzle.prompt.includes("to move:") ? (
+                    <>
+                      <strong className="font-extrabold font-display text-[var(--accent-primary)] uppercase tracking-wide mr-1.5">
+                        {activePuzzle.prompt.split("to move:")[0]}to move:
+                      </strong>
+                      <span>{activePuzzle.prompt.split("to move:")[1]}</span>
+                    </>
+                  ) : (
+                    activePuzzle.prompt
+                  )}
                 </p>
               </div>
 
