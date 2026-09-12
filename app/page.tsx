@@ -1182,9 +1182,11 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen md:h-screen md:overflow-hidden flex flex-col justify-between p-3 sm:p-4 md:px-6 md:py-3 font-sans transition-colors duration-200">
+    <main className={`min-h-screen flex flex-col p-3 sm:p-4 md:px-6 md:py-4 font-sans transition-colors duration-200 overflow-x-hidden ${
+      selectedLevel ? "md:h-screen md:overflow-hidden justify-between" : "justify-start"
+    }`}>
       {/* Top Header */}
-      <header className="w-full max-w-md md:max-w-5xl lg:max-w-6xl mx-auto flex items-center justify-between py-2 px-3 sm:px-4 rounded-2xl theme-surface mb-2 shrink-0 border shadow-xs">
+      <header className="w-full max-w-md md:max-w-5xl lg:max-w-6xl mx-auto flex items-center justify-between py-2.5 px-3.5 sm:px-4 rounded-2xl theme-surface mb-4 md:mb-6 shrink-0 border shadow-xs relative z-30">
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-xl overflow-hidden shrink-0 border border-[var(--border-subtle)] shadow-xs bg-[#0b0f17] flex items-center justify-center">
             <Image
@@ -1288,12 +1290,12 @@ export default function Home() {
 
       {/* Screen 1: Tier Selection & Diagnostic Entry */}
       {!selectedLevel && !isQuizActive && !showDiagnosisModal ? (
-        <section className="flex-1 flex flex-col items-center justify-center max-w-md md:max-w-4xl mx-auto w-full py-2 md:py-3 min-h-0">
+        <section className="flex-1 flex flex-col items-center justify-start max-w-md md:max-w-4xl mx-auto w-full pt-1 pb-6 md:pb-8">
           {/* Lichess Connected Banner (if logged in) */}
           {lichessUser && (
             <button
               onClick={() => setShowLichessModal(true)}
-              className="inline-flex items-center gap-2 text-xs font-mono px-3.5 py-1.5 rounded-full mb-2.5 border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/15 transition cursor-pointer text-amber-300 shadow-xs"
+              className="inline-flex items-center gap-2 text-xs font-mono px-3.5 py-1.5 rounded-full mb-3 border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/15 transition cursor-pointer text-amber-300 shadow-xs"
             >
               <LichessIcon className="w-3.5 h-3.5 text-amber-400" />
               <span>
@@ -1313,8 +1315,10 @@ export default function Home() {
           </div>
 
           {/* Grandmaster Authority Headline */}
-          <div className="text-center mb-4 max-w-2xl mx-auto">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight theme-text-primary leading-[1.15] mb-2">
+          <div className="relative text-center mb-5 max-w-2xl mx-auto">
+            {/* Soft Ambient Hero Glow */}
+            <div className="absolute -top-8 left-1/2 -translate-x-1/2 w-96 h-32 bg-[var(--accent-primary)]/10 rounded-full blur-3xl pointer-events-none -z-10" />
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-[40px] font-extrabold tracking-tight theme-text-primary leading-[1.18] mb-2 font-display">
               Master Your Calculation. <br className="hidden sm:inline" />
               <span className="text-[var(--accent-primary)]">Eliminate Your Blindspots.</span>
             </h1>

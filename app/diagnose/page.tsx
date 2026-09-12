@@ -773,7 +773,7 @@ export default function DiagnosePage() {
   const currentLevelInfo = mapEloToLevel(currentRating);
 
   return (
-    <main className="min-h-screen md:h-screen md:overflow-hidden flex flex-col justify-between p-3 sm:p-4 md:px-6 md:py-3 font-sans transition-colors duration-200">
+    <main className="min-h-screen flex flex-col p-3 sm:p-4 md:px-6 md:py-3 font-sans transition-colors duration-200">
       {/* Settings Modal Component */}
       <SettingsModal
         isOpen={showSettingsModal}
@@ -795,7 +795,7 @@ export default function DiagnosePage() {
       />
 
       {/* Top Header */}
-      <header className="w-full max-w-md md:max-w-5xl lg:max-w-6xl mx-auto flex items-center justify-between py-2 px-3 sm:px-4 rounded-2xl theme-surface mb-2 shrink-0 border shadow-xs">
+      <header className="w-full max-w-md md:max-w-5xl lg:max-w-6xl mx-auto flex items-center justify-between py-2 px-3 sm:px-4 rounded-2xl theme-surface mb-3 shrink-0 border shadow-xs relative z-30">
         <div className="flex items-center gap-2.5">
           <Link
             href="/"
