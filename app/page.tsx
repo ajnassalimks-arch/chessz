@@ -50,6 +50,8 @@ import { AnimatedCaptureHand } from "@/components/AnimatedCaptureHand";
 import { getPieceSet, PieceSetStyle } from "@/components/pieces/PieceSets2D";
 import { useLichess } from "@/lib/useLichess";
 import { LichessModal, LichessIcon } from "@/components/LichessModal";
+import { useStockfish } from "@/lib/useStockfish";
+import { EngineAnalysisBar } from "@/components/EngineAnalysisBar";
 
 interface CoachDiagnosis {
   archetypeTitle: string;
@@ -375,6 +377,21 @@ export default function Home() {
     connectByUsername: connectLichessUsername,
   } = useLichess();
   const [showLichessModal, setShowLichessModal] = useState<boolean>(false);
+  
+  // Stockfish In-Browser WASM Engine Hook
+  const {
+    isReady: isEngineReady,
+    isAnalyzing: isEngineAnalyzing,
+    engineEnabled,
+    evaluation: engineEvaluation,
+    bestMove: engineBestMove,
+    bestLine: engineBestLine,
+    engineArrow,
+    setEngineEnabled,
+    startAnalysis,
+    stopAnalysis,
+    toggleEngine,
+  } = useStockfish();
 
   const [selectedLevel, setSelectedLevel] = useState<LevelOption | null>(null);
   const [isQuizActive, setIsQuizActive] = useState<boolean>(false);
@@ -537,6 +554,13 @@ export default function Home() {
       window.removeEventListener("chessz-settings-changed", handleSettingsEvent);
     };
   }, []);
+
+  // Synchronize Stockfish analysis with current board position when enabled
+  useEffect(() => {
+    if (engineEnabled && game) {
+      startAnalysis(game.fen());
+    }
+  }, [game, engineEnabled, startAnalysis]);
 
   const currentBoardColors =
     THEME_BOARD_COLORS[themePalette]?.[themeMode] || THEME_BOARD_COLORS.periwinkle.light;
@@ -1800,6 +1824,7 @@ export default function Home() {
                       pieces: getPieceSet(pieceSet),
                       allowDrawingArrows: true,
                       clearArrowsOnClick: true,
+                      arrows: engineEnabled && engineArrow ? [engineArrow] : undefined,
                       arrowOptions: {
                         ...defaultArrowOptions,
                         colors: {
@@ -1917,6 +1942,19 @@ export default function Home() {
                 )}
               </div>
             )}
+
+            {/* Mobile Stockfish Engine Analysis Bar */}
+            <div className="mt-3">
+              <EngineAnalysisBar
+                isReady={isEngineReady}
+                isAnalyzing={isEngineAnalyzing}
+                engineEnabled={engineEnabled}
+                evaluation={engineEvaluation}
+                bestMove={engineBestMove}
+                bestLine={engineBestLine}
+                onToggleEngine={() => toggleEngine(game?.fen())}
+              />
+            </div>
           </div>
 
           {/* Desktop Only: Dedicated Chessboard Sidebar Console */}
@@ -2106,6 +2144,19 @@ export default function Home() {
                   )}
                 </div>
               )}
+
+              {/* Desktop Stockfish Engine Analysis Bar */}
+              <div className="mt-3">
+                <EngineAnalysisBar
+                  isReady={isEngineReady}
+                  isAnalyzing={isEngineAnalyzing}
+                  engineEnabled={engineEnabled}
+                  evaluation={engineEvaluation}
+                  bestMove={engineBestMove}
+                  bestLine={engineBestLine}
+                  onToggleEngine={() => toggleEngine(game?.fen())}
+                />
+              </div>
             </div>
 
             {/* Bottom: Console Quick Controls */}
