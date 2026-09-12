@@ -147,12 +147,12 @@ export function SettingsModal({ isOpen, onClose, onThemeChange }: SettingsModalP
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-md animate-in fade-in duration-200">
       <div
-        className="w-full max-w-md theme-surface rounded-3xl p-5 sm:p-6 shadow-2xl border relative overflow-hidden max-h-[90vh] overflow-y-auto animate-card-entrance"
+        className="w-full max-w-md theme-surface rounded-3xl p-5 sm:p-6 shadow-2xl border relative flex flex-col max-h-[90vh] animate-card-entrance"
         role="dialog"
         aria-modal="true"
         aria-labelledby="settings-modal-title"
       >
-        <div className="flex items-center justify-between pb-3 mb-4 border-b border-[var(--border-subtle)]">
+        <div className="flex items-center justify-between pb-3 mb-3 border-b border-[var(--border-subtle)] shrink-0">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl bg-[var(--accent-subtle)] flex items-center justify-center text-[var(--accent-primary)] border border-[var(--border-focus)]">
               <Sparkles className="w-4 h-4" />
@@ -175,9 +175,10 @@ export function SettingsModal({ isOpen, onClose, onThemeChange }: SettingsModalP
           </button>
         </div>
 
-        <div className="mb-4">
-          <label className="text-xs font-bold uppercase tracking-wider text-[var(--accent-primary)] mb-2 block">
-            Board & Interface Palette
+        <div className="flex-1 overflow-y-auto pr-1.5 space-y-4">
+          <div>
+            <label className="text-xs font-bold uppercase tracking-wider text-[var(--accent-primary)] mb-2 block">
+              Board & Interface Palette
           </label>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {THEME_NAMES.map((t) => {
@@ -421,8 +422,10 @@ export function SettingsModal({ isOpen, onClose, onThemeChange }: SettingsModalP
             <span>Arrows: Right-drag</span>
           </div>
         </div>
+      </div>
 
-        <div className="sticky bottom-0 pt-2 pb-1 bg-inherit backdrop-blur-md z-10">
+        {/* Modal Footer */}
+        <div className="pt-3 border-t border-[var(--border-subtle)] shrink-0 mt-1">
           <button
             onClick={onClose}
             className="group relative w-full py-2.5 px-4 rounded-xl theme-accent-btn font-bold text-xs sm:text-sm tracking-wide flex items-center justify-center gap-2 shadow-sm transition-all duration-200 active:scale-[0.98] cursor-pointer animate-next-btn btn-shimmer-effect hover:-translate-y-0.5 hover:shadow-md"

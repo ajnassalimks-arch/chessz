@@ -992,11 +992,17 @@ export default function DiagnosePage() {
                 <div className="flex items-center gap-2">
                   <span
                     className={`w-3 h-3 rounded-full ${
-                      game.turn() === "w" ? "bg-[var(--accent-primary)] shadow-sm" : "theme-surface-subtle border-2 border-neutral-500"
+                      puzzleStatus === "success"
+                        ? "bg-emerald-500 shadow-sm"
+                        : game.turn() === "w"
+                        ? "bg-[var(--accent-primary)] shadow-sm"
+                        : "theme-surface-subtle border-2 border-neutral-500"
                     }`}
                   />
                   <span className="font-extrabold text-xs sm:text-sm tracking-wider font-display uppercase theme-text-primary">
-                    {game.turn() === "w" ? "White to move" : "Black to move"}
+                    {puzzleStatus === "success"
+                      ? (game.inCheck() ? "Checkmate! Move Recorded" : "Move Recorded")
+                      : (activePuzzle.playerColor === "white" ? "White to move" : "Black to move")}
                   </span>
                 </div>
                 <span className="text-[11px] font-mono theme-text-muted">
