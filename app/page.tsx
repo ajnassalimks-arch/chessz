@@ -44,12 +44,10 @@ import {
 } from "@/lib/puzzles";
 import { sounds } from "@/lib/sounds";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
-import {
-  THEME_BOARD_COLORS,
-  ThemePalette,
-  ThemeMode,
-} from "@/components/ThemeSwitcher";
+import { THEME_BOARD_COLORS, ThemePalette, ThemeMode } from "@/components/ThemeSwitcher";
 import { SettingsModal } from "@/components/SettingsModal";
+import { useLichess } from "@/lib/useLichess";
+import { LichessModal, LichessIcon } from "@/components/LichessModal";
 
 interface CoachDiagnosis {
   archetypeTitle: string;
@@ -364,6 +362,18 @@ interface LegalMoveTarget {
 }
 
 export default function Home() {
+  // Lichess Integration Hook
+  const {
+    user: lichessUser,
+    isAuthenticated: isLichessAuthenticated,
+    loading: isLichessLoading,
+    login: loginLichess,
+    logout: logoutLichess,
+    refreshUser: refreshLichess,
+    connectByUsername: connectLichessUsername,
+  } = useLichess();
+  const [showLichessModal, setShowLichessModal] = useState<boolean>(false);
+
   const [selectedLevel, setSelectedLevel] = useState<LevelOption | null>(null);
   const [isQuizActive, setIsQuizActive] = useState<boolean>(false);
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
@@ -1092,6 +1102,28 @@ export default function Home() {
         </div>
 
         <div className="flex items-center gap-1.5">
+          {/* Lichess Account / Sync Button */}
+          <button
+            onClick={() => setShowLichessModal(true)}
+            className={`flex items-center gap-1.5 text-[11px] font-mono font-semibold px-2.5 py-1.5 rounded-xl cursor-pointer transition border ${
+              lichessUser
+                ? "bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/15"
+                : "theme-surface theme-surface-hover"
+            }`}
+            title={lichessUser ? `Lichess: @${lichessUser.username}` : "Connect Lichess Account"}
+            aria-label="Lichess account connection"
+          >
+            <LichessIcon className="w-3.5 h-3.5 text-amber-400" />
+            <span className="hidden sm:inline">
+              {lichessUser ? lichessUser.username : "Connect Lichess"}
+            </span>
+            {lichessUser?.perfs?.rapid?.rating && (
+              <span className="hidden md:inline px-1 py-0.2 rounded bg-amber-500/20 text-[10px] text-amber-300 font-bold">
+                {lichessUser.perfs.rapid.rating}
+              </span>
+            )}
+          </button>
+
           {/* Mute Toggle */}
           <button
             onClick={toggleMute}
@@ -1153,6 +1185,23 @@ export default function Home() {
       {/* Screen 1: Tier Selection & Diagnostic Entry */}
       {!selectedLevel && !isQuizActive && !showDiagnosisModal ? (
         <section className="flex-1 flex flex-col items-center justify-center max-w-md md:max-w-4xl mx-auto w-full py-2 md:py-3 min-h-0">
+          {/* Lichess Connected Banner (if logged in) */}
+          {lichessUser && (
+            <button
+              onClick={() => setShowLichessModal(true)}
+              className="inline-flex items-center gap-2 text-xs font-mono px-3.5 py-1.5 rounded-full mb-2.5 border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/15 transition cursor-pointer text-amber-300 shadow-xs"
+            >
+              <LichessIcon className="w-3.5 h-3.5 text-amber-400" />
+              <span>
+                Connected as <strong className="text-white font-bold">@{lichessUser.username}</strong>
+                {lichessUser.perfs?.rapid?.rating ? ` • Rapid ${lichessUser.perfs.rapid.rating}` : ""}
+              </span>
+              <span className="text-[10px] uppercase font-sans font-semibold underline underline-offset-2 ml-0.5 opacity-80">
+                View Profile
+              </span>
+            </button>
+          )}
+
           {/* FIDE Coaches Badge */}
           <div className="inline-flex items-center gap-1.5 text-[11px] font-medium tracking-wide theme-pill px-3 py-1 rounded-full mb-2.5 shadow-xs">
             <Award className="w-3.5 h-3.5 text-[var(--accent-primary)]" />
@@ -1998,6 +2047,20 @@ export default function Home() {
       <SettingsModal
         isOpen={showSettingsModal}
         onClose={() => setShowSettingsModal(false)}
+      />
+
+      {/* Lichess Account & Sync Modal */}
+      <LichessModal
+        isOpen={showLichessModal}
+        onClose={() => setShowLichessModal(false)}
+        user={lichessUser}
+        isAuthenticated={isLichessAuthenticated}
+        loading={isLichessLoading}
+        onLogin={() => loginLichess()}
+        onLogout={logoutLichess}
+        onRefresh={refreshLichess}
+        onConnectUsername={connectLichessUsername}
+        diagnosedElo={isCalibrated ? calibratedRating : null}
       />
     </main>
   );

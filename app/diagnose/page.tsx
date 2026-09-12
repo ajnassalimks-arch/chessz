@@ -48,9 +48,23 @@ import {
   Clock,
   Brain,
 } from "lucide-react";
+import { useLichess } from "@/lib/useLichess";
+import { LichessModal, LichessIcon } from "@/components/LichessModal";
 
 export default function DiagnosePage() {
   const router = useRouter();
+
+  // Lichess Integration Hook
+  const {
+    user: lichessUser,
+    isAuthenticated: isLichessAuthenticated,
+    loading: isLichessLoading,
+    login: loginLichess,
+    logout: logoutLichess,
+    refreshUser: refreshLichess,
+    connectByUsername: connectLichessUsername,
+  } = useLichess();
+  const [showLichessModal, setShowLichessModal] = useState<boolean>(false);
 
   // Theme synchronization
   const [themePalette, setThemePalette] = useState<ThemePalette>("periwinkle");
@@ -551,6 +565,20 @@ export default function DiagnosePage() {
         onClose={() => setShowSettingsModal(false)}
       />
 
+      {/* Lichess Account & Sync Modal */}
+      <LichessModal
+        isOpen={showLichessModal}
+        onClose={() => setShowLichessModal(false)}
+        user={lichessUser}
+        isAuthenticated={isLichessAuthenticated}
+        loading={isLichessLoading}
+        onLogin={() => loginLichess('/diagnose')}
+        onLogout={logoutLichess}
+        onRefresh={refreshLichess}
+        onConnectUsername={connectLichessUsername}
+        diagnosedElo={currentRating}
+      />
+
       {/* Top Header */}
       <header className="w-full max-w-md md:max-w-5xl lg:max-w-6xl mx-auto flex items-center justify-between py-2 px-3 sm:px-4 rounded-2xl theme-surface mb-2 shrink-0 border shadow-xs">
         <div className="flex items-center gap-2.5">
@@ -595,6 +623,28 @@ export default function DiagnosePage() {
               <VolumeX className="w-4 h-4 opacity-50" />
             ) : (
               <Volume2 className="w-4 h-4 text-[var(--accent-primary)]" />
+            )}
+          </button>
+
+          {/* Lichess Account / Sync Button */}
+          <button
+            onClick={() => setShowLichessModal(true)}
+            className={`flex items-center gap-1.5 text-[11px] font-mono font-semibold px-2.5 py-1.5 rounded-xl cursor-pointer transition border ${
+              lichessUser
+                ? "bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/15"
+                : "theme-surface hover:theme-surface-subtle"
+            }`}
+            title={lichessUser ? `Lichess: @${lichessUser.username}` : "Connect Lichess Account"}
+            aria-label="Lichess account connection"
+          >
+            <LichessIcon className="w-3.5 h-3.5 text-amber-400" />
+            <span className="hidden sm:inline">
+              {lichessUser ? lichessUser.username : "Connect Lichess"}
+            </span>
+            {lichessUser?.perfs?.rapid?.rating && (
+              <span className="hidden md:inline px-1 py-0.2 rounded bg-amber-500/20 text-[10px] text-amber-300 font-bold">
+                {lichessUser.perfs.rapid.rating}
+              </span>
             )}
           </button>
 
@@ -1004,6 +1054,63 @@ export default function DiagnosePage() {
                   {detectedPattern.weakness}
                 </span>
               </div>
+            </div>
+
+            {/* Lichess Benchmark & Cross-Platform Calibration Card */}
+            <div className="p-3.5 rounded-2xl theme-surface border border-[var(--border-subtle)] my-3">
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <div className="flex items-center gap-2">
+                  <LichessIcon className="w-4 h-4 text-amber-400" />
+                  <span className="text-xs font-bold font-mono tracking-tight theme-text-primary">
+                    Lichess Rating Calibration
+                  </span>
+                </div>
+                {lichessUser ? (
+                  <button
+                    onClick={() => setShowLichessModal(true)}
+                    className="text-[11px] font-mono text-[var(--accent-primary)] hover:underline cursor-pointer"
+                  >
+                    View Lichess Profile →
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setShowLichessModal(true)}
+                    className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-400 border border-amber-500/30 hover:bg-amber-500/25 transition cursor-pointer"
+                  >
+                    Connect Lichess
+                  </button>
+                )}
+              </div>
+
+              {lichessUser ? (
+                <div className="grid grid-cols-3 gap-2 text-center text-xs font-mono">
+                  <div className="p-2 rounded-xl bg-[var(--surface-muted)] border border-[var(--border-subtle)]">
+                    <span className="text-[10px] theme-text-muted block">Diagnosed Elo</span>
+                    <span className="font-extrabold text-sm theme-text-primary">~{currentRating}</span>
+                  </div>
+                  <div className="p-2 rounded-xl bg-[var(--surface-muted)] border border-[var(--border-subtle)]">
+                    <span className="text-[10px] theme-text-muted block">Lichess Rapid</span>
+                    <span className="font-extrabold text-sm theme-text-primary">
+                      {lichessUser.perfs?.rapid?.rating || lichessUser.perfs?.blitz?.rating || "—"}
+                    </span>
+                  </div>
+                  <div className="p-2 rounded-xl bg-[var(--surface-muted)] border border-[var(--border-subtle)]">
+                    <span className="text-[10px] theme-text-muted block">Variance</span>
+                    <span className="font-extrabold text-sm text-emerald-400">
+                      {(() => {
+                        const targetRating = lichessUser.perfs?.rapid?.rating || lichessUser.perfs?.blitz?.rating;
+                        if (!targetRating) return "Synced";
+                        const diff = currentRating - targetRating;
+                        return `${diff > 0 ? "+" : ""}${diff} Elo`;
+                      })()}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-xs theme-text-secondary leading-relaxed">
+                  Compare your ChessZ diagnosed rating (~{currentRating} Elo) directly with your live Lichess account and verify calibration accuracy.
+                </p>
+              )}
             </div>
 
             {/* Benchmark Test Review & Master Solutions */}
