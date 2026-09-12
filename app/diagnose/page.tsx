@@ -175,6 +175,38 @@ export default function DiagnosePage() {
 
   // Active Puzzle & Multi-Step Solution State
   const diagnosticTrioRef = useRef<(ChessPuzzle & { numericRating: number })[] | null>(null);
+  const analysisTimersRef = useRef<(NodeJS.Timeout | number)[]>([]);
+
+  const clearAnalysisTimers = () => {
+    analysisTimersRef.current.forEach((t) => {
+      clearTimeout(t as NodeJS.Timeout);
+      clearInterval(t as NodeJS.Timeout);
+    });
+    analysisTimersRef.current = [];
+  };
+
+  // Teardown timers on unmount
+  useEffect(() => {
+    return () => {
+      clearAnalysisTimers();
+    };
+  }, []);
+
+  // Persist in-progress diagnostic session to sessionStorage
+  const persistDiagnosticSession = (
+    trio: (ChessPuzzle & { numericRating: number })[],
+    idx: number,
+    att: PuzzleAttemptRecord[],
+    rating: number
+  ) => {
+    try {
+      sessionStorage.setItem(
+        "chessz_diagnostic_session",
+        JSON.stringify({ trio, puzzleIndex: idx, attempts: att, currentRating: rating })
+      );
+    } catch {}
+  };
+
   const [activePuzzle, setActivePuzzle] = useState<ChessPuzzle & { numericRating: number }>(() => BENCHMARK_PUZZLE_POOL[0]);
   const [solutionStepIndex, setSolutionStepIndex] = useState<number>(0);
   const [game, setGame] = useState<Chess | null>(null);
@@ -264,9 +296,26 @@ export default function DiagnosePage() {
   };
 
   useEffect(() => {
+    // Check if there is an in-progress diagnostic session in sessionStorage to recover
+    try {
+      const savedSession = sessionStorage.getItem("chessz_diagnostic_session");
+      if (savedSession) {
+        const parsed = JSON.parse(savedSession);
+        if (parsed.trio && Array.isArray(parsed.trio) && parsed.trio.length === 3 && typeof parsed.puzzleIndex === "number") {
+          diagnosticTrioRef.current = parsed.trio;
+          setAttempts(parsed.attempts || []);
+          setCurrentRating(parsed.currentRating || 1250);
+          setPuzzleIndex(parsed.puzzleIndex);
+          loadPuzzle(parsed.trio[parsed.puzzleIndex] || parsed.trio[0]);
+          return;
+        }
+      }
+    } catch {}
+
     const trio = getRandomBenchmarkTrio();
     diagnosticTrioRef.current = trio;
     loadPuzzle(trio[0]);
+    persistDiagnosticSession(trio, 0, [], 1250);
   }, []);
 
   // Right-click annotation handler
@@ -396,11 +445,17 @@ export default function DiagnosePage() {
   const handleMoveAttempt = (from: string, to: string): boolean => {
     if (!game || puzzleStatus !== "solving" || showCommitmentModal) return false;
 
-    // Check legality in chess.js
+    // Check legality in chess.js with underpromotion awareness
+    const firstStep = activePuzzle.solutionMoves[0];
+    const expectedPromotion =
+      firstStep && firstStep.from === from && firstStep.to === to && firstStep.promotion
+        ? firstStep.promotion
+        : "q";
+
     const testGame = new Chess(game.fen());
     let moveResult: any = null;
     try {
-      moveResult = testGame.move({ from, to, promotion: "q" });
+      moveResult = testGame.move({ from, to, promotion: expectedPromotion });
     } catch {
       return false;
     }
@@ -415,12 +470,16 @@ export default function DiagnosePage() {
     if (puzzleIndex === 0) {
       sounds.playMove();
       const nextGame = new Chess(game.fen());
-      nextGame.move({ from, to, promotion: "q" });
+      nextGame.move({ from, to, promotion: expectedPromotion });
       setGame(nextGame);
       setLastMove({ from, to });
 
       const evalResult = evaluateBenchmarkMove(activePuzzle, from, to, currentRating);
       const elapsed = Date.now() - puzzleStartTimeRef.current;
+      const formattedUserSan =
+        evalResult.userMoveSan && !evalResult.userMoveSan.includes("-")
+          ? evalResult.userMoveSan
+          : moveResult.san || evalResult.userMoveSan;
 
       const record: PuzzleAttemptRecord = {
         puzzleId: activePuzzle.id,
@@ -435,23 +494,26 @@ export default function DiagnosePage() {
         timeMs: elapsed,
         moveSan: moveResult.san,
         status: evalResult.status,
-        userMoveSan: evalResult.userMoveSan,
+        userMoveSan: formattedUserSan,
         bestMoveSan: evalResult.bestMoveSan,
         coachExplanation: evalResult.coachFeedback,
         ruleTitle: evalResult.ruleTitle,
         ruleBody: evalResult.ruleBody,
       };
 
-      setAttempts((prev) => [...prev, record]);
+      const nextAttempts = [...attempts, record];
+      setAttempts(nextAttempts);
       setCurrentRating(evalResult.calibratedElo);
       setPuzzleStatus("success");
+      if (diagnosticTrioRef.current) {
+        persistDiagnosticSession(diagnosticTrioRef.current, 0, nextAttempts, evalResult.calibratedElo);
+      }
       return true;
     }
 
     // PUZZLE 2 & 3: Standard Adaptive puzzles with Mandatory Commitment Step!
     sounds.playMove();
-    const bestStep = activePuzzle.solutionMoves[0];
-    const isBest = bestStep && bestStep.from === from && bestStep.to === to;
+    const isBest = firstStep && firstStep.from === from && firstStep.to === to;
 
     setPendingMove({
       from,
@@ -488,9 +550,15 @@ export default function DiagnosePage() {
   ) => {
     if (!game) return;
 
-    // Apply move to board
+    // Apply move to board with underpromotion awareness
+    const firstStep = activePuzzle.solutionMoves[0];
+    const expectedPromotion =
+      firstStep && firstStep.from === from && firstStep.to === to && firstStep.promotion
+        ? firstStep.promotion
+        : "q";
+
     const newGame = new Chess(game.fen());
-    newGame.move({ from, to, promotion: "q" });
+    newGame.move({ from, to, promotion: expectedPromotion });
     setGame(newGame);
     setLastMove({ from, to });
 
@@ -531,8 +599,12 @@ export default function DiagnosePage() {
       ruleBody: activePuzzle.ruleBody,
     };
 
-    setAttempts((prev) => [...prev, record]);
+    const nextAttempts = [...attempts, record];
+    setAttempts(nextAttempts);
     setCurrentRating(newElo);
+    if (diagnosticTrioRef.current) {
+      persistDiagnosticSession(diagnosticTrioRef.current, puzzleIndex, nextAttempts, newElo);
+    }
   };
 
   // Try Again
@@ -571,10 +643,10 @@ export default function DiagnosePage() {
       const solGame = new Chess(activePuzzle.initialFen);
       for (let i = 0; i < activePuzzle.solutionMoves.length; i++) {
         const s = activePuzzle.solutionMoves[i];
-        solGame.move({ from: s.from, to: s.to, promotion: "q" });
+        solGame.move({ from: s.from, to: s.to, promotion: s.promotion || "q" });
         const opp = activePuzzle.opponentResponses?.[i];
         if (opp) {
-          solGame.move({ from: opp.from, to: opp.to, promotion: "q" });
+          solGame.move({ from: opp.from, to: opp.to, promotion: opp.promotion || "q" });
         }
       }
       setGame(solGame);
@@ -609,8 +681,12 @@ export default function DiagnosePage() {
         ruleBody: activePuzzle.ruleBody,
       };
 
-      setAttempts((prev) => [...prev, record]);
+      const nextAttempts = [...attempts, record];
+      setAttempts(nextAttempts);
       setCurrentRating(newElo);
+      if (diagnosticTrioRef.current) {
+        persistDiagnosticSession(diagnosticTrioRef.current, puzzleIndex, nextAttempts, newElo);
+      }
     } catch {}
   };
 
@@ -624,6 +700,9 @@ export default function DiagnosePage() {
         : selectAdaptivePuzzle(currentRating, [activePuzzle.id]);
       setPuzzleIndex(1);
       loadPuzzle(nextPuz);
+      if (diagnosticTrioRef.current) {
+        persistDiagnosticSession(diagnosticTrioRef.current, 1, attempts, currentRating);
+      }
     } else if (puzzleIndex === 1) {
       // Move to Puzzle 3: Try from randomized benchmark trio or adaptive
       const trioP3 = diagnosticTrioRef.current?.[2];
@@ -633,6 +712,9 @@ export default function DiagnosePage() {
         : selectAdaptivePuzzle(currentRating, excluded);
       setPuzzleIndex(2);
       loadPuzzle(nextPuz);
+      if (diagnosticTrioRef.current) {
+        persistDiagnosticSession(diagnosticTrioRef.current, 2, attempts, currentRating);
+      }
     } else {
       // Reached end of 3 puzzles -> Launch FIDE Cognitive Telemetry Analysis!
       startAnalyzingSequence();
@@ -641,6 +723,7 @@ export default function DiagnosePage() {
 
   // Intermediate Cognitive Telemetry Sequence (2.4s custom calculation)
   const startAnalyzingSequence = () => {
+    clearAnalysisTimers();
     setIsAnalyzing(true);
     setAnalyzingPhase(0);
 
@@ -670,13 +753,15 @@ export default function DiagnosePage() {
     } catch {}
 
     // 3-Phase Telemetry Progression
-    setTimeout(() => {
+    const t1 = setTimeout(() => {
       setAnalyzingPhase(1);
     }, 800);
+    analysisTimersRef.current.push(t1);
 
-    setTimeout(() => {
+    const t2 = setTimeout(() => {
       setAnalyzingPhase(2);
     }, 1600);
+    analysisTimersRef.current.push(t2);
 
     // Dynamic ticker count-up to target rating
     const startRating = 1250;
@@ -693,16 +778,25 @@ export default function DiagnosePage() {
         setDisplayElo(targetRating);
       }
     }, 90);
+    analysisTimersRef.current.push(interval);
 
     // Transition to final diagnosis screen after 2.5 seconds
-    setTimeout(() => {
+    const t3 = setTimeout(() => {
       setIsAnalyzing(false);
       setIsFinalScreen(true);
+      try {
+        sessionStorage.removeItem("chessz_diagnostic_session");
+      } catch {}
     }, 2500);
+    analysisTimersRef.current.push(t3);
   };
 
   // Start Personalized Training
   const handleStartPersonalizedTraining = () => {
+    clearAnalysisTimers();
+    try {
+      sessionStorage.removeItem("chessz_diagnostic_session");
+    } catch {}
     const levelInfo = mapEloToLevel(currentRating);
     router.push(`/?source=diagnosis&tier=${levelInfo.tierId}`);
   };
@@ -875,6 +969,12 @@ export default function DiagnosePage() {
 
           <Link
             href="/"
+            onClick={() => {
+              clearAnalysisTimers();
+              try {
+                sessionStorage.removeItem("chessz_diagnostic_session");
+              } catch {}
+            }}
             className="flex items-center gap-1 text-xs font-medium theme-text-muted hover:theme-text-primary transition-colors px-2 py-1 rounded-lg"
           >
             <span>Exit</span>

@@ -442,6 +442,33 @@ export default function Home() {
     alt: false,
   });
 
+  // Timer references for resilient asynchronous scheduling and clean teardown
+  const refutationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const victoryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const saveModalTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const clearPuzzleTimeouts = () => {
+    if (refutationTimeoutRef.current) {
+      clearTimeout(refutationTimeoutRef.current);
+      refutationTimeoutRef.current = null;
+    }
+    if (victoryTimeoutRef.current) {
+      clearTimeout(victoryTimeoutRef.current);
+      victoryTimeoutRef.current = null;
+    }
+    if (saveModalTimeoutRef.current) {
+      clearTimeout(saveModalTimeoutRef.current);
+      saveModalTimeoutRef.current = null;
+    }
+  };
+
+  // Teardown any pending timeouts when unmounting
+  useEffect(() => {
+    return () => {
+      clearPuzzleTimeouts();
+    };
+  }, []);
+
   // Modals (Save Progress & Credits)
   const [showSaveModal, setShowSaveModal] = useState<boolean>(false);
   const [showCreditsModal, setShowCreditsModal] = useState<boolean>(false);
@@ -509,7 +536,7 @@ export default function Home() {
       window.removeEventListener("chessz-theme-changed", handleThemeEvent);
       window.removeEventListener("chessz-settings-changed", handleSettingsEvent);
     };
-  }, [captureHandEnabled]);
+  }, []);
 
   const currentBoardColors =
     THEME_BOARD_COLORS[themePalette]?.[themeMode] || THEME_BOARD_COLORS.periwinkle.light;
@@ -730,6 +757,7 @@ export default function Home() {
   };
 
   const loadPuzzle = (puzzle: ChessPuzzle) => {
+    clearPuzzleTimeouts();
     setCurrentPuzzle(puzzle);
     setPuzzleStatus("solving");
     setRefutationInfo(null);
@@ -754,19 +782,29 @@ export default function Home() {
     if (!game || !currentPuzzle || puzzleStatus !== "solving") return false;
 
     // Clear UI markings
+    clearPuzzleTimeouts();
     setSelectedSquare(null);
     setLegalMoves([]);
     setHintSquare(null);
     setAnnotatedSquares({});
 
-    // 1. Check legal move in chess.js
+    // 1. Check legal move in chess.js with expected promotion piece awareness
+    const targetSolution = currentPuzzle.solutionMoves[0];
+    const expectedPromotion =
+      targetSolution &&
+      targetSolution.from === sourceSquare &&
+      targetSolution.to === targetSquare &&
+      targetSolution.promotion
+        ? targetSolution.promotion
+        : "q";
+
     const testChess = new Chess(game.fen());
     let moveResult = null;
     try {
       moveResult = testChess.move({
         from: sourceSquare,
         to: targetSquare,
-        promotion: "q",
+        promotion: expectedPromotion,
       });
     } catch {
       return false;
@@ -784,7 +822,6 @@ export default function Home() {
     setLastMove({ from: sourceSquare, to: targetSquare });
 
     // 2. Check winning solution move
-    const targetSolution = currentPuzzle.solutionMoves[0];
     const isCorrect = sourceSquare === targetSolution.from && targetSquare === targetSolution.to;
 
     if (isCorrect) {
@@ -794,14 +831,17 @@ export default function Home() {
       setStreak(nextStreak);
       setSolvedCount((prev) => prev + 1);
       setStatus("Tactical Win! Rule Mastered 🎉");
-      setTimeout(() => {
+
+      victoryTimeoutRef.current = setTimeout(() => {
         sounds.playVictory();
+        victoryTimeoutRef.current = null;
       }, 250);
 
       // Trigger "Save Progress" prompt at streak 3 milestone
       if (nextStreak === 3) {
-        setTimeout(() => {
+        saveModalTimeoutRef.current = setTimeout(() => {
           setShowSaveModal(true);
+          saveModalTimeoutRef.current = null;
         }, 1200);
       }
       return true;
@@ -812,7 +852,7 @@ export default function Home() {
     setPuzzleStatus("refuting");
     setStatus("Analyzing move...");
 
-    setTimeout(() => {
+    refutationTimeoutRef.current = setTimeout(() => {
       try {
         const refutingChess = new Chess(testChess.fen());
         const ref = currentPuzzle.defaultRefutation;
@@ -836,6 +876,7 @@ export default function Home() {
       setPuzzleStatus("failed");
       setStreak(0);
       setStatus("Refuted by opponent!");
+      refutationTimeoutRef.current = null;
     }, 650);
 
     return true;
@@ -1079,6 +1120,7 @@ export default function Home() {
   };
 
   const resetCalibration = () => {
+    clearPuzzleTimeouts();
     setSelectedLevel(null);
     setIsQuizActive(false);
     setIsAnalyzing(false);
@@ -1138,47 +1180,51 @@ export default function Home() {
     let shared = false;
     if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
       try {
-        await Promise.race([
-          navigator.share({
-            title: "ChessZ FIDE Coach Diagnosis",
-            text: shareText,
-            url: typeof window !== "undefined" ? window.location.origin : undefined,
-          }),
-          new Promise((_, reject) => setTimeout(() => reject(new Error("Share timeout")), 800))
-        ]);
+        await navigator.share({
+          title: "ChessZ FIDE Coach Diagnosis",
+          text: shareText,
+          url: typeof window !== "undefined" ? window.location.origin : undefined,
+        });
         shared = true;
-      } catch {
-        // Fallback to clipboard if cancelled, unsupported, or timed out
+      } catch (err: any) {
+        // If user actively cancelled the share sheet, return without modifying clipboard
+        if (err?.name === "AbortError") {
+          return;
+        }
       }
     }
 
     let copied = false;
-    if (typeof navigator !== "undefined" && navigator.clipboard) {
-      try {
-        await navigator.clipboard.writeText(shareText);
-        copied = true;
-      } catch {
-        // Fallback below
+    if (!shared) {
+      if (typeof navigator !== "undefined" && navigator.clipboard) {
+        try {
+          await navigator.clipboard.writeText(shareText);
+          copied = true;
+        } catch {
+          // Fallback below
+        }
+      }
+
+      if (!copied && typeof document !== "undefined") {
+        try {
+          const textarea = document.createElement("textarea");
+          textarea.value = shareText;
+          textarea.style.position = "fixed";
+          textarea.style.opacity = "0";
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand("copy");
+          document.body.removeChild(textarea);
+          copied = true;
+        } catch {}
+      }
+
+      // Show confirmation toast for clipboard fallback
+      if (copied) {
+        setShareCopied(true);
+        setTimeout(() => setShareCopied(false), 2500);
       }
     }
-
-    if (!copied && typeof document !== "undefined") {
-      try {
-        const textarea = document.createElement("textarea");
-        textarea.value = shareText;
-        textarea.style.position = "fixed";
-        textarea.style.opacity = "0";
-        document.body.appendChild(textarea);
-        textarea.select();
-        document.execCommand("copy");
-        document.body.removeChild(textarea);
-        copied = true;
-      } catch {}
-    }
-
-    // Always activate confirmation feedback!
-    setShareCopied(true);
-    setTimeout(() => setShareCopied(false), 2500);
   };
 
   return (

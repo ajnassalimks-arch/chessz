@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { LichessUser } from './lichess';
 
 const LOCAL_STORAGE_KEY = 'chessz_lichess_user_cache';
@@ -10,19 +10,31 @@ export function useLichess() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const isMountedRef = useRef<boolean>(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   // Load from session API and fallback to localStorage cache
   const fetchSession = useCallback(async (refresh: boolean = false) => {
     try {
-      setLoading(true);
-      setError(null);
+      if (isMountedRef.current) {
+        setLoading(true);
+        setError(null);
+      }
 
       const res = await fetch(`/api/auth/lichess/me${refresh ? '?refresh=true' : ''}`);
       if (res.ok) {
         const data = await res.json();
         if (data.user) {
-          setUser(data.user);
-          setIsAuthenticated(!!data.authenticated);
+          if (isMountedRef.current) {
+            setUser(data.user);
+            setIsAuthenticated(!!data.authenticated);
+          }
           try {
             localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data.user));
           } catch {}
@@ -35,18 +47,26 @@ export function useLichess() {
       if (cached) {
         try {
           const parsed = JSON.parse(cached);
-          setUser(parsed);
-          setIsAuthenticated(false);
+          if (isMountedRef.current) {
+            setUser(parsed);
+            setIsAuthenticated(false);
+          }
         } catch {}
       } else {
-        setUser(null);
-        setIsAuthenticated(false);
+        if (isMountedRef.current) {
+          setUser(null);
+          setIsAuthenticated(false);
+        }
       }
     } catch (err: any) {
       console.error('Failed fetching Lichess session:', err);
-      setError(err.message);
+      if (isMountedRef.current) {
+        setError(err.message);
+      }
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) {
+        setLoading(false);
+      }
     }
   }, []);
 
@@ -74,44 +94,50 @@ export function useLichess() {
 
   const logout = useCallback(async () => {
     try {
-      setLoading(true);
+      if (isMountedRef.current) setLoading(true);
       await fetch('/api/auth/lichess/logout', { method: 'POST' });
-      setUser(null);
-      setIsAuthenticated(false);
+      if (isMountedRef.current) {
+        setUser(null);
+        setIsAuthenticated(false);
+      }
       try {
         localStorage.removeItem(LOCAL_STORAGE_KEY);
       } catch {}
     } catch (err: any) {
       console.error('Failed to log out from Lichess:', err);
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) setLoading(false);
     }
   }, []);
 
   const connectByUsername = useCallback(async (username: string): Promise<boolean> => {
     if (!username.trim()) return false;
     try {
-      setLoading(true);
-      setError(null);
+      if (isMountedRef.current) {
+        setLoading(true);
+        setError(null);
+      }
       const res = await fetch(`/api/auth/lichess/me?username=${encodeURIComponent(username.trim())}`);
       if (res.ok) {
         const data = await res.json();
         if (data.user) {
-          setUser(data.user);
-          setIsAuthenticated(false); // Public preview
+          if (isMountedRef.current) {
+            setUser(data.user);
+            setIsAuthenticated(false); // Public preview
+          }
           try {
             localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data.user));
           } catch {}
           return true;
         }
       }
-      setError('Lichess user not found');
+      if (isMountedRef.current) setError('Lichess user not found');
       return false;
     } catch (err: any) {
-      setError(err.message);
+      if (isMountedRef.current) setError(err.message);
       return false;
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) setLoading(false);
     }
   }, []);
 

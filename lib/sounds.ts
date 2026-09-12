@@ -13,6 +13,19 @@ class ChessAudio {
     return this.isMuted;
   }
 
+  resumeAudio() {
+    if (typeof window === "undefined" || this.isMuted) return;
+    if (!this.ctx) {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (AudioCtx) {
+        this.ctx = new AudioCtx();
+      }
+    }
+    if (this.ctx && this.ctx.state === "suspended") {
+      this.ctx.resume().catch(() => {});
+    }
+  }
+
   private initCtx() {
     if (this.isMuted) return null;
     if (typeof window === "undefined") return null;
@@ -133,3 +146,16 @@ class ChessAudio {
 }
 
 export const sounds = new ChessAudio();
+
+// Warm up Web Audio API on first user gesture (pointerdown, keydown, touchstart)
+if (typeof window !== "undefined") {
+  const warmUpAudio = () => {
+    sounds.resumeAudio();
+    window.removeEventListener("pointerdown", warmUpAudio);
+    window.removeEventListener("keydown", warmUpAudio);
+    window.removeEventListener("touchstart", warmUpAudio);
+  };
+  window.addEventListener("pointerdown", warmUpAudio, { once: true, passive: true });
+  window.addEventListener("keydown", warmUpAudio, { once: true, passive: true });
+  window.addEventListener("touchstart", warmUpAudio, { once: true, passive: true });
+}
