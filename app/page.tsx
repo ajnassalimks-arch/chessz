@@ -499,7 +499,7 @@ export default function Home() {
   // Live Theme State & Board Synchronization
   const [themePalette, setThemePalette] = useState<ThemePalette>("periwinkle");
   const [themeMode, setThemeMode] = useState<ThemeMode>("light");
-  const [pieceSet, setPieceSet] = useState<PieceSetStyle>("liquid-chrome");
+  const [pieceSet, setPieceSet] = useState<PieceSetStyle>("default");
   const [captureHandEnabled, setCaptureHandEnabled] = useState<boolean>(true);
   const [captureHandTarget, setCaptureHandTarget] = useState<{ square: string; key: number } | null>(null);
 
@@ -512,12 +512,12 @@ export default function Home() {
     try {
       const savedTheme = (localStorage.getItem("chessz_theme") as ThemePalette) || "periwinkle";
       const savedMode = (localStorage.getItem("chessz_mode") as ThemeMode) || "light";
-      const savedPiece = (localStorage.getItem("chessz_piece_set") as PieceSetStyle) || "liquid-chrome";
       const savedCapture = localStorage.getItem("chessz_capture_hand");
 
       setThemePalette(savedTheme);
       setThemeMode(savedMode);
-      setPieceSet(savedPiece);
+      setPieceSet("default");
+      localStorage.setItem("chessz_piece_set", "default");
       if (savedCapture !== null) {
         setCaptureHandEnabled(JSON.parse(savedCapture));
       }

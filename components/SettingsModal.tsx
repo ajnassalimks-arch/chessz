@@ -18,7 +18,7 @@ export function SettingsModal({ isOpen, onClose, onThemeChange }: SettingsModalP
   const [isMuted, setIsMuted] = useState(false);
   const [wallpaperEnabled, setWallpaperEnabled] = useState(true);
   const [captureHandEnabled, setCaptureHandEnabled] = useState(true);
-  const [pieceSet, setPieceSet] = useState<PieceSetStyle>("liquid-chrome");
+  const [pieceSet, setPieceSet] = useState<PieceSetStyle>("default");
 
   useEffect(() => {
     try {
@@ -27,11 +27,11 @@ export function SettingsModal({ isOpen, onClose, onThemeChange }: SettingsModalP
       const savedMute = localStorage.getItem("chessz_muted");
       const savedWallpaper = localStorage.getItem("chessz_wallpaper");
       const savedCaptureHand = localStorage.getItem("chessz_capture_hand");
-      const savedPieceSet = (localStorage.getItem("chessz_piece_set") as PieceSetStyle) || "liquid-chrome";
 
       setTheme(savedTheme);
       setMode(savedMode);
-      setPieceSet(savedPieceSet);
+      setPieceSet("default");
+      localStorage.setItem("chessz_piece_set", "default");
       if (savedMute !== null) setIsMuted(JSON.parse(savedMute));
       if (savedWallpaper !== null) setWallpaperEnabled(JSON.parse(savedWallpaper));
       if (savedCaptureHand !== null) setCaptureHandEnabled(JSON.parse(savedCaptureHand));
@@ -221,44 +221,27 @@ export function SettingsModal({ isOpen, onClose, onThemeChange }: SettingsModalP
           </div>
         </div>
 
-        {/* 2D Chess Piece Set Selector */}
-        <div className="mb-4">
-          <label className="text-xs font-bold uppercase tracking-wider text-[var(--accent-primary)] mb-2 block">
-            2D Chess Piece Style
-          </label>
-          <div className="grid grid-cols-3 gap-2">
-            {[
-              { id: "liquid-chrome" as PieceSetStyle, label: "Liquid Chrome", badge: "Y2K Neon", desc: "Molten metallic" },
-              { id: "lichess-shapes" as PieceSetStyle, label: "Shapes", badge: "Bauhaus", desc: "Pure geometry" },
-              { id: "lichess-spatial" as PieceSetStyle, label: "Spatial", badge: "Wireframe", desc: "3D CAD Vector" },
-              { id: "lichess-mono" as PieceSetStyle, label: "Mono", badge: "Silhouette", desc: "Zero noise" },
-              { id: "neo-arcade" as PieceSetStyle, label: "Neo-Arcade", badge: "Art Toy", desc: "Streetwear bots" },
-              { id: "default" as PieceSetStyle, label: "Classic", badge: "FIDE Pro", desc: "Standard 2D" },
-            ].map((p) => {
-              const isSelected = pieceSet === p.id;
-              return (
-                <button
-                  key={p.id}
-                  onClick={() => handleSelectPieceSet(p.id)}
-                  className={`p-2.5 rounded-2xl border transition-all text-center flex flex-col items-center justify-center gap-1 cursor-pointer ${
-                    isSelected
-                      ? "border-[var(--accent-primary)] bg-[var(--accent-subtle)] ring-2 ring-[var(--accent-primary)]/30 shadow-md"
-                      : "theme-surface hover:theme-surface-subtle border-[var(--border-subtle)] opacity-80 hover:opacity-100"
-                  }`}
-                >
-                  <span className="text-[9px] uppercase font-mono px-1.5 py-0.5 rounded-full bg-[var(--accent-primary)]/15 text-[var(--accent-primary)] font-bold">
-                    {p.badge}
-                  </span>
-                  <span className="text-[11px] font-bold theme-text-primary block mt-0.5 leading-tight">
-                    {p.label}
-                  </span>
-                  <span className="text-[9px] theme-text-muted block">
-                    {p.desc}
-                  </span>
-                </button>
-              );
-            })}
+        {/* Official FIDE Standard Chess Pieces */}
+        <div className="mb-4 p-3.5 rounded-2xl theme-surface-subtle border flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl theme-surface flex items-center justify-center text-xl select-none shrink-0 border border-[var(--border-subtle)] shadow-xs">
+              ♞
+            </div>
+            <div>
+              <div className="text-xs font-bold theme-text-primary flex items-center gap-1.5">
+                <span>Official FIDE Staunton Pieces</span>
+                <span className="text-[9px] uppercase px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-mono font-bold">
+                  Tournament Standard
+                </span>
+              </div>
+              <div className="text-[10px] theme-text-muted mt-0.5">
+                Authentic international tournament vectors recognized by FIDE & masters
+              </div>
+            </div>
           </div>
+          <span className="text-xs font-mono font-bold text-emerald-400 px-2.5 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/25 shrink-0">
+            Active
+          </span>
         </div>
 
         {/* Wallpaper Atmosphere Toggle (Exclusively on Emerald theme) */}

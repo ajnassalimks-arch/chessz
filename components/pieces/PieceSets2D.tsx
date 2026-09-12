@@ -377,23 +377,8 @@ export const LICHESS_MONO_PIECES = createLichessPieceSet("mono");
 export const LICHESS_SPATIAL_PIECES = createLichessPieceSet("spatial");
 export const LICHESS_PIXEL_PIECES = createLichessPieceSet("pixel");
 
-export function getPieceSet(style: PieceSetStyle) {
-  switch (style) {
-    case "liquid-chrome":
-      return LIQUID_CHROME_PIECES;
-    case "neo-arcade":
-      return NEO_ARCADE_PIECES;
-    case "lichess-shapes":
-      return LICHESS_SHAPES_PIECES;
-    case "lichess-mono":
-      return LICHESS_MONO_PIECES;
-    case "lichess-spatial":
-      return LICHESS_SPATIAL_PIECES;
-    case "lichess-pixel":
-      return LICHESS_PIXEL_PIECES;
-    case "default":
-    default:
-      return undefined; // Uses react-chessboard's default crisp Staunton vectors
-  }
+export function getPieceSet(_style?: PieceSetStyle) {
+  // Exclusively return standard official FIDE Staunton vectors (cburnett)
+  return undefined;
 }
 

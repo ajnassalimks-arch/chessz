@@ -70,7 +70,7 @@ export default function DiagnosePage() {
   const [themeMode, setThemeMode] = useState<ThemeMode>("light");
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
-  const [pieceSet, setPieceSet] = useState<PieceSetStyle>("liquid-chrome");
+  const [pieceSet, setPieceSet] = useState<PieceSetStyle>("default");
   const [captureHandEnabled, setCaptureHandEnabled] = useState<boolean>(true);
   const [captureHandTarget, setCaptureHandTarget] = useState<{ square: string; key: number } | null>(null);
 
@@ -84,12 +84,12 @@ export default function DiagnosePage() {
       const savedTheme = (localStorage.getItem("chessz_theme") as ThemePalette) || "periwinkle";
       const savedMode = (localStorage.getItem("chessz_mode") as ThemeMode) || "light";
       const savedMute = localStorage.getItem("chessz_muted") === "true";
-      const savedPiece = (localStorage.getItem("chessz_piece_set") as PieceSetStyle) || "liquid-chrome";
       const savedCapture = localStorage.getItem("chessz_capture_hand");
 
       setThemePalette(savedTheme);
       setThemeMode(savedMode);
-      setPieceSet(savedPiece);
+      setPieceSet("default");
+      localStorage.setItem("chessz_piece_set", "default");
       setIsMuted(savedMute);
       sounds.setMuted(savedMute);
       if (savedCapture !== null) {
