@@ -5,6 +5,11 @@ import { Chess } from 'chess.js';
 import { cookies } from 'next/headers';
 import { LICHESS_HOST } from '@/lib/lichess';
 import { ChessPuzzle } from '@/lib/puzzles';
+import {
+  classifyMistake,
+  getCategoryDefinitionsForTier,
+  SkillTier,
+} from '@/lib/mistakeClassifier';
 
 export async function GET(request: NextRequest) {
   try {
@@ -43,6 +48,9 @@ export async function GET(request: NextRequest) {
     }
 
     const maxGames = Math.min(Math.max(parseInt(searchParams.get('max') || '50', 10), 1), 50);
+    const rawTier = searchParams.get('tier');
+    const skillTier: SkillTier =
+      rawTier === 'adv_beginner' || rawTier === 'intermediate' ? rawTier : 'beginner';
 
     const lichessUrl = `${LICHESS_HOST}/api/games/user/${encodeURIComponent(
       username
@@ -61,14 +69,19 @@ export async function GET(request: NextRequest) {
     }
 
     const text = await response.text();
+    const categoryDefs = getCategoryDefinitionsForTier(skillTier);
+
     if (!text.trim()) {
       return NextResponse.json({
         summary: {
           username,
+          skillTier,
           totalGamesScanned: 0,
           analyzedGamesCount: 0,
           unanalyzedGamesCount: 0,
           totalBlundersFound: 0,
+          categories: categoryDefs.map((c) => ({ ...c, count: 0, percentage: 0 })),
+          primaryLeak: { ...categoryDefs[0], count: 0, percentage: 0 },
         },
         blunders: [],
       });
@@ -85,6 +98,12 @@ export async function GET(request: NextRequest) {
       bestSan: string;
       evalSwingPawns?: number;
       judgmentName: string;
+      category: string;
+      categoryTitle: string;
+      categoryBadge: string;
+      categoryIcon: string;
+      coachTip: string;
+      parentTip: string;
     })[] = [];
     const lowerUsername = username.toLowerCase();
 
@@ -183,6 +202,16 @@ export async function GET(request: NextRequest) {
             evalSwingPawns = Math.max(0, Math.round((rawDrop / 100) * 10) / 10);
           }
 
+          // Classify into 1 of the 5 skill-calibrated categories
+          const classified = classifyMistake(
+            fenBefore,
+            playedSan,
+            bestUci,
+            i,
+            evalSwingPawns,
+            skillTier
+          );
+
           const moveNum = Math.floor(i / 2) + 1;
           const turnPrefix = userColor === 'white' ? `${moveNum}.` : `${moveNum}...`;
 
@@ -200,6 +229,12 @@ export async function GET(request: NextRequest) {
             bestSan,
             evalSwingPawns,
             judgmentName,
+            category: classified.categoryId,
+            categoryTitle: classified.categoryTitle,
+            categoryBadge: classified.badge,
+            categoryIcon: classified.icon,
+            coachTip: classified.coachTip,
+            parentTip: classified.parentTip,
             tier: 'intermediate' as const,
             track: 'tactical' as const,
             title: `Your Game vs @${opponentName}`,
@@ -207,10 +242,9 @@ export async function GET(request: NextRequest) {
             initialFen: fenBefore,
             playerColor: userColor,
             prompt: `${userColor === 'white' ? 'White' : 'Black'} to move: In your game against @${opponentName}, you played ${turnPrefix} ${playedSan} (${judgmentName}${swingText}). Find the Stockfish refutation!`,
-            ruleTitle: `${judgmentName} Correction: ${playedSan}`,
+            ruleTitle: `${classified.ruleTitle}: ${playedSan}`,
             ruleBody:
-              a.judgment.comment ||
-              `Stockfish flagged ${playedSan} as a ${judgmentName.toLowerCase()}. Find the winning move!`,
+              a.judgment.comment || classified.ruleBody,
             solutionMoves: [
               {
                 from: bestFrom,
@@ -234,13 +268,57 @@ export async function GET(request: NextRequest) {
       } catch {}
     }
 
+    // Aggregate category distribution metrics
+    const categoryCounts: Record<string, number> = {};
+    for (const def of categoryDefs) {
+      categoryCounts[def.id] = 0;
+    }
+    for (const b of blunders) {
+      if (categoryCounts[b.category] !== undefined) {
+        categoryCounts[b.category]++;
+      }
+    }
+
+    let primaryLeakId = categoryDefs[0]?.id || 'hanging_pieces';
+    let maxCount = -1;
+    for (const [catId, cnt] of Object.entries(categoryCounts)) {
+      if (cnt > maxCount) {
+        maxCount = cnt;
+        primaryLeakId = catId as any;
+      }
+    }
+
+    const primaryLeakDef =
+      categoryDefs.find((c) => c.id === primaryLeakId) || categoryDefs[0];
+    const totalBlunders = blunders.length;
+    const categoryBreakdown = categoryDefs.map((def) => {
+      const count = categoryCounts[def.id] || 0;
+      const percentage =
+        totalBlunders > 0 ? Math.round((count / totalBlunders) * 100) : 0;
+      return {
+        ...def,
+        count,
+        percentage,
+      };
+    });
+
     return NextResponse.json({
       summary: {
         username,
+        skillTier,
         totalGamesScanned: lines.length,
         analyzedGamesCount,
         unanalyzedGamesCount,
         totalBlundersFound: blunders.length,
+        categories: categoryBreakdown,
+        primaryLeak: {
+          ...primaryLeakDef,
+          count: Math.max(0, maxCount),
+          percentage:
+            totalBlunders > 0
+              ? Math.round((Math.max(0, maxCount) / totalBlunders) * 100)
+              : 0,
+        },
       },
       blunders,
     });
