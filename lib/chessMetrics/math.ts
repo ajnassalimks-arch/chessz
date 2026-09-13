@@ -23,7 +23,7 @@ export function evalToWinPct(
   let whiteWinPct = 50;
 
   if (evalObj.mate !== undefined && evalObj.mate !== null) {
-    whiteWinPct = evalObj.mate > 0 ? 100 : 0;
+    whiteWinPct = evalObj.mate >= 0 ? 100 : 0;
   } else if (evalObj.cp !== undefined && evalObj.cp !== null) {
     whiteWinPct = calculateWinPctFromCp(evalObj.cp);
   }
