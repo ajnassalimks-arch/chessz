@@ -46,6 +46,7 @@ interface LichessModalProps {
   onConnectUsername: (username: string) => Promise<boolean>;
   diagnosedElo?: number | null;
   onStartBlunderTraining?: (puzzle: ChessPuzzle) => void;
+  onOpenWeaknessDashboard?: () => void;
 }
 
 export function LichessModal({
@@ -60,6 +61,7 @@ export function LichessModal({
   onConnectUsername,
   diagnosedElo,
   onStartBlunderTraining,
+  onOpenWeaknessDashboard,
 }: LichessModalProps) {
   const [usernameInput, setUsernameInput] = useState('');
   const [usernameError, setUsernameError] = useState<string | null>(null);
@@ -321,14 +323,28 @@ export function LichessModal({
                     </div>
                   </div>
 
-                  <button
-                    onClick={fetchMyBlunders}
-                    disabled={isLoadingBlunders}
-                    className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--accent-primary)] hover:opacity-90 text-white text-xs font-bold transition cursor-pointer shadow-xs disabled:opacity-50 shrink-0"
-                  >
-                    <RefreshCw className={`w-3.5 h-3.5 ${isLoadingBlunders ? 'animate-spin' : ''}`} />
-                    <span>{isLoadingBlunders ? 'Extracting...' : 'Scan My Games'}</span>
-                  </button>
+                  <div className="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap">
+                    {onOpenWeaknessDashboard && (
+                      <button
+                        onClick={() => {
+                          onOpenWeaknessDashboard();
+                          onClose();
+                        }}
+                        className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 border border-rose-500/30 text-xs font-bold transition cursor-pointer shadow-xs"
+                      >
+                        <Target className="w-3.5 h-3.5" />
+                        <span>Weakness Studio</span>
+                      </button>
+                    )}
+                    <button
+                      onClick={fetchMyBlunders}
+                      disabled={isLoadingBlunders}
+                      className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--accent-primary)] hover:opacity-90 text-white text-xs font-bold transition cursor-pointer shadow-xs disabled:opacity-50 shrink-0"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${isLoadingBlunders ? 'animate-spin' : ''}`} />
+                      <span>{isLoadingBlunders ? 'Extracting...' : 'Scan Games'}</span>
+                    </button>
+                  </div>
                 </div>
 
                 {blunderError && (

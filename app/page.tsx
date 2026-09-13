@@ -50,6 +50,7 @@ import { AnimatedCaptureHand } from "@/components/AnimatedCaptureHand";
 import { getPieceSet, PieceSetStyle } from "@/components/pieces/PieceSets2D";
 import { useLichess } from "@/lib/useLichess";
 import { LichessModal, LichessIcon } from "@/components/LichessModal";
+import { WeaknessDashboard } from "@/components/WeaknessDashboard";
 import { useStockfish } from "@/lib/useStockfish";
 import { EngineAnalysisBar } from "@/components/EngineAnalysisBar";
 
@@ -377,6 +378,7 @@ export default function Home() {
     connectByUsername: connectLichessUsername,
   } = useLichess();
   const [showLichessModal, setShowLichessModal] = useState<boolean>(false);
+  const [showWeaknessDashboard, setShowWeaknessDashboard] = useState<boolean>(false);
   
   // Stockfish In-Browser WASM Engine Hook
   const {
@@ -729,6 +731,7 @@ export default function Home() {
     setIsAnalyzing(false);
     setShowDiagnosisModal(false);
     setShowLichessModal(false);
+    setShowWeaknessDashboard(false);
     setIsCalibrated(true);
     setIsCurriculumActive(false);
     loadPuzzle(puzzle);
@@ -869,6 +872,18 @@ export default function Home() {
       setStreak(nextStreak);
       setSolvedCount((prev) => prev + 1);
       setStatus("Tactical Win! Rule Mastered 🎉");
+
+      // If this was a Lichess blunder puzzle, mark it as mastered in localStorage
+      if (currentPuzzle.id && currentPuzzle.id.startsWith("lichess_")) {
+        try {
+          const stored = localStorage.getItem("chessz_mastered_blunders");
+          const parsed = stored ? JSON.parse(stored) : [];
+          if (!parsed.includes(currentPuzzle.id)) {
+            parsed.push(currentPuzzle.id);
+            localStorage.setItem("chessz_mastered_blunders", JSON.stringify(parsed));
+          }
+        } catch {}
+      }
 
       victoryTimeoutRef.current = setTimeout(() => {
         sounds.playVictory();
@@ -1312,6 +1327,17 @@ export default function Home() {
                 {lichessUser.perfs.rapid.rating}
               </span>
             )}
+          </button>
+
+          {/* Weakness Studio Button */}
+          <button
+            onClick={() => setShowWeaknessDashboard(true)}
+            className="flex items-center gap-1.5 text-[11px] font-mono font-semibold px-2.5 py-1.5 rounded-xl cursor-pointer transition border bg-rose-500/10 border-rose-500/30 text-rose-400 hover:bg-rose-500/20 shadow-xs"
+            title="Weakness Studio & Blunder Diagnostic"
+            aria-label="Weakness Studio"
+          >
+            <Target className="w-3.5 h-3.5 text-rose-400" />
+            <span className="hidden sm:inline">Weakness Studio</span>
           </button>
 
           {/* Mute Toggle */}
@@ -2325,6 +2351,15 @@ export default function Home() {
         onConnectUsername={connectLichessUsername}
         diagnosedElo={isCalibrated ? calibratedRating : null}
         onStartBlunderTraining={handleStartBlunderTraining}
+        onOpenWeaknessDashboard={() => setShowWeaknessDashboard(true)}
+      />
+
+      {/* 5-Category Weakness Studio Dashboard */}
+      <WeaknessDashboard
+        isOpen={showWeaknessDashboard}
+        onClose={() => setShowWeaknessDashboard(false)}
+        user={lichessUser}
+        onStartTraining={handleStartBlunderTraining}
       />
     </main>
   );
