@@ -42,9 +42,11 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const maxGames = Math.min(Math.max(parseInt(searchParams.get('max') || '50', 10), 1), 50);
+
     const lichessUrl = `${LICHESS_HOST}/api/games/user/${encodeURIComponent(
       username
-    )}?max=10&evals=true&opening=true`;
+    )}?max=${maxGames}&evals=true&opening=true`;
 
     const response = await fetch(lichessUrl, {
       headers,
@@ -60,17 +62,49 @@ export async function GET(request: NextRequest) {
 
     const text = await response.text();
     if (!text.trim()) {
-      return NextResponse.json({ blunders: [] });
+      return NextResponse.json({
+        summary: {
+          username,
+          totalGamesScanned: 0,
+          analyzedGamesCount: 0,
+          unanalyzedGamesCount: 0,
+          totalBlundersFound: 0,
+        },
+        blunders: [],
+      });
     }
 
     const lines = text.trim().split('\n').filter(Boolean);
-    const blunders: ChessPuzzle[] = [];
+    const blunders: (ChessPuzzle & {
+      gameId: string;
+      speed?: string;
+      opponentName: string;
+      opponentRating: number;
+      moveNumber: number;
+      playedSan: string;
+      bestSan: string;
+      evalSwingPawns?: number;
+      judgmentName: string;
+    })[] = [];
     const lowerUsername = username.toLowerCase();
+
+    let analyzedGamesCount = 0;
+    let unanalyzedGamesCount = 0;
 
     for (const line of lines) {
       try {
         const g = JSON.parse(line);
-        if (!g.analysis || !g.moves || !g.players) continue;
+        if (!g.moves || !g.players) continue;
+
+        // Check if game already has Stockfish computer analysis on Lichess
+        const hasAnalysis = Array.isArray(g.analysis) && g.analysis.length > 0;
+        if (hasAnalysis) {
+          analyzedGamesCount++;
+        } else {
+          unanalyzedGamesCount++;
+          // Do not re-analyze if unanalyzed, keep untouched
+          continue;
+        }
 
         const moves = g.moves.split(/\s+/).filter(Boolean);
         const isWhite =
@@ -101,7 +135,7 @@ export async function GET(request: NextRequest) {
           const bestUci = a.best;
           if (!bestUci || bestUci.length < 4) continue;
 
-          // Replay moves up to ply i - 1 to get exact FEN before blunder
+          // Replay moves up to ply i to get exact FEN before the blunder
           const chess = new Chess();
           let validReplay = true;
           for (let m = 0; m < i; m++) {
@@ -139,19 +173,40 @@ export async function GET(request: NextRequest) {
             continue;
           }
 
+          // Calculate Centipawn / Pawn Swing from existing Lichess analysis
+          let evalSwingPawns: number | undefined = undefined;
+          const prevAnalysis = i > 0 ? g.analysis[i - 1] : null;
+          if (prevAnalysis && typeof prevAnalysis.eval === 'number' && typeof a.eval === 'number') {
+            const cpBefore = prevAnalysis.eval;
+            const cpAfter = a.eval;
+            const rawDrop = userColor === 'white' ? cpBefore - cpAfter : cpAfter - cpBefore;
+            evalSwingPawns = Math.max(0, Math.round((rawDrop / 100) * 10) / 10);
+          }
+
           const moveNum = Math.floor(i / 2) + 1;
           const turnPrefix = userColor === 'white' ? `${moveNum}.` : `${moveNum}...`;
 
-          const blunderPuzzle: ChessPuzzle = {
+          const swingText = evalSwingPawns && evalSwingPawns > 0 ? ` (dropped ~${evalSwingPawns} pawns)` : '';
+
+          const blunderPuzzle = {
             id: `lichess_${g.id}_p${i}`,
             lichessId: g.id,
-            tier: 'intermediate',
-            track: 'tactical',
+            gameId: g.id,
+            speed: g.speed || 'blitz',
+            opponentName,
+            opponentRating,
+            moveNumber: moveNum,
+            playedSan,
+            bestSan,
+            evalSwingPawns,
+            judgmentName,
+            tier: 'intermediate' as const,
+            track: 'tactical' as const,
             title: `Your Game vs @${opponentName}`,
             ratingBadge: `${g.speed ? g.speed.toUpperCase() : 'GAME'} ~${opponentRating}`,
             initialFen: fenBefore,
             playerColor: userColor,
-            prompt: `${userColor === 'white' ? 'White' : 'Black'} to move: In your game against @${opponentName}, you played ${turnPrefix} ${playedSan} (${judgmentName}). Find the Stockfish refutation!`,
+            prompt: `${userColor === 'white' ? 'White' : 'Black'} to move: In your game against @${opponentName}, you played ${turnPrefix} ${playedSan} (${judgmentName}${swingText}). Find the Stockfish refutation!`,
             ruleTitle: `${judgmentName} Correction: ${playedSan}`,
             ruleBody:
               a.judgment.comment ||
@@ -175,14 +230,20 @@ export async function GET(request: NextRequest) {
           };
 
           blunders.push(blunderPuzzle);
-          if (blunders.length >= 6) break;
         }
-
-        if (blunders.length >= 6) break;
       } catch {}
     }
 
-    return NextResponse.json({ blunders });
+    return NextResponse.json({
+      summary: {
+        username,
+        totalGamesScanned: lines.length,
+        analyzedGamesCount,
+        unanalyzedGamesCount,
+        totalBlundersFound: blunders.length,
+      },
+      blunders,
+    });
   } catch (error: any) {
     console.error('Error extracting Lichess blunders:', error);
     return NextResponse.json(
