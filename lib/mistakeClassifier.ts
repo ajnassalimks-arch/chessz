@@ -3,7 +3,8 @@ import { Chess } from 'chess.js';
 export type SkillTier = 'beginner' | 'adv_beginner' | 'intermediate';
 
 export interface MistakeCategoryInfo {
-  id: 'hanging_pieces' | 'pins_forks' | 'king_safety' | 'endgame_conversion' | 'opening_traps';
+  id: string;
+  tier: SkillTier;
   title: string;
   badge: string;
   icon: string; // lucide icon identifier
@@ -14,7 +15,8 @@ export interface MistakeCategoryInfo {
 }
 
 export interface ClassifiedMistake {
-  categoryId: MistakeCategoryInfo['id'];
+  categoryId: string;
+  tier: SkillTier;
   categoryTitle: string;
   badge: string;
   icon: string;
@@ -24,153 +26,185 @@ export interface ClassifiedMistake {
   parentTip: string;
 }
 
-// Category Templates per Skill Tier
-const CATEGORY_DEFINITIONS: Record<SkillTier, Record<MistakeCategoryInfo['id'], Omit<MistakeCategoryInfo, 'id'>>> = {
-  beginner: {
-    hanging_pieces: {
-      title: 'Hanging & Undefended Pieces',
-      badge: '1-Move Drop',
+// 5 DISTINCT Categories per Skill Tier
+export const TIER_CATEGORY_DEFINITIONS: Record<SkillTier, MistakeCategoryInfo[]> = {
+  beginner: [
+    {
+      id: 'beg_hanging_piece',
+      tier: 'beginner',
+      title: '1-Move Hanging Pieces',
+      badge: 'Free Piece Drop',
       icon: 'AlertTriangle',
       ruleTitle: 'The 2-Second Bodyguard Rule',
       ruleBody: 'Before letting go of any piece, take 2 seconds to check: "Does this piece have a teammate defending it?" Never donate free points.',
       coachTip: 'Count attackers vs defenders before every move. An undefended piece is a target.',
       parentTip: 'Remind your child: "Check your bodyguards! Make sure every piece has a friend protecting it."',
     },
-    pins_forks: {
-      title: 'Double Attacks & Knight Hops',
-      badge: 'Forks & Pins',
-      icon: 'Zap',
-      ruleTitle: 'The Fork Radar',
-      ruleBody: 'Look out for enemy Knights and Queens jumping into squares that hit two of your pieces at the same time.',
-      coachTip: 'Keep your King and Queen on opposite colored squares when Knights are on the board.',
-      parentTip: 'Ask them: "Watch out for sneaky Knight hops attacking two pieces at once!"',
+    {
+      id: 'beg_missed_capture',
+      tier: 'beginner',
+      title: 'Missed Free Captures',
+      badge: 'Free Points Overlooked',
+      icon: 'EyeOff',
+      ruleTitle: 'Free Lunch Radar',
+      ruleBody: 'Scan the board on every turn: did your opponent leave one of their pieces with zero defenders? Take free pieces immediately!',
+      coachTip: 'Before playing a quiet move, look at every enemy piece to see if one can be captured for free.',
+      parentTip: 'Tell your child: "Look at the other player\'s pieces! If they give you a free piece, take it!"',
     },
-    king_safety: {
-      title: 'Back-Rank & King Exposure',
-      badge: 'King Safety',
+    {
+      id: 'beg_back_rank_mate',
+      tier: 'beginner',
+      title: 'Back-Rank & Corridor Mates',
+      badge: '1-Move Checkmate',
       icon: 'ShieldAlert',
       ruleTitle: 'The Escape Window (Luft)',
-      ruleBody: 'Always make an escape square (like h3 or h6) for your King so you never get checkmated on the back rank.',
-      coachTip: 'A back-rank corridor with trapped pawns in front is a recipe for sudden checkmate.',
-      parentTip: 'Remind your child to castle early and make a little escape window for their King.',
+      ruleBody: 'Always push h3 or h6 to give your King a breathing room escape square so you never get trapped on the back row.',
+      coachTip: 'A back-rank corridor with pawns stuck in front is a sudden checkmate trap.',
+      parentTip: 'Remind your child: "Open a little window for your King so the enemy Rook can\'t trap you!"',
     },
-    endgame_conversion: {
-      title: 'Endgame & Free Queens',
-      badge: 'Endgame',
-      icon: 'Crown',
-      ruleTitle: 'March the Passed Pawn',
-      ruleBody: 'In the endgame, activate your King into the center and escort your passed pawns to become Queens.',
-      coachTip: 'Don\'t leave pawns behind without King support in simplified positions.',
-      parentTip: 'Tell your child: "In the endgame, the King is a fighter! Bring the King to help the pawns."',
-    },
-    opening_traps: {
-      title: 'Early Queen & Opening Traps',
-      badge: 'Opening Rush',
+    {
+      id: 'beg_early_queen',
+      tier: 'beginner',
+      title: 'Early Queen Rush',
+      badge: 'Queen Out Too Early',
       icon: 'Sparkles',
-      ruleTitle: 'Knights Before Queens',
-      ruleBody: 'Develop your Knights and Bishops and castle before bringing your Queen into the fight.',
-      coachTip: 'Bringing the Queen out on move 3 gives your opponent free development by attacking her.',
-      parentTip: 'Remind them: "Get all your helpers out first—don\'t rush the Queen out alone!"',
+      ruleTitle: 'Knights & Bishops Before Queens',
+      ruleBody: 'Develop your minor pieces (Knights & Bishops) and castle before moving your Queen into enemy territory.',
+      coachTip: 'Moving the Queen on moves 2–5 allows your opponent to develop with tempo by attacking her.',
+      parentTip: 'Remind them: "Get all your team helpers out first—don\'t rush the Queen out alone!"',
     },
-  },
-  adv_beginner: {
-    hanging_pieces: {
-      title: 'Tactical Oversights & Loose Pieces',
-      badge: 'Tactical Drop',
-      icon: 'AlertTriangle',
-      ruleTitle: 'Loose Pieces Drop Off (LPDO)',
-      ruleBody: 'GM John Nunn\'s golden rule: Loose pieces without defenders are magnets for tactical combinations.',
-      coachTip: 'Every undefended piece is a tactical weakness waiting to be exploited by a double attack.',
-      parentTip: 'Encourage calculating one move further: "Is that piece really safe after they capture?"',
+    {
+      id: 'beg_uncastled_king',
+      tier: 'beginner',
+      title: 'Stranded Center King',
+      badge: 'King Not Castled',
+      icon: 'Castle',
+      ruleTitle: 'Castle Early, Castle Often',
+      ruleBody: 'Castle within the first 10 moves! A King stuck in the middle will get blasted open by enemy rooks and queens.',
+      coachTip: 'Castling tucks the King into safety and connects your rooks for battle.',
+      parentTip: 'Tell them: "Tuck your King safely into his castle before starting the attack."',
     },
-    pins_forks: {
-      title: 'Pins, Skewers & Absolute Ties',
-      badge: 'Laser Pins',
+  ],
+
+  adv_beginner: [
+    {
+      id: 'adv_knight_forks',
+      tier: 'adv_beginner',
+      title: 'Knight Forks & Double Attacks',
+      badge: 'Tactical Fork',
       icon: 'Zap',
-      ruleTitle: 'Laser Vision',
-      ruleBody: 'Whenever your King, Queen, or Rook stand on the same line, watch out for pinning Bishops and Rooks.',
-      coachTip: 'Break pins immediately before your opponent piles on more attackers with pressure.',
-      parentTip: 'Help them spot lines: "Check if your pieces are lined up like bowling pins!"',
+      ruleTitle: 'The Fork Radar',
+      ruleBody: 'Watch out for Knight hops and Queen strikes that attack your King and Rook or Queen and Rook simultaneously.',
+      coachTip: 'Keep valuable pieces on opposite colored squares when an enemy Knight is nearby.',
+      parentTip: 'Help them spot lines: "Watch out for sneaky Knight hops attacking two pieces at once!"',
     },
-    king_safety: {
-      title: 'King Shelter & Castling Breaches',
-      badge: 'King Safety',
-      icon: 'ShieldAlert',
-      ruleTitle: 'The Iron Castle',
-      ruleBody: 'Never push the pawns in front of your castled King unless forced. Each pawn push creates permanent holes.',
-      coachTip: 'Weakening f7/f2 or g7/g2 opens devastating mating corridors.',
-      parentTip: 'Remind them: "Keep the shield solid around the King."',
+    {
+      id: 'adv_pins_skewers',
+      tier: 'adv_beginner',
+      title: 'Absolute & Relative Pins',
+      badge: 'Pinned Piece',
+      icon: 'Target',
+      ruleTitle: 'Laser Pin Defense',
+      ruleBody: 'Never leave pieces lined up on the same diagonal or file with your King or Queen—Bishops and Rooks will pin them.',
+      coachTip: 'Break pins immediately by stepping the King or Queen away or interposing a defender.',
+      parentTip: 'Encourage noticing alignment: "Check if your pieces are lined up like bowling pins!"',
     },
-    endgame_conversion: {
-      title: 'Endgame Pawn Races & Opposition',
-      badge: 'Endgame Race',
+    {
+      id: 'adv_zwischenzug',
+      tier: 'adv_beginner',
+      title: 'Missed Counter-Threats (In-Between Moves)',
+      badge: 'Zwischenzug',
+      icon: 'Clock',
+      ruleTitle: 'Check Before You Trade',
+      ruleBody: 'Before recapturing a piece, ask: "Can my opponent deliver a check or a bigger threat in between?"',
+      coachTip: 'Don\'t assume trades are automatic. Look for intermediate checks and counter-attacks.',
+      parentTip: 'Remind them: "Don\'t rush to trade—pause and check if they have a surprise move!"',
+    },
+    {
+      id: 'adv_pawn_races',
+      tier: 'adv_beginner',
+      title: 'Endgame Pawn Races & King Escorts',
+      badge: 'Endgame Tempo',
       icon: 'Crown',
-      ruleTitle: 'The Rule of the Square',
-      ruleBody: 'Calculate whether the King can catch the passed pawn before pushing. King activity is paramount.',
-      coachTip: 'Endgames are won by active Kings and precise pawn structure calculation.',
-      parentTip: 'Remind them that endgames require patience—count the steps of the pawn race.',
+      ruleTitle: 'King Leads the Way',
+      ruleBody: 'In pawn endings, your King must walk in front of your passed pawn to shoulder away the enemy King.',
+      coachTip: 'Pushing pawns without King activity allows the opponent King to capture them easily.',
+      parentTip: 'Remind them: "In the endgame, the King is the hero! Walk with your pawns."',
     },
-    opening_traps: {
-      title: 'Opening Development & Gambit Punishments',
-      badge: 'Opening Line',
-      icon: 'Sparkles',
-      ruleTitle: 'Center Control First',
-      ruleBody: 'Greedy pawn grabbing in the opening opens lines for the opponent. Prioritize piece mobility.',
-      coachTip: 'Falling for gambits or neglecting center tension leads to rapid collapse against prepared opponents.',
-      parentTip: 'Remind them to control the center and finish development before hunting pawns.',
+    {
+      id: 'adv_opening_traps',
+      tier: 'adv_beginner',
+      title: 'Opening Traps & Poisoned Pawns',
+      badge: 'Opening Trap',
+      icon: 'Flame',
+      ruleTitle: 'Never Grab Poisoned Pawns',
+      ruleBody: 'Don\'t fall for Fried Liver attacks or grab pawns in the opening when your own pieces are still sleeping.',
+      coachTip: 'Falling for gambits or opening traps costs full pieces. Play principled developing moves.',
+      parentTip: 'Encourage patience: "Don\'t get tempted by free pawns if it leaves your King open."',
     },
-  },
-  intermediate: {
-    hanging_pieces: {
-      title: 'Overloaded Defenders & Deflection',
-      badge: 'Overload',
-      icon: 'AlertTriangle',
-      ruleTitle: 'Remove the Guard',
-      ruleBody: 'When a piece is tasked with defending two vital squares, the opponent will deflect it with a sacrifice.',
-      coachTip: 'Identify the overloaded piece and calculate deflection or clearance strikes.',
-      parentTip: 'Encourage calculating candidate moves deeply.',
+  ],
+
+  intermediate: [
+    {
+      id: 'inter_overloaded_guards',
+      tier: 'intermediate',
+      title: 'Overloaded Defenders & Deflections',
+      badge: 'Overloaded Guard',
+      icon: 'Layers',
+      ruleTitle: 'Remove the Defender',
+      ruleBody: 'When one piece is responsible for defending two vital squares or pieces, deflect it with a tactical strike.',
+      coachTip: 'Identify the overloaded piece and calculate deflection or clearance sacrifices.',
+      parentTip: 'Encourage calculating one move deeper on overloaded pieces.',
     },
-    pins_forks: {
-      title: 'Complex Pins & Geometric Double Strikes',
-      badge: 'Geometry',
-      icon: 'Zap',
-      ruleTitle: 'Geometric Coordination',
-      ruleBody: 'Exploit cross-pins and discovered attacks to win heavy material or force decisive simplification.',
-      coachTip: 'Look for discovered checks and dual-purpose tactical moves.',
-      parentTip: 'Focus on multi-step calculation and looking at all checks and captures.',
+    {
+      id: 'inter_combinations',
+      tier: 'intermediate',
+      title: 'Multi-Move Combinations & Decoys',
+      badge: '3-Ply Tactics',
+      icon: 'Cpu',
+      ruleTitle: 'Decoy & Clearance Mastery',
+      ruleBody: 'Calculate forced lines: checks, captures, and threats that force the opponent onto fatal squares.',
+      coachTip: 'Look for quiet waiting moves and double-purpose tactical strikes in complex positions.',
+      parentTip: 'Praise their deep calculation and planning ahead.',
     },
-    king_safety: {
-      title: 'Dynamic King Attacks & Mating Nets',
-      badge: 'King Attack',
-      icon: 'ShieldAlert',
-      ruleTitle: 'King Ring Vulnerability',
-      ruleBody: 'When the defensive minor pieces leave the King\'s perimeter, an attack can be launched with piece sacrifices.',
-      coachTip: 'Count defenders within the 3x3 box around the castled King before committing to an attack.',
-      parentTip: 'Safety first: calculate opponent counter-attacks before pushing forward.',
-    },
-    endgame_conversion: {
-      title: 'Technical Endgames & Rook Activity',
-      badge: 'Technical Ending',
-      icon: 'Crown',
-      ruleTitle: 'Tarrasch\'s Rook Rule',
-      ruleBody: 'Rooks belong behind passed pawns—your own to push them, the opponent\'s to block them.',
-      coachTip: 'Activity trumps passive defense in rook endgames. Passive rooks lose quickly.',
-      parentTip: 'Keep rooks active and cut off the enemy King.',
-    },
-    opening_traps: {
-      title: 'Opening Imbalances & Structure Concessions',
-      badge: 'Structure Concession',
-      icon: 'Sparkles',
+    {
+      id: 'inter_pawn_structure',
+      tier: 'intermediate',
+      title: 'Structural Concessions & Outposts',
+      badge: 'Outpost Loss',
+      icon: 'Grid',
       ruleTitle: 'Pawn Structure Integrity',
-      ruleBody: 'Allowing doubled isolated pawns or ceding key outpost squares in the opening hands opponent long-term control.',
-      coachTip: 'Never concede structural weaknesses in the opening without concrete tactical compensation.',
-      parentTip: 'Play principled opening moves according to master opening principles.',
+      ruleBody: 'Ceding key outpost squares (like d5 or e4) or allowing chronic holes gives the opponent permanent domination.',
+      coachTip: 'Never push pawns that weaken color complexes unless concrete advantages are gained.',
+      parentTip: 'Remind them to look at the whole board and pawn chains.',
     },
-  },
+    {
+      id: 'inter_king_pressure',
+      tier: 'intermediate',
+      title: 'King Ring Vulnerabilities & Mating Nets',
+      badge: 'King Shelter Loss',
+      icon: 'ShieldOff',
+      ruleTitle: 'Guard the Perimeter',
+      ruleBody: 'When defensive minor pieces leave your castled King\'s perimeter, opponent sacrifices breach the fortress.',
+      coachTip: 'Count defenders within the 3x3 box around your castled King before launching a flank attack.',
+      parentTip: 'Remind them that King safety is always priority #1.',
+    },
+    {
+      id: 'inter_technical_endgame',
+      tier: 'intermediate',
+      title: 'Technical Endgames & Passive Rooks',
+      badge: 'Endgame Activity',
+      icon: 'Anchor',
+      ruleTitle: 'Tarrasch\'s Active Rook Principle',
+      ruleBody: 'Rooks belong behind passed pawns—never in front or passively tied to defense.',
+      coachTip: 'Activity trumps passive defense in rook endgames. Cut off the enemy King.',
+      parentTip: 'Encourage active pieces rather than defending passively in endgames.',
+    },
+  ],
 };
 
 /**
- * Classify a mistake into one of the 5 categories based on board position and move metadata
+ * Classify a blunder into one of the 5 level-specific categories
  */
 export function classifyMistake(
   fenBefore: string,
@@ -180,14 +214,14 @@ export function classifyMistake(
   evalSwingPawns?: number,
   tier: SkillTier = 'beginner'
 ): ClassifiedMistake {
-  const selectedTier: SkillTier = tier in CATEGORY_DEFINITIONS ? tier : 'beginner';
-  const tierDefs = CATEGORY_DEFINITIONS[selectedTier];
+  const selectedTier: SkillTier = tier in TIER_CATEGORY_DEFINITIONS ? tier : 'beginner';
+  const tierCategories = TIER_CATEGORY_DEFINITIONS[selectedTier];
 
   try {
     const chess = new Chess(fenBefore);
     const board = chess.board();
 
-    // 1. Count remaining non-pawn, non-king pieces
+    // Count remaining non-pawn pieces
     let totalPieces = 0;
     let nonPawnPieces = 0;
     for (let r = 0; r < 8; r++) {
@@ -202,66 +236,136 @@ export function classifyMistake(
       }
     }
 
-    function toClassified(categoryId: MistakeCategoryInfo['id'], def: Omit<MistakeCategoryInfo, 'id'>): ClassifiedMistake {
-      return {
-        categoryId,
-        categoryTitle: def.title,
-        badge: def.badge,
-        icon: def.icon,
-        ruleTitle: def.ruleTitle,
-        ruleBody: def.ruleBody,
-        coachTip: def.coachTip,
-        parentTip: def.parentTip,
-      };
-    }
-
-    // Heuristic 1: Endgame (Total pieces <= 12 or non-pawn <= 4)
-    if (totalPieces <= 12 || nonPawnPieces <= 4) {
-      return toClassified('endgame_conversion', tierDefs.endgame_conversion);
-    }
-
-    // Heuristic 2: Opening Traps & Early Queen (Move <= 10, ply <= 20)
-    if (ply <= 20) {
-      if (playedSan.startsWith('Q') || ply <= 12) {
-        return toClassified('opening_traps', tierDefs.opening_traps);
-      }
-    }
-
-    // Heuristic 3: King Safety & Back-Rank (Check on board, or moves involving back-rank 1/8)
     const isCheck = chess.inCheck() || playedSan.includes('+') || playedSan.includes('#');
     const targetSq = bestUci.slice(2, 4);
     const isBackRank = targetSq.endsWith('1') || targetSq.endsWith('8');
-    if (isCheck && isBackRank) {
-      return toClassified('king_safety', tierDefs.king_safety);
+
+    function toClassified(cat: MistakeCategoryInfo): ClassifiedMistake {
+      return {
+        categoryId: cat.id,
+        tier: cat.tier,
+        categoryTitle: cat.title,
+        badge: cat.badge,
+        icon: cat.icon,
+        ruleTitle: cat.ruleTitle,
+        ruleBody: cat.ruleBody,
+        coachTip: cat.coachTip,
+        parentTip: cat.parentTip,
+      };
     }
 
-    // Heuristic 4: Pins & Forks (Knight best move, or opponent refutation creates double threat)
-    if (bestUci.startsWith('n') || bestUci.startsWith('b') || playedSan.startsWith('N')) {
-      return toClassified('pins_forks', tierDefs.pins_forks);
+    // ==========================================
+    // 1. BEGINNER CLASSIFICATION (400 - 900)
+    // ==========================================
+    if (selectedTier === 'beginner') {
+      // Early Queen (moves 1-6 / ply <= 14)
+      if (ply <= 14 && playedSan.startsWith('Q')) {
+        const cat = tierCategories.find((c) => c.id === 'beg_early_queen')!;
+        return toClassified(cat);
+      }
+
+      // Back-Rank or Checkmate
+      if (playedSan.includes('#') || (isCheck && isBackRank)) {
+        const cat = tierCategories.find((c) => c.id === 'beg_back_rank_mate')!;
+        return toClassified(cat);
+      }
+
+      // Stranded uncastled king (ply > 16, king on e1/e8)
+      const turn = chess.turn();
+      const kingSq = turn === 'w' ? 'e1' : 'e8';
+      const kingPiece = chess.get(kingSq as any);
+      if (ply > 16 && kingPiece && kingPiece.type === 'k') {
+        const cat = tierCategories.find((c) => c.id === 'beg_uncastled_king')!;
+        return toClassified(cat);
+      }
+
+      // Missed Free Captures (Best move was capture with large swing, but user played non-capture)
+      if (bestUci.length >= 4 && !playedSan.includes('x') && evalSwingPawns && evalSwingPawns >= 2.0) {
+        const cat = tierCategories.find((c) => c.id === 'beg_missed_capture')!;
+        return toClassified(cat);
+      }
+
+      // Default for beginner: 1-Move Hanging Pieces
+      const cat = tierCategories.find((c) => c.id === 'beg_hanging_piece')!;
+      return toClassified(cat);
     }
 
-    // Heuristic 5: Default to Hanging Pieces if large eval swing or piece drop
-    if (evalSwingPawns && evalSwingPawns >= 2.5) {
-      return toClassified('hanging_pieces', tierDefs.hanging_pieces);
+    // ==========================================
+    // 2. ADVANCE BEGINNER CLASSIFICATION (900 - 1300)
+    // ==========================================
+    if (selectedTier === 'adv_beginner') {
+      // Opening Traps (ply <= 18)
+      if (ply <= 18) {
+        const cat = tierCategories.find((c) => c.id === 'adv_opening_traps')!;
+        return toClassified(cat);
+      }
+
+      // Endgame Pawn Races (Total pieces <= 12)
+      if (totalPieces <= 12 || nonPawnPieces <= 4) {
+        const cat = tierCategories.find((c) => c.id === 'adv_pawn_races')!;
+        return toClassified(cat);
+      }
+
+      // Knight Forks & Double Attacks
+      if (bestUci.startsWith('n') || playedSan.startsWith('N')) {
+        const cat = tierCategories.find((c) => c.id === 'adv_knight_forks')!;
+        return toClassified(cat);
+      }
+
+      // Pins & Skewers (Bishop/Rook/Queen line)
+      if (bestUci.startsWith('b') || bestUci.startsWith('r') || bestUci.startsWith('q')) {
+        const cat = tierCategories.find((c) => c.id === 'adv_pins_skewers')!;
+        return toClassified(cat);
+      }
+
+      // In-Between Moves / Zwischenzug
+      const cat = tierCategories.find((c) => c.id === 'adv_zwischenzug')!;
+      return toClassified(cat);
     }
 
-    // General fallback distribution based on ply
-    if (isCheck) {
-      return toClassified('king_safety', tierDefs.king_safety);
+    // ==========================================
+    // 3. INTERMEDIATE+ CLASSIFICATION (1300 - 1800+)
+    // ==========================================
+    // Endgame Technicality
+    if (totalPieces <= 12 || nonPawnPieces <= 4) {
+      const cat = tierCategories.find((c) => c.id === 'inter_technical_endgame')!;
+      return toClassified(cat);
     }
 
-    return toClassified('hanging_pieces', tierDefs.hanging_pieces);
+    // King Ring Vulnerabilities
+    if (isCheck || isBackRank) {
+      const cat = tierCategories.find((c) => c.id === 'inter_king_pressure')!;
+      return toClassified(cat);
+    }
+
+    // Multi-move Combinations (High swing > 3.0 pawns)
+    if (evalSwingPawns && evalSwingPawns >= 3.0) {
+      const cat = tierCategories.find((c) => c.id === 'inter_combinations')!;
+      return toClassified(cat);
+    }
+
+    // Overloaded Defenders (Medium tactical swing)
+    if (evalSwingPawns && evalSwingPawns >= 1.5) {
+      const cat = tierCategories.find((c) => c.id === 'inter_overloaded_guards')!;
+      return toClassified(cat);
+    }
+
+    // Structural Concessions & Outposts
+    const cat = tierCategories.find((c) => c.id === 'inter_pawn_structure')!;
+    return toClassified(cat);
+
   } catch {
-    const def = tierDefs.hanging_pieces;
+    const fallback = tierCategories[0];
     return {
-      categoryId: 'hanging_pieces',
-      categoryTitle: def.title,
-      badge: def.badge,
-      icon: def.icon,
-      ruleTitle: def.ruleTitle,
-      ruleBody: def.ruleBody,
-      coachTip: def.coachTip,
-      parentTip: def.parentTip,
+      categoryId: fallback.id,
+      tier: selectedTier,
+      categoryTitle: fallback.title,
+      badge: fallback.badge,
+      icon: fallback.icon,
+      ruleTitle: fallback.ruleTitle,
+      ruleBody: fallback.ruleBody,
+      coachTip: fallback.coachTip,
+      parentTip: fallback.parentTip,
     };
   }
 }
@@ -270,10 +374,6 @@ export function classifyMistake(
  * Return all 5 categories info for a given skill tier
  */
 export function getCategoryDefinitionsForTier(tier: SkillTier = 'beginner'): MistakeCategoryInfo[] {
-  const selectedTier = tier in CATEGORY_DEFINITIONS ? tier : 'beginner';
-  const defs = CATEGORY_DEFINITIONS[selectedTier];
-  return (Object.keys(defs) as MistakeCategoryInfo['id'][]).map((id) => ({
-    id,
-    ...defs[id],
-  }));
+  const selectedTier = tier in TIER_CATEGORY_DEFINITIONS ? tier : 'beginner';
+  return TIER_CATEGORY_DEFINITIONS[selectedTier];
 }
