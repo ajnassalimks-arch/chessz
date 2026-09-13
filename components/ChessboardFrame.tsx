@@ -32,7 +32,7 @@ export const ChessboardFrame: React.FC<ChessboardFrameProps> = ({
 
   return (
     <div
-      className="relative flex flex-col items-center justify-center select-none transition-colors duration-200 rounded-2xl shadow-2xl overflow-hidden border"
+      className="relative flex flex-col items-center justify-center select-none transition-colors duration-200 rounded-2xl shadow-2xl overflow-visible border"
       style={{
         width: totalSize,
         height: totalSize,
@@ -94,7 +94,7 @@ export const ChessboardFrame: React.FC<ChessboardFrameProps> = ({
 
         {/* The 64 Squares: Chamfered Inner Frame */}
         <div
-          className="relative overflow-hidden rounded-[2px]"
+          className="relative overflow-visible rounded-[2px]"
           style={{
             width: boardSize,
             height: boardSize,

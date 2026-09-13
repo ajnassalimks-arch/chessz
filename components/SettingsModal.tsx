@@ -221,28 +221,6 @@ export function SettingsModal({ isOpen, onClose, onThemeChange }: SettingsModalP
           </div>
         </div>
 
-        {/* Official FIDE Standard Chess Pieces */}
-        <div className="mb-4 p-3.5 rounded-2xl theme-surface-subtle border flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl theme-surface flex items-center justify-center text-xl select-none shrink-0 border border-[var(--border-subtle)] shadow-xs">
-              ♞
-            </div>
-            <div>
-              <div className="text-xs font-bold theme-text-primary flex items-center gap-1.5">
-                <span>Official FIDE Staunton Pieces</span>
-                <span className="text-[9px] uppercase px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-mono font-bold">
-                  Tournament Standard
-                </span>
-              </div>
-              <div className="text-[10px] theme-text-muted mt-0.5">
-                Authentic international tournament vectors recognized by FIDE & masters
-              </div>
-            </div>
-          </div>
-          <span className="text-xs font-mono font-bold text-emerald-400 px-2.5 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/25 shrink-0">
-            Active
-          </span>
-        </div>
 
         {/* Wallpaper Atmosphere Toggle (Exclusively on Emerald theme) */}
         {theme === "emerald" && (

@@ -39,8 +39,8 @@ export function AnimatedCaptureHand({
     const col = boardOrientation === "white" ? fileIdx : 7 - fileIdx;
     const row = boardOrientation === "white" ? 8 - rankNum : rankNum - 1;
 
-    const posX = bezelSize + col * squareSize + squareSize * 0.5;
-    const posY = bezelSize + row * squareSize + squareSize * 0.5;
+    const posX = col * squareSize + squareSize * 0.5;
+    const posY = row * squareSize + squareSize * 0.5;
 
     setCoords({ x: posX, y: posY });
     setActive(true);
@@ -89,64 +89,66 @@ export function AnimatedCaptureHand({
             </linearGradient>
           </defs>
 
-          {/* Forearm & Wrist entering gracefully */}
-          <path
-            d="M135 15 C122 32 108 55 96 74 C90 83 80 88 72 94 L62 82 C75 70 88 48 110 10 Z"
-            fill="url(#redHandGlow)"
-            stroke="#ff758f"
-            strokeWidth="1.5"
-          />
+          <g transform="translate(18, 16)">
+            {/* Forearm & Wrist entering gracefully */}
+            <path
+              d="M135 15 C122 32 108 55 96 74 C90 83 80 88 72 94 L62 82 C75 70 88 48 110 10 Z"
+              fill="url(#redHandGlow)"
+              stroke="#ff758f"
+              strokeWidth="1.5"
+            />
 
-          {/* Palm Base */}
-          <ellipse cx="68" cy="88" rx="22" ry="18" fill="url(#redHandGlow)" stroke="#ff758f" strokeWidth="1.5" />
+            {/* Palm Base */}
+            <ellipse cx="68" cy="88" rx="22" ry="18" fill="url(#redHandGlow)" stroke="#ff758f" strokeWidth="1.5" />
 
-          {/* Thumb reaching around */}
-          <path
-            d="M78 82 C88 78 94 88 88 98 C82 106 72 104 68 98 Z"
-            fill="url(#redHandGlow)"
-            stroke="#ff758f"
-            strokeWidth="1.2"
-          />
+            {/* Thumb reaching around */}
+            <path
+              d="M78 82 C88 78 94 88 88 98 C82 106 72 104 68 98 Z"
+              fill="url(#redHandGlow)"
+              stroke="#ff758f"
+              strokeWidth="1.2"
+            />
 
-          {/* Index Finger pinching down at center (x: 50, y: 55) */}
-          <path
-            d="M62 76 C56 68 50 58 48 52 C46 48 40 48 42 54 C45 62 52 74 58 84 Z"
-            fill="url(#redHandGlow)"
-            stroke="#ffffff"
-            strokeWidth="1.2"
-          />
-          {/* Index Finger Manicured Crimson Claw / Nail */}
-          <ellipse cx="44" cy="51" rx="3.5" ry="5.5" transform="rotate(-25 44 51)" fill="#ffffff" />
+            {/* Index Finger pinching down at center (x: 50, y: 55) */}
+            <path
+              d="M62 76 C56 68 50 58 48 52 C46 48 40 48 42 54 C45 62 52 74 58 84 Z"
+              fill="url(#redHandGlow)"
+              stroke="#ffffff"
+              strokeWidth="1.2"
+            />
+            {/* Index Finger Manicured Crimson Claw / Nail */}
+            <ellipse cx="44" cy="51" rx="3.5" ry="5.5" transform="rotate(-25 44 51)" fill="#ffffff" />
 
-          {/* Middle Finger arching over */}
-          <path
-            d="M66 74 C62 62 55 48 52 42 C50 38 45 40 47 46 C50 54 58 68 62 80 Z"
-            fill="url(#redHandGlow)"
-            stroke="#ff758f"
-            strokeWidth="1.2"
-          />
-          <ellipse cx="48" cy="41" rx="3" ry="5" transform="rotate(-20 48 41)" fill="#ffffff" />
+            {/* Middle Finger arching over */}
+            <path
+              d="M66 74 C62 62 55 48 52 42 C50 38 45 40 47 46 C50 54 58 68 62 80 Z"
+              fill="url(#redHandGlow)"
+              stroke="#ff758f"
+              strokeWidth="1.2"
+            />
+            <ellipse cx="48" cy="41" rx="3" ry="5" transform="rotate(-20 48 41)" fill="#ffffff" />
 
-          {/* Ring Finger */}
-          <path
-            d="M72 76 C70 66 66 54 62 48 C60 45 56 46 58 52 C61 60 67 72 70 82 Z"
-            fill="url(#redHandGlow)"
-            stroke="#ff758f"
-            strokeWidth="1"
-          />
+            {/* Ring Finger */}
+            <path
+              d="M72 76 C70 66 66 54 62 48 C60 45 56 46 58 52 C61 60 67 72 70 82 Z"
+              fill="url(#redHandGlow)"
+              stroke="#ff758f"
+              strokeWidth="1"
+            />
 
-          {/* Pinky Finger curled */}
-          <path
-            d="M78 82 C80 74 78 64 74 60 C72 58 68 60 70 66 C72 72 75 78 76 86 Z"
-            fill="url(#redHandGlow)"
-            stroke="#ff758f"
-            strokeWidth="1"
-          />
+            {/* Pinky Finger curled */}
+            <path
+              d="M78 82 C80 74 78 64 74 60 C72 58 68 60 70 66 C72 72 75 78 76 86 Z"
+              fill="url(#redHandGlow)"
+              stroke="#ff758f"
+              strokeWidth="1"
+            />
 
-          {/* Cyber Neon Accent Lines & Joint Details */}
-          <line x1="85" y1="65" x2="105" y2="35" stroke="url(#cyberNeonGlint)" strokeWidth="2" strokeLinecap="round" />
-          <circle cx="94" cy="52" r="2.5" fill="#ffffff" />
-          <circle cx="82" cy="70" r="2" fill="#ff4d6d" />
+            {/* Cyber Neon Accent Lines & Joint Details */}
+            <line x1="85" y1="65" x2="105" y2="35" stroke="url(#cyberNeonGlint)" strokeWidth="2" strokeLinecap="round" />
+            <circle cx="94" cy="52" r="2.5" fill="#ffffff" />
+            <circle cx="82" cy="70" r="2" fill="#ff4d6d" />
+          </g>
         </svg>
       </div>
     </div>

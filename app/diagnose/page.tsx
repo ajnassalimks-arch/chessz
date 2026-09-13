@@ -468,7 +468,12 @@ export default function DiagnosePage() {
 
     // PUZZLE 1: Pure Assessment Mode (Silent Record, Zero Spoilers)
     if (puzzleIndex === 0) {
-      sounds.playMove();
+      if (moveResult.captured) {
+        sounds.playCapture();
+        triggerCaptureHand(to);
+      } else {
+        sounds.playMove();
+      }
       const nextGame = new Chess(game.fen());
       nextGame.move({ from, to, promotion: expectedPromotion });
       setGame(nextGame);
@@ -558,14 +563,19 @@ export default function DiagnosePage() {
         : "q";
 
     const newGame = new Chess(game.fen());
-    newGame.move({ from, to, promotion: expectedPromotion });
+    const moveRes = newGame.move({ from, to, promotion: expectedPromotion });
     setGame(newGame);
     setLastMove({ from, to });
 
     const elapsed = Date.now() - puzzleStartTimeRef.current;
 
     // Pure Assessment: Silent Record, No In-Test Reveals
-    sounds.playMove();
+    if (moveRes?.captured) {
+      sounds.playCapture();
+      triggerCaptureHand(to);
+    } else {
+      sounds.playMove();
+    }
     setPuzzleStatus("success");
 
     const score = computeMoveScore(
