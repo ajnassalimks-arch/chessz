@@ -44,10 +44,15 @@ export async function GET(request: NextRequest) {
     });
 
     if (!lichessRes.ok) {
-      return new Response(lichessRes.body, {
+      const errorText = await lichessRes.text();
+      let userMessage = errorText;
+      if (lichessRes.status === 429 || errorText.includes('1 request')) {
+        userMessage = 'Lichess allows only 1 export request at a time. Please wait a few seconds and try again.';
+      }
+      return new Response(JSON.stringify({ error: userMessage }), {
         status: lichessRes.status,
         headers: {
-          'Content-Type': lichessRes.headers.get('Content-Type') || 'text/plain',
+          'Content-Type': 'application/json',
         },
       });
     }

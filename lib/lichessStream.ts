@@ -13,6 +13,8 @@ export type OnGameReceivedCallback = (
   progress: StreamProgress
 ) => void;
 
+let activeStreamAbortController: AbortController | null = null;
+
 /**
  * Client-side streaming reader that fetches NDJSON from Lichess incrementally,
  * parsing line-by-line off the stream with zero server compute.
@@ -22,6 +24,7 @@ export async function streamUserGames(
   options: {
     max?: number;
     since?: number;
+    signal?: AbortSignal;
     onGame?: OnGameReceivedCallback;
     onProgress?: (progress: StreamProgress) => void;
   } = {}
@@ -29,6 +32,22 @@ export async function streamUserGames(
   const max = options.max || 50;
   const cleanUsername = username.trim();
   const storageKey = `chessz_last_game_at_${cleanUsername.toLowerCase()}`;
+
+  // If a previous stream is still in-flight, abort it cleanly and wait for socket release
+  if (activeStreamAbortController) {
+    activeStreamAbortController.abort();
+    activeStreamAbortController = null;
+    await new Promise((r) => setTimeout(r, 1200));
+  }
+
+  const currentAbortController = new AbortController();
+  activeStreamAbortController = currentAbortController;
+
+  if (options.signal) {
+    options.signal.addEventListener('abort', () => {
+      currentAbortController.abort();
+    });
+  }
 
   // Get since parameter if available
   const since = options.since || (typeof window !== 'undefined' ? parseInt(localStorage.getItem(storageKey) || '0', 10) : 0);
@@ -55,7 +74,11 @@ export async function streamUserGames(
 
   // 1. Try direct browser fetch to Lichess with backoff retry
   let retries = 0;
-  while (retries < 2) {
+  while (retries < 3) {
+    if (currentAbortController.signal.aborted) {
+      throw new Error('Stream cancelled');
+    }
+
     try {
       options.onProgress?.({
         gamesFetched: 0,
@@ -64,14 +87,16 @@ export async function streamUserGames(
       });
 
       const res = await fetch(directUrl, {
+        signal: currentAbortController.signal,
         headers: {
           Accept: 'application/x-ndjson',
         },
       });
 
       if (res.status === 429) {
-        // Rate limited: back off
-        await new Promise((r) => setTimeout(r, 2500 * (retries + 1)));
+        // Rate limited: Lichess says "Please only run 1 request(s) at a time"
+        const backoff = 3500 + retries * 1500;
+        await new Promise((r) => setTimeout(r, backoff));
         retries++;
         continue;
       }
@@ -83,7 +108,8 @@ export async function streamUserGames(
         // If non-429 error, break and fallback
         break;
       }
-    } catch {
+    } catch (err: any) {
+      if (err.name === 'AbortError') throw err;
       // Network/CORS error on direct fetch -> break to fallback
       break;
     }
@@ -91,15 +117,24 @@ export async function streamUserGames(
 
   // 2. Fallback to streaming route handler if direct fetch was blocked
   if (!response || !response.ok) {
+    if (currentAbortController.signal.aborted) {
+      throw new Error('Stream cancelled');
+    }
+
     try {
-      const fallbackRes = await fetch(proxyUrl);
+      const fallbackRes = await fetch(proxyUrl, { signal: currentAbortController.signal });
       if (fallbackRes.ok) {
         response = fallbackRes;
       } else {
         const errorJson = await fallbackRes.json().catch(() => null);
-        throw new Error(errorJson?.error || `Failed to stream games: ${fallbackRes.statusText}`);
+        const rawMsg = errorJson?.error || (await fallbackRes.text().catch(() => ''));
+        if (fallbackRes.status === 429 || rawMsg.includes('1 request')) {
+          throw new Error('Lichess is finishing a previous export. Please wait a few seconds and click Scan again.');
+        }
+        throw new Error(rawMsg || `Failed to stream games: ${fallbackRes.statusText}`);
       }
     } catch (err: any) {
+      if (err.name === 'AbortError') throw err;
       throw new Error(err.message || 'Unable to connect to Lichess. Please check your network or try again.');
     }
   }

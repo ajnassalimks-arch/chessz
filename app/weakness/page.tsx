@@ -55,6 +55,8 @@ function WeaknessDashboardContent() {
   const [isEngineRunning, setIsEngineRunning] = useState<boolean>(false);
   const [engineProgress, setEngineProgress] = useState<EngineProgress | null>(null);
   const engineAbortControllerRef = useRef<AbortController | null>(null);
+  const streamAbortControllerRef = useRef<AbortController | null>(null);
+  const hasLoadedInitialRef = useRef<boolean>(false);
 
   // View tabs: 'all' | 'blunders' | 'phases' | 'openings'
   const [activeTab, setActiveTab] = useState<'overview' | 'phases' | 'openings' | 'moments'>('overview');
@@ -62,21 +64,32 @@ function WeaknessDashboardContent() {
   // Filter openings threshold: show all or >= 4 games
   const [minOpeningGames, setMinOpeningGames] = useState<number>(1);
 
-  // Auto-detect username on mount
+  // Auto-detect username on mount once
   useEffect(() => {
-    const cached = initialUser || connectedLichessUser?.username || localStorage.getItem('chessz_last_username') || '';
+    if (hasLoadedInitialRef.current) return;
+    const cached = initialUser || connectedLichessUser?.username || (typeof window !== 'undefined' ? localStorage.getItem('chessz_last_username') : '') || '';
     if (cached) {
+      hasLoadedInitialRef.current = true;
       setUsername(cached);
-      if (!activeUsername) {
-        loadDataForUser(cached);
-      }
+      loadDataForUser(cached);
     }
-  }, [connectedLichessUser]);
+    return () => {
+      streamAbortControllerRef.current?.abort();
+    };
+  }, [connectedLichessUser, initialUser]);
 
   // Load cached stats first, then fetch live games
   const loadDataForUser = async (targetUser: string, forceRefresh: boolean = false) => {
     const clean = targetUser.trim();
     if (!clean) return;
+
+    // Abort previous in-flight stream if still downloading
+    if (streamAbortControllerRef.current) {
+      streamAbortControllerRef.current.abort();
+      streamAbortControllerRef.current = null;
+    }
+    const abortCtrl = new AbortController();
+    streamAbortControllerRef.current = abortCtrl;
 
     setActiveUsername(clean);
     setError(null);
@@ -92,7 +105,9 @@ function WeaknessDashboardContent() {
     // 2. Validate username
     setIsLoading(true);
     try {
-      const valRes = await fetch(`/api/lichess/user/validate?username=${encodeURIComponent(clean)}`);
+      const valRes = await fetch(`/api/lichess/user/validate?username=${encodeURIComponent(clean)}`, {
+        signal: abortCtrl.signal,
+      });
       const valData = await valRes.json();
       if (!valRes.ok || !valData.valid) {
         throw new Error(valData.error || 'User not found on Lichess');
@@ -101,6 +116,7 @@ function WeaknessDashboardContent() {
       // 3. Stream games incrementally
       const streamed = await streamUserGames(clean, {
         max: 50,
+        signal: abortCtrl.signal,
         onProgress: (p) => setStreamProgress(p),
       });
 
@@ -112,10 +128,14 @@ function WeaknessDashboardContent() {
         await saveGameStatsBatch(clean, streamed);
       }
     } catch (err: any) {
-      setError(err.message || 'Error loading games');
+      if (err.name !== 'AbortError') {
+        setError(err.message || 'Error loading games');
+      }
     } finally {
-      setIsLoading(false);
-      setStreamProgress(null);
+      if (streamAbortControllerRef.current === abortCtrl) {
+        setIsLoading(false);
+        setStreamProgress(null);
+      }
     }
   };
 
