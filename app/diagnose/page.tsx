@@ -10,12 +10,21 @@ import { ChessboardFrame } from "@/components/ChessboardFrame";
 import { sounds } from "@/lib/sounds";
 import { THEME_BOARD_COLORS, ThemePalette, ThemeMode } from "@/components/ThemeSwitcher";
 import { SettingsModal } from "@/components/SettingsModal";
+import { ConfidenceModal } from "@/components/ConfidenceModal";
 import { getPieceSet, PieceSetStyle } from "@/components/pieces/PieceSets2D";
 import {
   BENCHMARK_PUZZLE_POOL,
-  getRandomBenchmarkTrio,
+  HISTORICAL_BENCHMARKS_STAGE_1,
+  HISTORICAL_BENCHMARKS_STAGE_2,
+  getRandomBenchmarkPair,
+  getRandomDiagnosticQuintet,
   evaluateBenchmarkMove,
   calculateNewElo,
+  calculateNewElo5,
+  computeTimeModifier,
+  checkBookMemoryPattern,
+  selectNoveltyCruciblePuzzle,
+  getPuzzleCategoryRule,
   mapEloToLevel,
   selectAdaptivePuzzle,
   computeMoveScore,
@@ -25,6 +34,7 @@ import {
   PuzzleAttemptRecord,
   DiagnosisProfile,
 } from "@/lib/diagnosisEngine";
+import { BrowserStockfishEngine } from "@/lib/engine/browserStockfish";
 import { ChessPuzzle } from "@/lib/puzzles";
 import {
   Volume2,
@@ -121,11 +131,13 @@ export default function DiagnosePage() {
   // Board Sizing & Responsive Bezel
   const [boardWidth, setBoardWidth] = useState<number>(360);
   const [bezelSize, setBezelSize] = useState<number>(24);
+  const [isMobileView, setIsMobileView] = useState<boolean>(false);
 
   useEffect(() => {
     const handleResize = () => {
       const width = window.innerWidth;
       const height = window.innerHeight;
+      setIsMobileView(width < 768);
       const currentBezel = width < 640 ? 18 : 24;
       setBezelSize(currentBezel);
       const totalBezelMargin = currentBezel * 2;
@@ -160,8 +172,39 @@ export default function DiagnosePage() {
   const [showEloEstimate, setShowEloEstimate] = useState<boolean>(false);
 
   // Active Puzzle & Multi-Step Solution State
-  const diagnosticTrioRef = useRef<(ChessPuzzle & { numericRating: number })[] | null>(null);
+  const diagnosticQuintetRef = useRef<(ChessPuzzle & { numericRating: number })[] | null>(null);
   const analysisTimersRef = useRef<(NodeJS.Timeout | number)[]>([]);
+
+  // Engine, Novelty Verification & Grandmaster Crucible State
+  const stockfishRef = useRef<BrowserStockfishEngine | null>(null);
+  const [hasBookMemoryFlag, setHasBookMemoryFlag] = useState<boolean>(false);
+  const [noveltyVerified, setNoveltyVerified] = useState<boolean>(false);
+  const [showCrucibleModal, setShowCrucibleModal] = useState<boolean>(false);
+  const [isCrucibleActive, setIsCrucibleActive] = useState<boolean>(false);
+
+  // Initialize Stockfish WASM in background for P3-P5 micro-refutations
+  useEffect(() => {
+    const engine = new BrowserStockfishEngine();
+    engine.init().then((ready) => {
+      if (ready) {
+        stockfishRef.current = engine;
+      }
+    });
+    return () => {
+      stockfishRef.current?.terminate();
+    };
+  }, []);
+
+  // Lichess Prior Bayesian Seeding (connected users get accurate starting seed)
+  useEffect(() => {
+    if (lichessUser && attempts.length === 0) {
+      const rapid = lichessUser.perfs?.rapid?.rating || lichessUser.perfs?.blitz?.rating;
+      if (rapid && typeof rapid === "number") {
+        const seededElo = Math.max(900, Math.min(2150, Math.round((1250 + rapid) / 2)));
+        setCurrentRating(seededElo);
+      }
+    }
+  }, [lichessUser, attempts.length]);
 
   const clearAnalysisTimers = () => {
     analysisTimersRef.current.forEach((t) => {
@@ -180,7 +223,7 @@ export default function DiagnosePage() {
 
   // Persist in-progress diagnostic session to sessionStorage
   const persistDiagnosticSession = (
-    trio: (ChessPuzzle & { numericRating: number })[],
+    quintet: (ChessPuzzle & { numericRating: number })[],
     idx: number,
     att: PuzzleAttemptRecord[],
     rating: number
@@ -188,12 +231,12 @@ export default function DiagnosePage() {
     try {
       sessionStorage.setItem(
         "chessz_diagnostic_session",
-        JSON.stringify({ trio, puzzleIndex: idx, attempts: att, currentRating: rating })
+        JSON.stringify({ quintet, puzzleIndex: idx, attempts: att, currentRating: rating })
       );
     } catch {}
   };
 
-  const [activePuzzle, setActivePuzzle] = useState<ChessPuzzle & { numericRating: number }>(() => BENCHMARK_PUZZLE_POOL[0]);
+  const [activePuzzle, setActivePuzzle] = useState<ChessPuzzle & { numericRating: number }>(() => HISTORICAL_BENCHMARKS_STAGE_1[0]);
   const [solutionStepIndex, setSolutionStepIndex] = useState<number>(0);
   const [game, setGame] = useState<Chess | null>(null);
   const [boardKey, setBoardKey] = useState<number>(0);
@@ -287,21 +330,22 @@ export default function DiagnosePage() {
       const savedSession = sessionStorage.getItem("chessz_diagnostic_session");
       if (savedSession) {
         const parsed = JSON.parse(savedSession);
-        if (parsed.trio && Array.isArray(parsed.trio) && parsed.trio.length === 3 && typeof parsed.puzzleIndex === "number") {
-          diagnosticTrioRef.current = parsed.trio;
+        const q = parsed.quintet || parsed.trio;
+        if (q && Array.isArray(q) && q.length >= 3 && typeof parsed.puzzleIndex === "number") {
+          diagnosticQuintetRef.current = q;
           setAttempts(parsed.attempts || []);
           setCurrentRating(parsed.currentRating || 1250);
           setPuzzleIndex(parsed.puzzleIndex);
-          loadPuzzle(parsed.trio[parsed.puzzleIndex] || parsed.trio[0]);
+          loadPuzzle(q[parsed.puzzleIndex] || q[0]);
           return;
         }
       }
     } catch {}
 
-    const trio = getRandomBenchmarkTrio();
-    diagnosticTrioRef.current = trio;
-    loadPuzzle(trio[0]);
-    persistDiagnosticSession(trio, 0, [], 1250);
+    const quintet = getRandomDiagnosticQuintet();
+    diagnosticQuintetRef.current = quintet;
+    loadPuzzle(quintet[0]);
+    persistDiagnosticSession(quintet, 0, [], 1250);
   }, []);
 
   // Right-click annotation handler
@@ -452,8 +496,8 @@ export default function DiagnosePage() {
       setAnnotatedSquares({});
     }
 
-    // PUZZLE 1: Pure Assessment Mode (Silent Record, Zero Spoilers)
-    if (puzzleIndex === 0) {
+    // PUZZLES 1 & 2: Historical Benchmark Pure Assessment Mode (Silent Record, Bespoke Candidate Move Feedback)
+    if (puzzleIndex === 0 || puzzleIndex === 1) {
       if (moveResult.captured) {
         sounds.playCapture();
       } else {
@@ -464,44 +508,203 @@ export default function DiagnosePage() {
       setGame(nextGame);
       setLastMove({ from, to });
 
-      const evalResult = evaluateBenchmarkMove(activePuzzle, from, to, currentRating);
-      const elapsed = Date.now() - puzzleStartTimeRef.current;
-      const formattedUserSan =
-        evalResult.userMoveSan && !evalResult.userMoveSan.includes("-")
-          ? evalResult.userMoveSan
-          : moveResult.san || evalResult.userMoveSan;
+      const currentStep = activePuzzle.solutionMoves[solutionStepIndex] || activePuzzle.solutionMoves[0];
+      const isCurrentStepBest = currentStep && currentStep.from === from && currentStep.to === to;
 
-      const record: PuzzleAttemptRecord = {
-        puzzleId: activePuzzle.id,
-        puzzleTitle: activePuzzle.title,
-        rating: activePuzzle.numericRating,
-        userEloBefore: currentRating,
-        userEloAfter: evalResult.calibratedElo,
-        score: evalResult.score,
-        commitment: null,
-        helpUsed: "none",
-        firstTryCorrect: evalResult.status === "best",
-        timeMs: elapsed,
-        moveSan: moveResult.san,
-        status: evalResult.status,
-        userMoveSan: formattedUserSan,
-        bestMoveSan: evalResult.bestMoveSan,
-        coachExplanation: evalResult.coachFeedback,
-        ruleTitle: evalResult.ruleTitle,
-        ruleBody: evalResult.ruleBody,
-      };
+      if (solutionStepIndex === 0) {
+        const evalResult = evaluateBenchmarkMove(activePuzzle, from, to, currentRating);
+        const elapsed = Date.now() - puzzleStartTimeRef.current;
+        const isBookMem = checkBookMemoryPattern(activePuzzle.id, elapsed);
+        if (isBookMem) {
+          setHasBookMemoryFlag(true);
+        }
+        const timeMod = computeTimeModifier(elapsed);
+        const finalScore = Math.max(0, Math.min(1, evalResult.score + (evalResult.status === "best" ? timeMod : 0)));
+        const newElo = calculateNewElo5(
+          currentRating,
+          activePuzzle.numericRating,
+          finalScore,
+          puzzleIndex,
+          null,
+          evalResult.branchType === "blunder_trap",
+          isBookMem
+        );
 
-      const nextAttempts = [...attempts, record];
-      setAttempts(nextAttempts);
-      setCurrentRating(evalResult.calibratedElo);
-      setPuzzleStatus("success");
-      if (diagnosticTrioRef.current) {
-        persistDiagnosticSession(diagnosticTrioRef.current, 0, nextAttempts, evalResult.calibratedElo);
+        const formattedUserSan =
+          evalResult.userMoveSan && !evalResult.userMoveSan.includes("-")
+            ? evalResult.userMoveSan
+            : moveResult.san || evalResult.userMoveSan;
+
+        // If best move and puzzle has multi-step continuation
+        if (evalResult.status === "best" && activePuzzle.solutionMoves.length > 1) {
+          setSolutionStepIndex(1);
+          const oppResponse = activePuzzle.opponentResponses?.[0];
+          if (oppResponse) {
+            setTimeout(() => {
+              try {
+                const oppGame = new Chess(nextGame.fen());
+                const oppMoveRes = oppGame.move({
+                  from: oppResponse.from,
+                  to: oppResponse.to,
+                  promotion: oppResponse.promotion || "q",
+                });
+                if (oppMoveRes?.captured) sounds.playCapture();
+                else sounds.playMove();
+                setGame(oppGame);
+                setLastMove({ from: oppResponse.from, to: oppResponse.to });
+              } catch (e) {
+                console.error("Opponent response error:", e);
+              }
+            }, 450);
+            return true;
+          }
+        }
+
+        // If blunder with refutation sequence (e.g. Légal's checkmate), animate it step-by-step
+        if (evalResult.refutationMoves && evalResult.refutationMoves.length > 0) {
+          evalResult.refutationMoves.forEach((rm, idx) => {
+            setTimeout(() => {
+              setGame((prev) => {
+                if (!prev) return prev;
+                try {
+                  const g = new Chess(prev.fen());
+                  const res = g.move({ from: rm.from, to: rm.to });
+                  if (res?.captured) sounds.playCapture();
+                  else sounds.playMove();
+                  setLastMove({ from: rm.from, to: rm.to });
+                  return g;
+                } catch {
+                  return prev;
+                }
+              });
+            }, 500 + idx * 500);
+          });
+        }
+
+        const record: PuzzleAttemptRecord = {
+          puzzleId: activePuzzle.id,
+          puzzleTitle: activePuzzle.title,
+          rating: activePuzzle.numericRating,
+          userEloBefore: currentRating,
+          userEloAfter: newElo,
+          score: finalScore,
+          commitment: null,
+          helpUsed: "none",
+          firstTryCorrect: evalResult.status === "best",
+          timeMs: elapsed,
+          moveSan: moveResult.san,
+          status: evalResult.status,
+          userMoveSan: formattedUserSan,
+          bestMoveSan: evalResult.bestMoveSan,
+          coachExplanation: evalResult.coachFeedback,
+          ruleTitle: evalResult.ruleTitle,
+          ruleBody: evalResult.ruleBody,
+        };
+
+        const nextAttempts = [...attempts, record];
+        setAttempts(nextAttempts);
+        setCurrentRating(newElo);
+        setPuzzleStatus("success");
+        if (diagnosticQuintetRef.current) {
+          persistDiagnosticSession(diagnosticQuintetRef.current, puzzleIndex, nextAttempts, newElo);
+        }
+        return true;
+      } else {
+        // Multi-step follow-up move (step 2, 3, etc.)
+        if (isCurrentStepBest) {
+          const nextStepIdx = solutionStepIndex + 1;
+          if (nextStepIdx < activePuzzle.solutionMoves.length) {
+            setSolutionStepIndex(nextStepIdx);
+            const oppResponse = activePuzzle.opponentResponses?.[solutionStepIndex];
+            if (oppResponse) {
+              setTimeout(() => {
+                try {
+                  const oppGame = new Chess(nextGame.fen());
+                  const oppMoveRes = oppGame.move({
+                    from: oppResponse.from,
+                    to: oppResponse.to,
+                    promotion: oppResponse.promotion || "q",
+                  });
+                  if (oppMoveRes?.captured) sounds.playCapture();
+                  else sounds.playMove();
+                  setGame(oppGame);
+                  setLastMove({ from: oppResponse.from, to: oppResponse.to });
+                } catch {}
+              }, 450);
+              return true;
+            }
+          }
+          // All steps completed cleanly!
+          const elapsed = Date.now() - puzzleStartTimeRef.current;
+          const timeMod = computeTimeModifier(elapsed);
+          const finalScore = Math.max(0, Math.min(1, 1.0 + timeMod));
+          const newElo = calculateNewElo5(currentRating, activePuzzle.numericRating, finalScore, puzzleIndex, null);
+
+          const record: PuzzleAttemptRecord = {
+            puzzleId: activePuzzle.id,
+            puzzleTitle: activePuzzle.title,
+            rating: activePuzzle.numericRating,
+            userEloBefore: currentRating,
+            userEloAfter: newElo,
+            score: finalScore,
+            commitment: null,
+            helpUsed: "none",
+            firstTryCorrect: true,
+            timeMs: elapsed,
+            moveSan: moveResult.san,
+            status: "best",
+            userMoveSan: activePuzzle.solutionMoves[0]?.san || moveResult.san,
+            bestMoveSan: activePuzzle.solutionMoves.map((m) => m.san).join(" "),
+            coachExplanation: activePuzzle.successExplanation,
+            ruleTitle: activePuzzle.ruleTitle,
+            ruleBody: activePuzzle.ruleBody,
+          };
+
+          const nextAttempts = [...attempts, record];
+          setAttempts(nextAttempts);
+          setCurrentRating(newElo);
+          setPuzzleStatus("success");
+          if (diagnosticQuintetRef.current) {
+            persistDiagnosticSession(diagnosticQuintetRef.current, puzzleIndex, nextAttempts, newElo);
+          }
+          return true;
+        } else {
+          // Missed follow-up move
+          const elapsed = Date.now() - puzzleStartTimeRef.current;
+          const finalScore = 0.65;
+          const newElo = calculateNewElo5(currentRating, activePuzzle.numericRating, finalScore, puzzleIndex, null);
+          const record: PuzzleAttemptRecord = {
+            puzzleId: activePuzzle.id,
+            puzzleTitle: activePuzzle.title,
+            rating: activePuzzle.numericRating,
+            userEloBefore: currentRating,
+            userEloAfter: newElo,
+            score: finalScore,
+            commitment: null,
+            helpUsed: "none",
+            firstTryCorrect: false,
+            timeMs: elapsed,
+            moveSan: moveResult.san,
+            status: "inaccurate",
+            userMoveSan: moveResult.san,
+            bestMoveSan: activePuzzle.solutionMoves.map((m) => m.san).join(" "),
+            coachExplanation: `Accurate first move, but missed the final follow-up: ${activePuzzle.solutionMoves.map((m) => m.san).join(" ")}`,
+            ruleTitle: activePuzzle.ruleTitle,
+            ruleBody: activePuzzle.ruleBody,
+          };
+          const nextAttempts = [...attempts, record];
+          setAttempts(nextAttempts);
+          setCurrentRating(newElo);
+          setPuzzleStatus("success");
+          if (diagnosticQuintetRef.current) {
+            persistDiagnosticSession(diagnosticQuintetRef.current, puzzleIndex, nextAttempts, newElo);
+          }
+          return true;
+        }
       }
-      return true;
     }
 
-    // PUZZLE 2 & 3: Standard Adaptive puzzles with Mandatory Commitment Step!
+    // PUZZLES 3, 4, 5: Standard Adaptive puzzles with Mandatory Commitment Step!
     sounds.playMove();
     const isBest = firstStep && firstStep.from === from && firstStep.to === to;
 
@@ -515,7 +718,7 @@ export default function DiagnosePage() {
     return true;
   };
 
-  // User selects Commitment (Sure / Think so / Guessing) for Puzzle 2 & 3
+  // User selects Commitment (Sure / Think so / Guessing) for Puzzles 3, 4, 5
   const handleSelectCommitment = (commitment: CommitmentLevel) => {
     if (!pendingMove) return;
     setSelectedCommitment(commitment);
@@ -530,7 +733,15 @@ export default function DiagnosePage() {
     );
   };
 
-  // Finalize Move & Score for Puzzle 2 & 3
+  // User cancels/reverts commitment move before locking conviction
+  const handleCancelCommitment = () => {
+    setShowCommitmentModal(false);
+    setPendingMove(null);
+    setSelectedSquare(null);
+    setBoardKey((prev) => prev + 1);
+  };
+
+  // Finalize Move & Score for Puzzles 3, 4, 5
   const executeMoveDirectly = (
     from: string,
     to: string,
@@ -569,7 +780,54 @@ export default function DiagnosePage() {
       "none",
       commitment === "sure" && !isBestMove
     );
-    const newElo = calculateNewElo(currentRating, activePuzzle.numericRating, score);
+    const timeMod = computeTimeModifier(elapsed);
+    const finalScore = Math.max(0, Math.min(1, score + (isBestMove ? timeMod : 0)));
+    const newElo = calculateNewElo5(
+      currentRating,
+      activePuzzle.numericRating,
+      finalScore,
+      puzzleIndex,
+      commitment,
+      false
+    );
+
+    if (puzzleIndex === 2 && hasBookMemoryFlag && isBestMove) {
+      setNoveltyVerified(true);
+    }
+
+    // If blunder on adaptive puzzle (P3-P5/P6), let BrowserStockfish WASM play the opponent's refutation after 450ms!
+    if (!isBestMove && stockfishRef.current && stockfishRef.current.isReady()) {
+      const fenAfterUserMove = newGame.fen();
+      stockfishRef.current
+        .evaluatePosition(fenAfterUserMove, 3000)
+        .then((evalRes) => {
+          if (evalRes.bestMove && evalRes.bestMove.length >= 4) {
+            const oppFrom = evalRes.bestMove.slice(0, 2);
+            const oppTo = evalRes.bestMove.slice(2, 4);
+            const oppProm = evalRes.bestMove.length > 4 ? evalRes.bestMove[4] : undefined;
+            setTimeout(() => {
+              setGame((prev) => {
+                if (!prev) return prev;
+                try {
+                  const g = new Chess(prev.fen());
+                  const m = g.move({ from: oppFrom, to: oppTo, promotion: oppProm || "q" });
+                  if (m?.captured) sounds.playCapture();
+                  else sounds.playMove();
+                  setLastMove({ from: oppFrom, to: oppTo });
+                  return g;
+                } catch {
+                  return prev;
+                }
+              });
+            }, 450);
+          }
+        })
+        .catch(() => {});
+    }
+
+    const categoryRule = getPuzzleCategoryRule(activePuzzle);
+    const ruleTitle = activePuzzle.ruleTitle || categoryRule.ruleTitle;
+    const ruleBody = activePuzzle.ruleBody || categoryRule.ruleBody;
 
     const record: PuzzleAttemptRecord = {
       puzzleId: activePuzzle.id,
@@ -577,7 +835,7 @@ export default function DiagnosePage() {
       rating: activePuzzle.numericRating,
       userEloBefore: currentRating,
       userEloAfter: newElo,
-      score,
+      score: finalScore,
       commitment,
       helpUsed: "none",
       firstTryCorrect: isBestMove,
@@ -588,16 +846,16 @@ export default function DiagnosePage() {
       bestMoveSan: activePuzzle.solutionMoves.map((m) => m.san).join(" "),
       coachExplanation: isBestMove
         ? activePuzzle.successExplanation
-        : (activePuzzle.defaultRefutation?.coachExplanation || "Missed tactical defense or counter-attack in this position."),
-      ruleTitle: activePuzzle.ruleTitle,
-      ruleBody: activePuzzle.ruleBody,
+        : (activePuzzle.defaultRefutation?.coachExplanation || `Tactical leak: Opponent punishes with active play. ${ruleBody}`),
+      ruleTitle,
+      ruleBody,
     };
 
     const nextAttempts = [...attempts, record];
     setAttempts(nextAttempts);
     setCurrentRating(newElo);
-    if (diagnosticTrioRef.current) {
-      persistDiagnosticSession(diagnosticTrioRef.current, puzzleIndex, nextAttempts, newElo);
+    if (diagnosticQuintetRef.current) {
+      persistDiagnosticSession(diagnosticQuintetRef.current, puzzleIndex, nextAttempts, newElo);
     }
   };
 
@@ -678,41 +936,75 @@ export default function DiagnosePage() {
       const nextAttempts = [...attempts, record];
       setAttempts(nextAttempts);
       setCurrentRating(newElo);
-      if (diagnosticTrioRef.current) {
-        persistDiagnosticSession(diagnosticTrioRef.current, puzzleIndex, nextAttempts, newElo);
+      if (diagnosticQuintetRef.current) {
+        persistDiagnosticSession(diagnosticQuintetRef.current, puzzleIndex, nextAttempts, newElo);
       }
     } catch {}
   };
 
   // Advance to next puzzle or start cognitive analysis
   const handleProceedNext = () => {
-    if (puzzleIndex === 0) {
-      // Move to Puzzle 2: Try from randomized benchmark trio, fallback to adaptive
-      const trioP2 = diagnosticTrioRef.current?.[1];
-      const nextPuz = trioP2 && trioP2.id !== activePuzzle.id
-        ? trioP2
-        : selectAdaptivePuzzle(currentRating, [activePuzzle.id]);
-      setPuzzleIndex(1);
-      loadPuzzle(nextPuz);
-      if (diagnosticTrioRef.current) {
-        persistDiagnosticSession(diagnosticTrioRef.current, 1, attempts, currentRating);
+    const maxIndex = isCrucibleActive ? 5 : 4;
+
+    // Check if player completed 5 trials flawlessly and is eligible for Grandmaster Crucible!
+    if (puzzleIndex === 4 && !isCrucibleActive) {
+      const isCrucibleEligible =
+        attempts.length === 5 &&
+        attempts.every((a) => a.firstTryCorrect || a.status === "best") &&
+        currentRating >= 1700;
+
+      if (isCrucibleEligible) {
+        setShowCrucibleModal(true);
+        return;
       }
-    } else if (puzzleIndex === 1) {
-      // Move to Puzzle 3: Try from randomized benchmark trio or adaptive
-      const trioP3 = diagnosticTrioRef.current?.[2];
-      const excluded = [activePuzzle.id, attempts[0]?.puzzleId || ""];
-      const nextPuz = trioP3 && !excluded.includes(trioP3.id)
-        ? trioP3
-        : selectAdaptivePuzzle(currentRating, excluded);
-      setPuzzleIndex(2);
+    }
+
+    if (puzzleIndex < maxIndex) {
+      const nextIdx = puzzleIndex + 1;
+      let nextPuz: ChessPuzzle & { numericRating: number };
+
+      if (nextIdx === 1) {
+        // Puzzle 2 is the Stage 2 historical benchmark from quintet
+        nextPuz = diagnosticQuintetRef.current?.[1] || HISTORICAL_BENCHMARKS_STAGE_2[0];
+      } else {
+        const excluded = [
+          activePuzzle.id,
+          ...attempts.map((a) => a.puzzleId),
+          ...(diagnosticQuintetRef.current?.slice(0, nextIdx).map((p) => p.id) || []),
+        ];
+
+        if (nextIdx === 2 && hasBookMemoryFlag) {
+          // Novelty Crucible: pick an asymmetric non-opening tactical position to verify pure calculation!
+          nextPuz = selectNoveltyCruciblePuzzle(currentRating, excluded);
+        } else {
+          nextPuz = selectAdaptivePuzzle(currentRating, excluded);
+        }
+
+        if (diagnosticQuintetRef.current) {
+          diagnosticQuintetRef.current[nextIdx] = nextPuz;
+        }
+      }
+
+      setPuzzleIndex(nextIdx);
       loadPuzzle(nextPuz);
-      if (diagnosticTrioRef.current) {
-        persistDiagnosticSession(diagnosticTrioRef.current, 2, attempts, currentRating);
+      if (diagnosticQuintetRef.current) {
+        persistDiagnosticSession(diagnosticQuintetRef.current, nextIdx, attempts, currentRating);
       }
     } else {
-      // Reached end of 3 puzzles -> Launch FIDE Cognitive Telemetry Analysis!
+      // Reached end of trials -> Launch FIDE Cognitive Telemetry Analysis!
       startAnalyzingSequence();
     }
+  };
+
+  const startCrucibleTrial = () => {
+    setShowCrucibleModal(false);
+    setIsCrucibleActive(true);
+    const masterPuz = selectAdaptivePuzzle(2150, attempts.map((a) => a.puzzleId));
+    if (diagnosticQuintetRef.current) {
+      diagnosticQuintetRef.current[5] = masterPuz;
+    }
+    setPuzzleIndex(5);
+    loadPuzzle(masterPuz);
   };
 
   // Intermediate Cognitive Telemetry Sequence (2.4s custom calculation)
@@ -868,6 +1160,14 @@ export default function DiagnosePage() {
         onClose={() => setShowSettingsModal(false)}
       />
 
+      {/* Psychological Conviction Modal (Fluid Mobile Bottom-Sheet & Desktop Centered Dialog) */}
+      <ConfidenceModal
+        isOpen={showCommitmentModal && !!pendingMove}
+        moveSan={pendingMove?.san || ""}
+        onSelect={handleSelectCommitment}
+        onCancel={handleCancelCommitment}
+      />
+
       {/* Lichess Account & Sync Modal */}
       <LichessModal
         isOpen={showLichessModal}
@@ -881,6 +1181,48 @@ export default function DiagnosePage() {
         onConnectUsername={connectLichessUsername}
         diagnosedElo={currentRating}
       />
+
+      {/* Grandmaster Crucible Modal (Trial 6 Bonus Challenge) */}
+      {showCrucibleModal && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
+          <div className="theme-surface rounded-3xl max-w-md w-full p-6 border border-purple-500/30 shadow-2xl space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-purple-500/20 text-purple-400 flex items-center justify-center mx-auto text-2xl">
+              👑
+            </div>
+            <div className="text-center">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-purple-400">
+                Elite Performance Unlocked
+              </span>
+              <h3 className="text-xl font-bold theme-text-primary mt-1">
+                Grandmaster Crucible
+              </h3>
+              <p className="text-xs theme-text-secondary mt-2 leading-relaxed">
+                You solved all 5 diagnostic trials flawlessly and reached{" "}
+                <strong className="theme-text-primary font-bold">~{currentRating} Elo</strong>.
+                Take on the <strong className="text-purple-400 font-bold">Grandmaster Crucible (2150+ Elo)</strong> to test if your tactical depth breaks past the 2000 ceiling into Master level, or finalize your diagnosis now.
+              </p>
+            </div>
+            <div className="space-y-2 pt-2">
+              <button
+                onClick={startCrucibleTrial}
+                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>Enter Grandmaster Crucible (Trial 6)</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => {
+                  setShowCrucibleModal(false);
+                  startAnalyzingSequence();
+                }}
+                className="w-full py-2.5 px-4 rounded-xl theme-surface-subtle hover:bg-[var(--surface-muted)] text-xs font-semibold theme-text-secondary border transition cursor-pointer"
+              >
+                Finish & View Final Diagnosis (~{currentRating} Elo)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Top Header */}
       <header className="w-full max-w-md md:max-w-5xl lg:max-w-6xl mx-auto flex items-center justify-between py-2 px-3 sm:px-4 rounded-2xl theme-surface mb-3 shrink-0 border shadow-xs relative z-30">
@@ -1013,87 +1355,95 @@ export default function DiagnosePage() {
               />
             )}
             {game && (
-              <ChessboardFrame
-                boardOrientation={activePuzzle.playerColor}
-                boardSize={boardWidth}
-                bezelSize={bezelSize}
-              >
-                <Chessboard
-                  key={boardKey}
-                  options={{
-                    position: game.fen(),
-                    boardOrientation: activePuzzle.playerColor,
-                    squareStyles: getCustomSquareStyles(),
-                    showNotation: false,
-                    pieces: getPieceSet(pieceSet),
-                    allowDrawingArrows: true,
-                    clearArrowsOnClick: true,
-                    arrowOptions: {
-                      ...defaultArrowOptions,
-                      colors: {
-                        default: "#10b981",
-                        shift: "#0284c7",
-                        ctrl: "#ef4444",
-                        alt: "#f59e0b",
-                        meta: "#8b5cf6",
+              <div className="touch-none select-none">
+                <ChessboardFrame
+                  boardOrientation={activePuzzle.playerColor}
+                  boardSize={boardWidth}
+                  bezelSize={bezelSize}
+                >
+                  <Chessboard
+                    key={boardKey}
+                    options={{
+                      position: game.fen(),
+                      boardOrientation: activePuzzle.playerColor,
+                      squareStyles: getCustomSquareStyles(),
+                      showNotation: false,
+                      pieces: getPieceSet(pieceSet),
+                      allowDrawingArrows: true,
+                      clearArrowsOnClick: true,
+                      arrowOptions: {
+                        ...defaultArrowOptions,
+                        colors: {
+                          default: "#10b981",
+                          shift: "#0284c7",
+                          ctrl: "#ef4444",
+                          alt: "#f59e0b",
+                          meta: "#8b5cf6",
+                        },
+                        color: "#10b981",
+                        secondaryColor: "#0284c7",
+                        tertiaryColor: "#ef4444",
+                        opacity: 0.88,
+                        activeOpacity: 0.95,
+                        arrowStartOffset: 0.18,
+                        arrowLengthReducerDenominator: 2.8,
+                        sameTargetArrowLengthReducerDenominator: 3.2,
+                        arrowWidthDenominator: 5.5,
+                        activeArrowWidthMultiplier: 1.15,
                       },
-                      color: "#10b981",
-                      secondaryColor: "#0284c7",
-                      tertiaryColor: "#ef4444",
-                      opacity: 0.88,
-                      activeOpacity: 0.95,
-                      arrowStartOffset: 0.18,
-                      arrowLengthReducerDenominator: 2.8,
-                      sameTargetArrowLengthReducerDenominator: 3.2,
-                      arrowWidthDenominator: 5.5,
-                      activeArrowWidthMultiplier: 1.15,
-                    },
-                    onSquareClick: ({ square }) => handleSquareClick({ square }),
-                    onSquareRightClick: ({ square }) => handleSquareRightClick({ square }),
-                    onSquareMouseDown: ({ square }, e) => {
-                      if (e?.button === 2) {
-                        lastRightClickModifiersRef.current = {
-                          ctrl: !!e.ctrlKey || !!e.metaKey,
-                          shift: !!e.shiftKey,
-                          alt: !!e.altKey,
-                        };
-                      }
-                    },
-                    onPieceDrop: ({ sourceSquare, targetSquare }) => {
-                      if (!targetSquare) return false;
-                      return handleMoveAttempt(sourceSquare, targetSquare);
-                    },
-                    darkSquareStyle: { backgroundColor: currentBoardColors.dark },
-                    lightSquareStyle: { backgroundColor: currentBoardColors.light },
-                    animationDurationInMs: 180,
-                  }}
-                />
-              </ChessboardFrame>
+                      onSquareClick: ({ square }) => handleSquareClick({ square }),
+                      onSquareRightClick: ({ square }) => handleSquareRightClick({ square }),
+                      onSquareMouseDown: ({ square }, e) => {
+                        if (e?.button === 2) {
+                          lastRightClickModifiersRef.current = {
+                            ctrl: !!e.ctrlKey || !!e.metaKey,
+                            shift: !!e.shiftKey,
+                            alt: !!e.altKey,
+                          };
+                        }
+                      },
+                      onPieceDrop: ({ sourceSquare, targetSquare }) => {
+                        if (!targetSquare) return false;
+                        return handleMoveAttempt(sourceSquare, targetSquare);
+                      },
+                      darkSquareStyle: { backgroundColor: currentBoardColors.dark },
+                      lightSquareStyle: { backgroundColor: currentBoardColors.light },
+                      animationDurationInMs: 180,
+                    }}
+                  />
+                </ChessboardFrame>
+              </div>
             )}
           </div>
 
           {/* Right Column: Dynamic Diagnosis Console */}
           <div
-            className="flex flex-col justify-between w-full max-w-sm md:w-80 lg:w-96 shrink-0 theme-surface rounded-2xl p-4 shadow-xl border overflow-y-auto"
-            style={{ height: boardWidth + bezelSize * 2 }}
+            className="flex flex-col justify-between w-full max-w-sm md:w-80 lg:w-96 shrink-0 theme-surface rounded-2xl p-4 shadow-xl border overflow-y-auto min-h-[140px]"
+            style={{ height: isMobileView ? "auto" : boardWidth + bezelSize * 2 }}
           >
             {/* Top: Progress and Step Indicator */}
             <div>
               <div className="flex items-center justify-between pb-2 mb-3 border-b border-[var(--border-subtle)]">
                 <div className="flex items-center gap-1.5 text-xs font-mono font-bold theme-pill px-2.5 py-1 rounded-lg">
                   <Target className="w-3.5 h-3.5 text-[var(--accent-primary)]" />
-                  <span>Puzzle {puzzleIndex + 1} of 3</span>
+                  <span>Puzzle {puzzleIndex + 1} of {isCrucibleActive ? 6 : 5}</span>
                 </div>
                 <span className="text-[11px] font-mono theme-text-muted">
                   {puzzleIndex === 0
-                    ? "Tactical Benchmark"
+                    ? "Opening Radar Benchmark"
+                    : puzzleIndex === 1
+                    ? "Tactical Geometry Benchmark"
+                    : puzzleIndex === 2 && hasBookMemoryFlag
+                    ? "Novelty Crucible (Calculation Check)"
+                    : puzzleIndex === 5
+                    ? "Grandmaster Crucible (Title Test)"
                     : `Adaptive Calibration`}
                 </span>
               </div>
 
-              {/* Progress 3-Segment Bar */}
-              <div className="grid grid-cols-3 gap-1.5 w-full mb-3">
-                {[0, 1, 2].map((idx) => (
+              {/* Progress Segment Bar */}
+              <div className={`grid ${isCrucibleActive ? "grid-cols-6" : "grid-cols-5"} gap-1.5 w-full mb-3`}>
+                {Array.from({ length: isCrucibleActive ? 6 : 5 }).map((_, idx) => (
                   <div
                     key={idx}
                     className={`h-1.5 rounded-full transition-all duration-300 ${
@@ -1127,38 +1477,6 @@ export default function DiagnosePage() {
                 </p>
               </div>
 
-              {/* Commitment Modal Prompt for Puzzle 2 & 3 */}
-              {showCommitmentModal && pendingMove && (
-                <div className="theme-surface border border-[var(--border-focus)] p-3.5 rounded-xl shadow-lg mb-3 animate-in fade-in duration-150">
-                  <div className="text-xs font-bold theme-text-primary mb-1">
-                    How confident are you in this move?
-                  </div>
-                  <p className="text-[11px] theme-text-muted mb-2.5">
-                    Your conviction calibrates how you think under pressure.
-                  </p>
-                  <div className="grid grid-cols-3 gap-1.5">
-                    <button
-                      onClick={() => handleSelectCommitment("sure")}
-                      className="py-2 px-1 text-center rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold text-xs transition border border-emerald-500/30 cursor-pointer"
-                    >
-                      🟢 Sure
-                    </button>
-                    <button
-                      onClick={() => handleSelectCommitment("think_so")}
-                      className="py-2 px-1 text-center rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold text-xs transition border border-amber-500/30 cursor-pointer"
-                    >
-                      🟡 Think so
-                    </button>
-                    <button
-                      onClick={() => handleSelectCommitment("guessing")}
-                      className="py-2 px-1 text-center rounded-lg bg-slate-500/10 hover:bg-slate-500/20 theme-text-secondary font-bold text-xs transition border border-slate-500/30 cursor-pointer"
-                    >
-                      ⚪ Guessing
-                    </button>
-                  </div>
-                </div>
-              )}
-
               {/* Move Submitted Quiet Banner (No In-Test Spoilers) */}
               {puzzleStatus === "success" && (
                 <div className="theme-surface border border-[var(--border-focus)] p-3 rounded-xl shadow-xs mb-3 flex items-center justify-between animate-card-entrance">
@@ -1180,7 +1498,9 @@ export default function DiagnosePage() {
                   onClick={handleProceedNext}
                   className="group relative w-full py-2.5 px-4 rounded-xl theme-accent-btn font-bold text-xs sm:text-sm tracking-wide flex items-center justify-center gap-2 shadow-sm transition-all duration-200 active:scale-[0.98] cursor-pointer animate-next-btn btn-shimmer-effect hover:-translate-y-0.5 hover:shadow-md"
                 >
-                  <span className="relative z-10">{puzzleIndex === 2 ? "View Final Diagnosis" : "Next Puzzle"}</span>
+                  <span className="relative z-10">
+                    {puzzleIndex === (isCrucibleActive ? 5 : 4) ? "View Final Diagnosis" : "Next Puzzle"}
+                  </span>
                   <ArrowRight className="w-4 h-4 relative z-10 group-hover:translate-x-1.5 transition-transform duration-200 ease-out animate-arrow-nudge" />
                 </button>
               )}
@@ -1220,7 +1540,7 @@ export default function DiagnosePage() {
                 {analyzingPhase === 2 && "Converging FIDE Rating Model..."}
               </h2>
               <p className="text-xs theme-text-secondary mt-1">
-                Analyzing your calculation footprint and decision timing across all 3 benchmark positions.
+                Analyzing your calculation footprint and decision timing across all 5 benchmark positions.
               </p>
             </div>
 
@@ -1255,7 +1575,7 @@ export default function DiagnosePage() {
                     Total: {((attempts.reduce((acc, a) => acc + (a.timeMs || 4000), 0)) / 1000).toFixed(1)}s
                   </span>
                 </div>
-                <div className="grid grid-cols-3 gap-1 text-center text-[10px]">
+                <div className={`grid ${attempts.length > 5 ? "grid-cols-6" : "grid-cols-5"} gap-1 text-center text-[10px]`}>
                   {attempts.map((att, i) => (
                     <div key={i} className="p-1 rounded bg-[var(--bg-card-subtle)] border border-[var(--border-subtle)]">
                       <span className="theme-text-muted block">P{i + 1}</span>
@@ -1284,14 +1604,18 @@ export default function DiagnosePage() {
                 </div>
                 <div className="text-[11px] theme-text-secondary leading-snug">
                   Commitment profile:{" "}
-                  <span className="font-semibold theme-text-primary">
-                    {attempts[1]?.commitment ? attempts[1].commitment.replace("_", " ").toUpperCase() : "SURE"}
-                  </span>{" "}
-                  on Puzzle 2 &bull;{" "}
-                  <span className="font-semibold theme-text-primary">
-                    {attempts[2]?.commitment ? attempts[2].commitment.replace("_", " ").toUpperCase() : "THINK SO"}
-                  </span>{" "}
-                  on Puzzle 3
+                  {attempts.slice(2).filter((a) => a.commitment).length > 0 ? (
+                    attempts
+                      .slice(2)
+                      .filter((a) => a.commitment)
+                      .map((a, i) => (
+                        <span key={i} className="mr-2">
+                          P{i + 3}: <strong className="font-semibold theme-text-primary">{a.commitment?.replace("_", " ").toUpperCase()}</strong>
+                        </span>
+                      ))
+                  ) : (
+                    <span>Direct Tactical Intuition across trials</span>
+                  )}
                 </div>
               </div>
 
@@ -1311,7 +1635,7 @@ export default function DiagnosePage() {
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-[10px] theme-text-muted mt-1">
-                  <span>Base: 1250 (K=140)</span>
+                  <span>Base: 1250 (Progressive K)</span>
                   <span className="font-semibold theme-text-primary">
                     Calibrated: {currentLevelInfo.levelName}
                   </span>
@@ -1337,7 +1661,7 @@ export default function DiagnosePage() {
                 <span>Level Diagnosis Complete</span>
               </div>
               <span className="text-[10px] font-mono theme-text-muted px-2 py-0.5 rounded-full theme-surface-subtle border">
-                3-Puzzle Benchmark
+                {isCrucibleActive ? "6-Trial GM Benchmark" : "5-Puzzle Benchmark"}
               </span>
             </div>
 
@@ -1365,6 +1689,22 @@ export default function DiagnosePage() {
                   </button>
                 )}
               </div>
+
+              {/* Cognitive Verification & Crucible Badges */}
+              {(noveltyVerified || isCrucibleActive) && (
+                <div className="mt-2.5 flex flex-wrap items-center justify-center gap-2">
+                  {noveltyVerified && (
+                    <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                      <span>✓</span> Novelty Verified (Pure Calculation)
+                    </span>
+                  )}
+                  {isCrucibleActive && (
+                    <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30 flex items-center gap-1">
+                      <span>👑</span> Grandmaster Crucible Tested
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Behavioral Insight Callout */}
@@ -1464,7 +1804,7 @@ export default function DiagnosePage() {
                   <span>Benchmark Review & Solutions</span>
                 </div>
                 <span className="text-[10px] font-mono theme-text-muted">
-                  3 Puzzles Analyzed
+                  5 Puzzles Analyzed
                 </span>
               </div>
 

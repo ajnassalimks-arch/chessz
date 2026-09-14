@@ -31,7 +31,8 @@ import {
   Check,
   Volume2,
   VolumeX,
-  Settings
+  Settings,
+  Cpu
 } from "lucide-react";
 import {
   DIAGNOSTIC_PUZZLES,
@@ -785,6 +786,10 @@ export default function Home() {
 
   const loadPuzzle = (puzzle: ChessPuzzle) => {
     clearPuzzleTimeouts();
+    if (engineEnabled) {
+      setEngineEnabled(false);
+      stopAnalysis();
+    }
     setCurrentPuzzle(puzzle);
     setPuzzleStatus("solving");
     setRefutationInfo(null);
@@ -1903,6 +1908,15 @@ export default function Home() {
                   <RefreshCw className="w-3.5 h-3.5" />
                   <span>Try Again</span>
                 </button>
+                {isCurriculumActive && (
+                  <button
+                    onClick={() => toggleEngine(game?.fen())}
+                    className="w-full mt-2 py-2 px-3 rounded-xl border border-[var(--border-subtle)] hover:bg-[var(--surface-muted)] text-xs font-semibold theme-text-secondary flex items-center justify-center gap-1.5 transition cursor-pointer"
+                  >
+                    <Cpu className="w-3.5 h-3.5 text-emerald-500" />
+                    <span>{engineEnabled ? "Hide Engine Analysis" : "Check Engine Analysis"}</span>
+                  </button>
+                )}
               </div>
             )}
 
@@ -1956,21 +1970,32 @@ export default function Home() {
                     <ArrowRight className="w-4 h-4 relative z-10 group-hover:translate-x-1.5 transition-transform duration-200 ease-out animate-arrow-nudge" />
                   </button>
                 )}
+                {isCurriculumActive && (
+                  <button
+                    onClick={() => toggleEngine(game?.fen())}
+                    className="w-full mt-2 py-2 px-3 rounded-xl border border-[var(--border-subtle)] hover:bg-[var(--surface-muted)] text-xs font-semibold theme-text-secondary flex items-center justify-center gap-1.5 transition cursor-pointer"
+                  >
+                    <Cpu className="w-3.5 h-3.5 text-emerald-500" />
+                    <span>{engineEnabled ? "Hide Engine Analysis" : "Check Engine Analysis"}</span>
+                  </button>
+                )}
               </div>
             )}
 
-            {/* Mobile Stockfish Engine Analysis Bar */}
-            <div className="mt-3">
-              <EngineAnalysisBar
-                isReady={isEngineReady}
-                isAnalyzing={isEngineAnalyzing}
-                engineEnabled={engineEnabled}
-                evaluation={engineEvaluation}
-                bestMove={engineBestMove}
-                bestLine={engineBestLine}
-                onToggleEngine={() => toggleEngine(game?.fen())}
-              />
-            </div>
+            {/* Mobile Stockfish Engine Analysis Bar: only shown in practice or when explicitly requested */}
+            {(!isCurriculumActive || engineEnabled) && (
+              <div className="mt-3">
+                <EngineAnalysisBar
+                  isReady={isEngineReady}
+                  isAnalyzing={isEngineAnalyzing}
+                  engineEnabled={engineEnabled}
+                  evaluation={engineEvaluation}
+                  bestMove={engineBestMove}
+                  bestLine={engineBestLine}
+                  onToggleEngine={() => toggleEngine(game?.fen())}
+                />
+              </div>
+            )}
           </div>
 
           {/* Desktop Only: Dedicated Chessboard Sidebar Console */}
@@ -2098,13 +2123,24 @@ export default function Home() {
                   <p className="text-xs theme-text-primary leading-relaxed mb-3">
                     {refutationInfo.coachExplanation}
                   </p>
-                  <button
-                    onClick={retryCurrentPuzzle}
-                    className="w-full py-2 px-3 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs"
-                  >
-                    <RefreshCw className="w-3.5 h-3.5" />
-                    <span>Try Again</span>
-                  </button>
+                  <div className="space-y-2">
+                    <button
+                      onClick={retryCurrentPuzzle}
+                      className="w-full py-2 px-3 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      <span>Try Again</span>
+                    </button>
+                    {isCurriculumActive && (
+                      <button
+                        onClick={() => toggleEngine(game?.fen())}
+                        className="w-full py-1.5 px-3 rounded-lg border border-[var(--border-subtle)] hover:bg-[var(--surface-muted)] text-[11px] font-semibold theme-text-secondary flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      >
+                        <Cpu className="w-3.5 h-3.5 text-emerald-500" />
+                        <span>{engineEnabled ? "Hide Engine Analysis" : "Check Engine Analysis"}</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -2158,21 +2194,32 @@ export default function Home() {
                       <ArrowRight className="w-4 h-4 relative z-10 group-hover:translate-x-1.5 transition-transform duration-200 ease-out animate-arrow-nudge" />
                     </button>
                   )}
+                  {isCurriculumActive && (
+                    <button
+                      onClick={() => toggleEngine(game?.fen())}
+                      className="w-full mt-2 py-1.5 px-3 rounded-lg border border-[var(--border-subtle)] hover:bg-[var(--surface-muted)] text-[11px] font-semibold theme-text-secondary flex items-center justify-center gap-1.5 transition cursor-pointer"
+                    >
+                      <Cpu className="w-3.5 h-3.5 text-emerald-500" />
+                      <span>{engineEnabled ? "Hide Engine Analysis" : "Check Engine Analysis"}</span>
+                    </button>
+                  )}
                 </div>
               )}
 
-              {/* Desktop Stockfish Engine Analysis Bar */}
-              <div className="mt-3">
-                <EngineAnalysisBar
-                  isReady={isEngineReady}
-                  isAnalyzing={isEngineAnalyzing}
-                  engineEnabled={engineEnabled}
-                  evaluation={engineEvaluation}
-                  bestMove={engineBestMove}
-                  bestLine={engineBestLine}
-                  onToggleEngine={() => toggleEngine(game?.fen())}
-                />
-              </div>
+              {/* Desktop Stockfish Engine Analysis Bar: only shown in practice or when explicitly requested */}
+              {(!isCurriculumActive || engineEnabled) && (
+                <div className="mt-3">
+                  <EngineAnalysisBar
+                    isReady={isEngineReady}
+                    isAnalyzing={isEngineAnalyzing}
+                    engineEnabled={engineEnabled}
+                    evaluation={engineEvaluation}
+                    bestMove={engineBestMove}
+                    bestLine={engineBestLine}
+                    onToggleEngine={() => toggleEngine(game?.fen())}
+                  />
+                </div>
+              )}
             </div>
 
             {/* Bottom: Console Quick Controls */}
@@ -2184,6 +2231,17 @@ export default function Home() {
                 <RotateCcw className="w-3 h-3" />
                 <span>Reset Position</span>
               </button>
+
+              {isCurriculumActive && puzzleStatus === "solving" && (
+                <button
+                  onClick={() => toggleEngine(game?.fen())}
+                  className="flex items-center gap-1 text-[11px] theme-text-muted hover:theme-text-primary transition cursor-pointer"
+                  title="Check Stockfish Analysis"
+                >
+                  <Cpu className="w-3 h-3 text-emerald-500" />
+                  <span>{engineEnabled ? "Hide Analysis" : "Check Analysis"}</span>
+                </button>
+              )}
             </div>
           </div>
         </section>
