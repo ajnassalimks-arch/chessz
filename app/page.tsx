@@ -46,7 +46,6 @@ import { sounds } from "@/lib/sounds";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { THEME_BOARD_COLORS, ThemePalette, ThemeMode } from "@/components/ThemeSwitcher";
 import { SettingsModal } from "@/components/SettingsModal";
-import { AnimatedCaptureHand } from "@/components/AnimatedCaptureHand";
 import { getPieceSet, PieceSetStyle } from "@/components/pieces/PieceSets2D";
 import { useLichess } from "@/lib/useLichess";
 import { LichessModal, LichessIcon } from "@/components/LichessModal";
@@ -502,27 +501,16 @@ export default function Home() {
   const [themePalette, setThemePalette] = useState<ThemePalette>("periwinkle");
   const [themeMode, setThemeMode] = useState<ThemeMode>("light");
   const [pieceSet, setPieceSet] = useState<PieceSetStyle>("default");
-  const [captureHandEnabled, setCaptureHandEnabled] = useState<boolean>(true);
-  const [captureHandTarget, setCaptureHandTarget] = useState<{ square: string; key: number } | null>(null);
-
-  const triggerCaptureHand = (square: string) => {
-    if (!captureHandEnabled) return;
-    setCaptureHandTarget({ square, key: Date.now() });
-  };
 
   useEffect(() => {
     try {
       const savedTheme = (localStorage.getItem("chessz_theme") as ThemePalette) || "periwinkle";
       const savedMode = (localStorage.getItem("chessz_mode") as ThemeMode) || "light";
-      const savedCapture = localStorage.getItem("chessz_capture_hand");
 
       setThemePalette(savedTheme);
       setThemeMode(savedMode);
       setPieceSet("default");
       localStorage.setItem("chessz_piece_set", "default");
-      if (savedCapture !== null) {
-        setCaptureHandEnabled(JSON.parse(savedCapture));
-      }
     } catch {}
 
     const handleThemeEvent = (e: Event) => {
@@ -539,13 +527,11 @@ export default function Home() {
         mode?: ThemeMode;
         pieceSet?: PieceSetStyle;
         wallpaper?: boolean;
-        captureHand?: boolean;
       }>;
       if (customEvt.detail) {
         if (customEvt.detail.theme) setThemePalette(customEvt.detail.theme);
         if (customEvt.detail.mode) setThemeMode(customEvt.detail.mode);
         if (customEvt.detail.pieceSet) setPieceSet(customEvt.detail.pieceSet);
-        if (customEvt.detail.captureHand !== undefined) setCaptureHandEnabled(customEvt.detail.captureHand);
       }
     };
 
@@ -855,7 +841,6 @@ export default function Home() {
     // Play sound based on move type
     if (moveResult.captured) {
       sounds.playCapture();
-      triggerCaptureHand(targetSquare);
     } else {
       sounds.playMove();
     }
@@ -919,7 +904,6 @@ export default function Home() {
           setLastMove({ from: ref.from, to: ref.to });
           if (refResult.captured) {
             sounds.playCapture();
-            triggerCaptureHand(ref.to);
           } else {
             sounds.playRefutation();
           }
@@ -1846,14 +1830,6 @@ export default function Home() {
                   boardSize={boardWidth}
                   bezelSize={bezelSize}
                 >
-                  <AnimatedCaptureHand
-                    targetSquare={captureHandTarget?.square || null}
-                    triggerKey={captureHandTarget?.key}
-                    boardOrientation={currentPuzzle.playerColor}
-                    boardSize={boardWidth}
-                    bezelSize={bezelSize}
-                    enabled={captureHandEnabled}
-                  />
                   <Chessboard
                     key={boardKey}
                     options={{

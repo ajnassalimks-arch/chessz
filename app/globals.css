@@ -634,39 +634,4 @@ svg[viewBox*="2048"] marker polygon {
   height: 0 !important;
 }
 
-/* ==========================================================================
-   ANIMATED RED HAND PIECE CAPTURE
-   ========================================================================== */
-@keyframes captureHandSwoop {
-  0% {
-    opacity: 0;
-    transform: translate(65px, -65px) scale(1.28) rotate(-12deg);
-    filter: drop-shadow(0 10px 20px rgba(239, 68, 68, 0));
-  }
-  32% {
-    opacity: 1;
-    transform: translate(0px, 0px) scale(1) rotate(0deg);
-    filter: drop-shadow(0 0 22px rgba(239, 68, 68, 0.85));
-  }
-  52% {
-    transform: translate(-2px, 2px) scale(0.94) rotate(-3deg);
-    filter: drop-shadow(0 0 30px rgba(255, 68, 68, 1));
-  }
-  74% {
-    opacity: 1;
-    transform: translate(-32px, -48px) scale(1.04) rotate(8deg);
-    filter: drop-shadow(0 16px 28px rgba(239, 68, 68, 0.65));
-  }
-  100% {
-    opacity: 0;
-    transform: translate(-95px, -115px) scale(0.85) rotate(20deg);
-    filter: drop-shadow(0 30px 40px rgba(239, 68, 68, 0));
-  }
-}
-
-.animate-capture-hand {
-  animation: captureHandSwoop 620ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  pointer-events: none;
-}
-
 

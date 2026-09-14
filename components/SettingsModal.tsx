@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Settings, Sun, Moon, Volume2, VolumeX, Sparkles, X, Check, HelpCircle, Hand, Image as ImageIcon } from "lucide-react";
+import { Settings, Sun, Moon, Volume2, VolumeX, Sparkles, X, Check, HelpCircle, Image as ImageIcon } from "lucide-react";
 import { ThemePalette, ThemeMode, THEME_BOARD_COLORS, THEME_NAMES } from "./ThemeSwitcher";
 import { PieceSetStyle } from "./pieces/PieceSets2D";
 import { sounds } from "@/lib/sounds";
@@ -17,7 +17,6 @@ export function SettingsModal({ isOpen, onClose, onThemeChange }: SettingsModalP
   const [mode, setMode] = useState<ThemeMode>("light");
   const [isMuted, setIsMuted] = useState(false);
   const [wallpaperEnabled, setWallpaperEnabled] = useState(true);
-  const [captureHandEnabled, setCaptureHandEnabled] = useState(true);
   const [pieceSet, setPieceSet] = useState<PieceSetStyle>("default");
 
   useEffect(() => {
@@ -26,7 +25,6 @@ export function SettingsModal({ isOpen, onClose, onThemeChange }: SettingsModalP
       const savedMode = (localStorage.getItem("chessz_mode") as ThemeMode) || "light";
       const savedMute = localStorage.getItem("chessz_muted");
       const savedWallpaper = localStorage.getItem("chessz_wallpaper");
-      const savedCaptureHand = localStorage.getItem("chessz_capture_hand");
 
       setTheme(savedTheme);
       setMode(savedMode);
@@ -34,7 +32,6 @@ export function SettingsModal({ isOpen, onClose, onThemeChange }: SettingsModalP
       localStorage.setItem("chessz_piece_set", "default");
       if (savedMute !== null) setIsMuted(JSON.parse(savedMute));
       if (savedWallpaper !== null) setWallpaperEnabled(JSON.parse(savedWallpaper));
-      if (savedCaptureHand !== null) setCaptureHandEnabled(JSON.parse(savedCaptureHand));
     } catch {}
   }, [isOpen]);
 
@@ -52,8 +49,7 @@ export function SettingsModal({ isOpen, onClose, onThemeChange }: SettingsModalP
     newTheme: ThemePalette,
     newMode: ThemeMode,
     newPieceSet: PieceSetStyle,
-    newWallpaper: boolean,
-    newCaptureHand: boolean
+    newWallpaper: boolean
   ) => {
     if (typeof window !== "undefined") {
       const event = new CustomEvent("chessz-settings-changed", {
@@ -62,7 +58,6 @@ export function SettingsModal({ isOpen, onClose, onThemeChange }: SettingsModalP
           mode: newMode,
           pieceSet: newPieceSet,
           wallpaper: newWallpaper,
-          captureHand: newCaptureHand,
         },
       });
       window.dispatchEvent(event);
@@ -86,7 +81,7 @@ export function SettingsModal({ isOpen, onClose, onThemeChange }: SettingsModalP
         detail: { theme: newTheme, mode: newMode },
       });
       window.dispatchEvent(event);
-      dispatchSettingsChanged(newTheme, newMode, pieceSet, wallpaperEnabled, captureHandEnabled);
+      dispatchSettingsChanged(newTheme, newMode, pieceSet, wallpaperEnabled);
 
       if (onThemeChange) {
         onThemeChange(newTheme, newMode);
@@ -122,16 +117,7 @@ export function SettingsModal({ isOpen, onClose, onThemeChange }: SettingsModalP
     try {
       localStorage.setItem("chessz_wallpaper", JSON.stringify(nextVal));
     } catch {}
-    dispatchSettingsChanged(theme, mode, pieceSet, nextVal, captureHandEnabled);
-  };
-
-  const handleToggleCaptureHand = () => {
-    const nextVal = !captureHandEnabled;
-    setCaptureHandEnabled(nextVal);
-    try {
-      localStorage.setItem("chessz_capture_hand", JSON.stringify(nextVal));
-    } catch {}
-    dispatchSettingsChanged(theme, mode, pieceSet, wallpaperEnabled, nextVal);
+    dispatchSettingsChanged(theme, mode, pieceSet, nextVal);
   };
 
   const handleSelectPieceSet = (newPieceSet: PieceSetStyle) => {
@@ -139,7 +125,7 @@ export function SettingsModal({ isOpen, onClose, onThemeChange }: SettingsModalP
     try {
       localStorage.setItem("chessz_piece_set", newPieceSet);
     } catch {}
-    dispatchSettingsChanged(theme, mode, newPieceSet, wallpaperEnabled, captureHandEnabled);
+    dispatchSettingsChanged(theme, mode, newPieceSet, wallpaperEnabled);
   };
 
   if (!isOpen) return null;
@@ -250,31 +236,6 @@ export function SettingsModal({ isOpen, onClose, onThemeChange }: SettingsModalP
           </div>
         )}
 
-        {/* Animated Capture Hand Toggle */}
-        <div className="mb-4 p-3 rounded-2xl theme-surface-subtle border flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-xl bg-red-500/15 flex items-center justify-center text-red-500 border border-red-500/30">
-              <Hand className="w-4 h-4" />
-            </div>
-            <div>
-              <div className="text-xs font-bold theme-text-primary flex items-center gap-1.5">
-                <span>Animated Red Hand</span>
-                <span className="text-[9px] uppercase px-1.5 py-0.5 rounded-full bg-red-500/20 text-red-400 font-mono font-bold">New</span>
-              </div>
-              <div className="text-[10px] theme-text-muted">Snatches taken pieces off the board on capture</div>
-            </div>
-          </div>
-          <button
-            onClick={handleToggleCaptureHand}
-            className={`py-1.5 px-3 rounded-xl text-xs font-bold transition border cursor-pointer ${
-              captureHandEnabled
-                ? "bg-red-500/15 text-red-500 dark:text-red-400 border-red-500/40 hover:bg-red-500/25"
-                : "theme-surface theme-text-muted border-[var(--border-subtle)] hover:theme-text-primary"
-            }`}
-          >
-            {captureHandEnabled ? "Enabled" : "Disabled"}
-          </button>
-        </div>
 
 
         <div className="mb-4">

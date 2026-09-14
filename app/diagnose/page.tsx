@@ -10,7 +10,6 @@ import { ChessboardFrame } from "@/components/ChessboardFrame";
 import { sounds } from "@/lib/sounds";
 import { THEME_BOARD_COLORS, ThemePalette, ThemeMode } from "@/components/ThemeSwitcher";
 import { SettingsModal } from "@/components/SettingsModal";
-import { AnimatedCaptureHand } from "@/components/AnimatedCaptureHand";
 import { getPieceSet, PieceSetStyle } from "@/components/pieces/PieceSets2D";
 import {
   BENCHMARK_PUZZLE_POOL,
@@ -71,20 +70,12 @@ export default function DiagnosePage() {
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
   const [pieceSet, setPieceSet] = useState<PieceSetStyle>("default");
-  const [captureHandEnabled, setCaptureHandEnabled] = useState<boolean>(true);
-  const [captureHandTarget, setCaptureHandTarget] = useState<{ square: string; key: number } | null>(null);
-
-  const triggerCaptureHand = (square: string) => {
-    if (!captureHandEnabled) return;
-    setCaptureHandTarget({ square, key: Date.now() });
-  };
 
   useEffect(() => {
     try {
       const savedTheme = (localStorage.getItem("chessz_theme") as ThemePalette) || "periwinkle";
       const savedMode = (localStorage.getItem("chessz_mode") as ThemeMode) || "light";
       const savedMute = localStorage.getItem("chessz_muted") === "true";
-      const savedCapture = localStorage.getItem("chessz_capture_hand");
 
       setThemePalette(savedTheme);
       setThemeMode(savedMode);
@@ -92,9 +83,6 @@ export default function DiagnosePage() {
       localStorage.setItem("chessz_piece_set", "default");
       setIsMuted(savedMute);
       sounds.setMuted(savedMute);
-      if (savedCapture !== null) {
-        setCaptureHandEnabled(JSON.parse(savedCapture));
-      }
     } catch {}
 
     const handleThemeEvent = (e: Event) => {
@@ -111,13 +99,11 @@ export default function DiagnosePage() {
         mode?: ThemeMode;
         pieceSet?: PieceSetStyle;
         wallpaper?: boolean;
-        captureHand?: boolean;
       }>;
       if (customEvt.detail) {
         if (customEvt.detail.theme) setThemePalette(customEvt.detail.theme);
         if (customEvt.detail.mode) setThemeMode(customEvt.detail.mode);
         if (customEvt.detail.pieceSet) setPieceSet(customEvt.detail.pieceSet);
-        if (customEvt.detail.captureHand !== undefined) setCaptureHandEnabled(customEvt.detail.captureHand);
       }
     };
 
@@ -127,7 +113,7 @@ export default function DiagnosePage() {
       window.removeEventListener("chessz-theme-changed", handleThemeEvent);
       window.removeEventListener("chessz-settings-changed", handleSettingsEvent);
     };
-  }, [captureHandEnabled]);
+  }, []);
 
   const currentBoardColors =
     THEME_BOARD_COLORS[themePalette]?.[themeMode] || THEME_BOARD_COLORS.periwinkle.light;
@@ -470,7 +456,6 @@ export default function DiagnosePage() {
     if (puzzleIndex === 0) {
       if (moveResult.captured) {
         sounds.playCapture();
-        triggerCaptureHand(to);
       } else {
         sounds.playMove();
       }
@@ -572,7 +557,6 @@ export default function DiagnosePage() {
     // Pure Assessment: Silent Record, No In-Test Reveals
     if (moveRes?.captured) {
       sounds.playCapture();
-      triggerCaptureHand(to);
     } else {
       sounds.playMove();
     }
@@ -1034,14 +1018,6 @@ export default function DiagnosePage() {
                 boardSize={boardWidth}
                 bezelSize={bezelSize}
               >
-                <AnimatedCaptureHand
-                  targetSquare={captureHandTarget?.square || null}
-                  triggerKey={captureHandTarget?.key}
-                  boardOrientation={activePuzzle.playerColor}
-                  boardSize={boardWidth}
-                  bezelSize={bezelSize}
-                  enabled={captureHandEnabled}
-                />
                 <Chessboard
                   key={boardKey}
                   options={{
