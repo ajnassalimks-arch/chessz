@@ -27,6 +27,7 @@ import {
   Info,
 } from 'lucide-react';
 import { useLichess } from '@/lib/useLichess';
+import { LichessIcon } from '@/components/LichessModal';
 import { streamUserGames, StreamProgress } from '@/lib/lichessStream';
 import { GameDerivedStats, UserAggregateStats, CriticalMoment } from '@/lib/chessMetrics/types';
 import { aggregateUserStats } from '@/lib/chessMetrics/gameParser';
@@ -267,8 +268,8 @@ function WeaknessDashboardContent() {
         {/* Quick Demo Accounts Banner if no games */}
         {games.length === 0 && !isLoading && !error && (
           <div className="p-8 rounded-3xl theme-surface border text-center space-y-4 max-w-xl mx-auto my-12 shadow-xl">
-            <div className="w-12 h-12 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-400 flex items-center justify-center mx-auto">
-              <Target className="w-6 h-6" />
+            <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto shadow-md shadow-amber-500/10">
+              <LichessIcon className="w-6 h-6" />
             </div>
             <div className="space-y-1">
               <h2 className="text-lg font-black theme-text-primary">Discover Where You Drop Points</h2>
@@ -783,8 +784,9 @@ function WeaknessDashboardContent() {
                             href={m.deepLink}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-1 text-[11px] font-mono text-zinc-400 hover:text-white px-2 py-1 rounded-lg border theme-surface-subtle transition cursor-pointer"
+                            className="flex items-center gap-1.5 text-[11px] font-mono text-zinc-400 hover:text-white px-2 py-1 rounded-lg border theme-surface-subtle transition cursor-pointer"
                           >
+                            <LichessIcon className="w-3 h-3 text-amber-400" />
                             <span>Lichess</span>
                             <ExternalLink className="w-3 h-3" />
                           </a>

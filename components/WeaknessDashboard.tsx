@@ -36,6 +36,7 @@ import {
   classifyMistake,
 } from '@/lib/mistakeClassifier';
 import { LichessUser } from '@/lib/lichess';
+import { LichessIcon } from '@/components/LichessModal';
 
 interface WeaknessDashboardProps {
   isOpen: boolean;
@@ -547,11 +548,14 @@ export function WeaknessDashboard({
 
           {!isLoading && blunders.length === 0 && !(user?.username || (typeof window !== 'undefined' && localStorage.getItem('chessz_last_username'))) && (
             <div className="p-6 sm:p-8 rounded-3xl theme-surface-subtle border border-rose-500/30 text-center space-y-4 max-w-md mx-auto my-3">
-              <div className="w-12 h-12 rounded-2xl bg-linear-to-br from-rose-500/20 to-amber-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 mx-auto">
-                <Target className="w-6 h-6" />
+              <div className="w-12 h-12 rounded-2xl bg-linear-to-br from-amber-500/20 to-orange-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 mx-auto">
+                <LichessIcon className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-base font-bold theme-text-primary">What's your Lichess ID?</h3>
+                <h3 className="text-base font-bold theme-text-primary flex items-center justify-center gap-2">
+                  <LichessIcon className="w-4 h-4 text-amber-400" />
+                  <span>What's your Lichess ID?</span>
+                </h3>
                 <p className="text-xs theme-text-secondary mt-1 leading-relaxed">
                   Enter your username (or any player&apos;s) to scan your recent games and practice the exact blunders where you threw. No password required!
                 </p>
