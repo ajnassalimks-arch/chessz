@@ -15,7 +15,7 @@ export async function saveGameStatsBatch(
     return { savedToSupabase: false, count: 0 };
   }
 
-  // 1. Always checkpoint locally for instant 0ms offline load
+  // 1. Always checkpoint locally for instant client-side cache load
   try {
     const key = `${LOCAL_STORAGE_KEY_PREFIX}${username.toLowerCase()}`;
     // Store only minimal representation without heavy move arrays

@@ -36,7 +36,7 @@ export interface ChessPuzzle {
   successExplanation: string;
 }
 
-// 100% Real, Offline Lichess Puzzles categorized by Tier and Diagnostic Blunder Leak
+// Real Lichess Puzzles categorized by Tier and Diagnostic Blunder Leak
 // 16 categories * 25 puzzles = 400 diagnostic puzzles
 export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
   "beginner_0": [

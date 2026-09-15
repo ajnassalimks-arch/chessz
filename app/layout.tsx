@@ -5,10 +5,10 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://chesszapp.vercel.app"),
   title: {
-    default: "ChessZ — Free Offline Chess Tactics & Level Diagnosis",
+    default: "ChessZ — Free Chess Tactics & Level Diagnosis",
     template: "%s | ChessZ"
   },
-  description: "Free offline chess tactics trainer, 3-puzzle diagnostic level benchmark, and cognitive telemetry. 500+ curated Lichess puzzles, 100% free with no subscription.",
+  description: "Free client-side chess tactics trainer, 5-puzzle diagnostic level benchmark, and cognitive telemetry. 500+ curated Lichess puzzles, 100% free with no subscription.",
   keywords: [
     "ChessZ",
     "Chess Z",
@@ -18,17 +18,14 @@ export const metadata: Metadata = {
     "free chess tactics",
     "chess level diagnosis",
     "chess rating benchmark",
-    "offline chess",
-    "offline chess puzzles",
+    "client-side chess",
+    "lichess puzzles",
     "free chess coach",
     "chess calculation trainer"
   ],
   authors: [{ name: "ChessZ Team" }],
   creator: "ChessZ",
   publisher: "ChessZ",
-  alternates: {
-    canonical: "/",
-  },
   icons: {
     icon: "/icon.png",
     apple: "/apple-icon.png",
@@ -38,8 +35,8 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://chesszapp.vercel.app",
     siteName: "ChessZ",
-    title: "ChessZ — Free Offline Chess Tactics & Level Diagnosis",
-    description: "Discover your true chess level in 3 diagnostic puzzles. 100% offline, zero paywalls, FIDE coach telemetry.",
+    title: "ChessZ — Free Chess Tactics & Level Diagnosis",
+    description: "Discover your true chess level in 5 diagnostic puzzles. Client-side analysis, zero paywalls, cognitive telemetry.",
     images: [
       {
         url: "/og-image.jpg",
@@ -51,8 +48,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "ChessZ — Free Offline Chess Tactics & Level Diagnosis",
-    description: "Discover your true chess level in 3 diagnostic puzzles. 100% offline, zero paywalls, FIDE coach telemetry.",
+    title: "ChessZ — Free Chess Tactics & Level Diagnosis",
+    description: "Discover your true chess level in 5 diagnostic puzzles. Client-side analysis, zero paywalls, cognitive telemetry.",
     images: ["/og-image.jpg"],
   },
   robots: {
@@ -105,7 +102,7 @@ export default function RootLayout({
                 "price": "0",
                 "priceCurrency": "USD"
               },
-              "description": "Free offline chess tactics trainer and diagnostic level benchmark with FIDE coach cognitive telemetry."
+              "description": "Free client-side chess tactics trainer and 5-puzzle diagnostic level benchmark with cognitive chess telemetry."
             })
           }}
         />
