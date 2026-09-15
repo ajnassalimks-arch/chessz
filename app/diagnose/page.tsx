@@ -1560,7 +1560,7 @@ export default function DiagnosePage() {
                 {analyzingPhase === 2 && "Converging FIDE Rating Model..."}
               </h2>
               <p className="text-xs theme-text-secondary mt-1">
-                Analyzing your calculation footprint and decision timing across all 5 benchmark positions.
+                Analyzing your calculation footprint and decision timing across all {attempts.length} benchmark positions.
               </p>
             </div>
 
@@ -1824,7 +1824,7 @@ export default function DiagnosePage() {
                   <span>Benchmark Review & Solutions</span>
                 </div>
                 <span className="text-[10px] font-mono theme-text-muted">
-                  5 Puzzles Analyzed
+                  {attempts.length} Puzzles Analyzed
                 </span>
               </div>
 

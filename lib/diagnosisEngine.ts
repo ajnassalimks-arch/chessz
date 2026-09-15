@@ -315,7 +315,7 @@ export const BENCHMARK_PUZZLE_POOL: (ChessPuzzle & { numericRating: number })[] 
     ruleTitle: "The Smothered Net Rule",
     ruleBody: "When a king is surrounded by its own pieces, a knight check can be immediately fatal.",
     solutionMoves: [
-      { from: "b1", to: "b8", san: "Qb8#", explanation: "Qb8#! King is trapped behind its own pawns." }
+      { from: "b1", to: "b8", san: "Qb8+", explanation: "Qb8#! King is trapped behind its own pawns." }
     ],
     defaultRefutation: {
       from: "f7", to: "h6", san: "Nh6+",
