@@ -91,12 +91,18 @@ export function WeaknessDashboard({
     }
   }, [user]);
 
+  // Custom username input state
+  const [inputUsername, setInputUsername] = useState<string>('');
+
   // Fetch 50 games and blunders
-  const fetchBlunders = async () => {
-    const username = user?.username || localStorage.getItem('chessz_last_username');
+  const fetchBlunders = async (targetUser?: string) => {
+    const username = (targetUser || inputUsername || user?.username || (typeof window !== 'undefined' ? localStorage.getItem('chessz_last_username') : '') || '').trim();
     if (!username) {
-      setError('Please connect a Lichess account or enter a username first.');
       return;
+    }
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('chessz_last_username', username);
     }
 
     setIsLoading(true);
@@ -130,7 +136,10 @@ export function WeaknessDashboard({
   // Fetch blunders when modal opens if empty
   useEffect(() => {
     if (isOpen && blunders.length === 0 && !isLoading) {
-      fetchBlunders();
+      const username = user?.username || (typeof window !== 'undefined' ? localStorage.getItem('chessz_last_username') : '') || '';
+      if (username) {
+        fetchBlunders(username);
+      }
     }
   }, [isOpen]);
 
@@ -293,7 +302,7 @@ export function WeaknessDashboard({
             </Link>
 
             <button
-              onClick={fetchBlunders}
+              onClick={() => fetchBlunders()}
               disabled={isLoading}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl theme-surface-subtle theme-surface-hover border text-xs font-bold font-mono theme-text-primary transition cursor-pointer disabled:opacity-50"
               title="Rescan recent Lichess games"
@@ -382,7 +391,45 @@ export function WeaknessDashboard({
             </div>
           )}
 
-          {!isLoading && blunders.length === 0 && !error && (
+          {!isLoading && blunders.length === 0 && !(user?.username || (typeof window !== 'undefined' && localStorage.getItem('chessz_last_username'))) && (
+            <div className="p-6 sm:p-8 rounded-3xl theme-surface-subtle border border-rose-500/30 text-center space-y-4 max-w-md mx-auto my-3">
+              <div className="w-12 h-12 rounded-2xl bg-linear-to-br from-rose-500/20 to-amber-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 mx-auto">
+                <Target className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold theme-text-primary">What's your Lichess ID?</h3>
+                <p className="text-xs theme-text-secondary mt-1 leading-relaxed">
+                  Enter your username (or any player&apos;s) to scan your recent games and practice the exact blunders where you threw. No password required!
+                </p>
+              </div>
+
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (inputUsername.trim()) fetchBlunders(inputUsername.trim());
+                }}
+                className="flex gap-2 pt-1"
+              >
+                <input
+                  type="text"
+                  value={inputUsername}
+                  onChange={(e) => setInputUsername(e.target.value)}
+                  placeholder="e.g. thibault, magnuscarlsen"
+                  className="flex-1 px-3.5 py-2 text-xs rounded-xl theme-surface border border-[var(--border-subtle)] theme-text-primary focus:outline-hidden focus:border-[var(--accent-primary)] font-mono"
+                  autoFocus
+                />
+                <button
+                  type="submit"
+                  disabled={isLoading || !inputUsername.trim()}
+                  className="px-4 py-2 text-xs font-bold font-mono rounded-xl bg-[var(--accent-primary)] hover:opacity-90 text-white transition cursor-pointer disabled:opacity-50 shrink-0"
+                >
+                  {isLoading ? 'Scanning...' : 'Scan Games'}
+                </button>
+              </form>
+            </div>
+          )}
+
+          {!isLoading && blunders.length === 0 && !error && !!(user?.username || (typeof window !== 'undefined' && localStorage.getItem('chessz_last_username'))) && (
             <div className="p-8 rounded-2xl theme-surface-subtle border text-center space-y-2">
               <Award className="w-10 h-10 text-emerald-400 mx-auto" />
               <div className="text-sm font-bold theme-text-primary">No Unfixed Mistakes Found!</div>

@@ -1324,25 +1324,33 @@ export default function Home() {
               ))}
             </div>
 
-            {lichessUser && (
-              <button
-                onClick={() => setShowWeaknessDashboard(true)}
-                className="w-full mt-2 flex items-center justify-between p-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/15 border border-rose-500/30 text-rose-300 hover:border-rose-500/50 hover:-translate-y-0.5 hover:shadow-md transition-all duration-150 group cursor-pointer text-left shadow-2xs active:scale-95"
-              >
-                <div className="flex items-center gap-2.5 overflow-hidden">
-                  <span className="text-base select-none shrink-0 group-hover:scale-110 transition-transform">♟️</span>
-                  <div>
-                    <span className="text-xs font-bold text-rose-300 block">Train My Real Game Blunders</span>
-                    <span className="text-[10px] font-mono text-rose-400/80 block">
-                      Curated from @{lichessUser.username}&apos;s games with engine refutations
-                    </span>
-                  </div>
+            <button
+              onClick={() => {
+                if (!lichessUser && !(typeof window !== 'undefined' && localStorage.getItem('chessz_last_username'))) {
+                  setShowLichessModal(true);
+                } else {
+                  setShowWeaknessDashboard(true);
+                }
+              }}
+              className="w-full mt-2 flex items-center justify-between p-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/15 border border-rose-500/30 text-rose-300 hover:border-rose-500/50 hover:-translate-y-0.5 hover:shadow-md transition-all duration-150 group cursor-pointer text-left shadow-2xs active:scale-95"
+            >
+              <div className="flex items-center gap-2.5 overflow-hidden">
+                <span className="text-base select-none shrink-0 group-hover:scale-110 transition-transform">♟️</span>
+                <div>
+                  <span className="text-xs font-bold text-rose-300 block">
+                    {lichessUser ? "Train My Real Game Blunders" : "Drill Your Real Lost Games (My Blunders)"}
+                  </span>
+                  <span className="text-[10px] font-mono text-rose-400/80 block">
+                    {lichessUser
+                      ? `Curated from @${lichessUser.username}&apos;s games with engine refutations`
+                      : "Enter your Lichess ID to turn your actual blunders into custom drills"}
+                  </span>
                 </div>
-                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/40 shrink-0">
-                  Open Studio ➔
-                </span>
-              </button>
-            )}
+              </div>
+              <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded bg-rose-500/20 text-rose-300 border border-rose-500/40 shrink-0">
+                {lichessUser ? "Open Studio ➔" : "Connect Lichess ID ➔"}
+              </span>
+            </button>
           </div>
 
           {/* "Why ChessZ?" — The 3 Pillars Section */}
@@ -1865,7 +1873,13 @@ export default function Home() {
                           </Link>
 
                           <button
-                            onClick={() => setShowWeaknessDashboard(true)}
+                            onClick={() => {
+                              if (!lichessUser && !(typeof window !== 'undefined' && localStorage.getItem('chessz_last_username'))) {
+                                setShowLichessModal(true);
+                              } else {
+                                setShowWeaknessDashboard(true);
+                              }
+                            }}
                             className="py-2 px-2.5 rounded-lg theme-surface hover:theme-surface-subtle border text-[11px] font-bold theme-text-primary flex items-center justify-center gap-1 transition cursor-pointer"
                           >
                             <Target className="w-3 h-3 text-rose-400" />
