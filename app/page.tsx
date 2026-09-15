@@ -625,15 +625,18 @@ export default function Home() {
     setStatus("Analyzing move...");
 
     refutationTimeoutRef.current = setTimeout(() => {
+      const ref = currentPuzzle.defaultRefutation;
+      let refutationApplied = false;
+
       try {
         const refutingChess = new Chess(testChess.fen());
-        const ref = currentPuzzle.defaultRefutation;
         const refResult = refutingChess.move({
           from: ref.from,
           to: ref.to,
           promotion: ref.promotion || "q",
         });
         if (refResult) {
+          refutationApplied = true;
           setGame(refutingChess);
           setLastMove({ from: ref.from, to: ref.to });
           if (refResult.captured) {
@@ -642,11 +645,20 @@ export default function Home() {
             sounds.playRefutation();
           }
         }
-      } catch {}
-      setRefutationInfo(currentPuzzle.defaultRefutation);
+      } catch (err) {
+        console.error(
+          `[ChessZ] defaultRefutation is illegal for puzzle "${currentPuzzle.id}" ` +
+            `(${ref.from}->${ref.to}, san "${ref.san}") at FEN "${testChess.fen()}". ` +
+            `Suppressing the coach explanation so it cannot describe a move that was never played.`,
+          err
+        );
+      }
+
+      // Only surface the coach explanation when the move it describes actually landed.
+      setRefutationInfo(refutationApplied ? ref : null);
       setPuzzleStatus("failed");
       setStreak(0);
-      setStatus("Refuted by opponent!");
+      setStatus(refutationApplied ? "Refuted by opponent!" : "Not the best move");
       refutationTimeoutRef.current = null;
     }, 650);
 
@@ -1563,15 +1575,17 @@ export default function Home() {
 
           {/* Mobile Only: Interactive Feedback Cards below board */}
           <div className="w-full flex md:hidden flex-col">
-            {puzzleStatus === "failed" && refutationInfo && (
+            {puzzleStatus === "failed" && (
               <div className="w-full mt-3 theme-surface border border-rose-500/40 rounded-2xl p-4 shadow-md animate-in fade-in slide-in-from-bottom-2 duration-200">
                 <div className="flex items-center gap-2 text-rose-500 text-xs font-bold uppercase tracking-wide mb-1">
                   <AlertTriangle className="w-4 h-4" />
-                  <span>Instant Learning: Refutation</span>
+                  <span>{refutationInfo ? "Instant Learning: Refutation" : "Not the Best Move"}</span>
                 </div>
-                <p className="text-xs sm:text-sm theme-text-primary leading-relaxed mb-3">
-                  {refutationInfo.coachExplanation}
-                </p>
+                {refutationInfo && (
+                  <p className="text-xs sm:text-sm theme-text-primary leading-relaxed mb-3">
+                    {refutationInfo.coachExplanation}
+                  </p>
+                )}
                 <button
                   onClick={retryCurrentPuzzle}
                   className="w-full py-2.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer"
@@ -1785,15 +1799,17 @@ export default function Home() {
                 </div>
               )}
 
-              {puzzleStatus === "failed" && refutationInfo && (
+              {puzzleStatus === "failed" && (
                 <div className="w-full theme-surface-subtle border border-rose-500/40 rounded-xl p-3.5 shadow-md animate-in fade-in duration-200">
                   <div className="flex items-center gap-1.5 text-rose-500 text-xs font-bold uppercase tracking-wide mb-1.5">
                     <AlertTriangle className="w-3.5 h-3.5" />
-                    <span>Instant Refutation</span>
+                    <span>{refutationInfo ? "Instant Refutation" : "Not the Best Move"}</span>
                   </div>
-                  <p className="text-xs theme-text-primary leading-relaxed mb-3">
-                    {refutationInfo.coachExplanation}
-                  </p>
+                  {refutationInfo && (
+                    <p className="text-xs theme-text-primary leading-relaxed mb-3">
+                      {refutationInfo.coachExplanation}
+                    </p>
+                  )}
                   <div className="space-y-2">
                     <button
                       onClick={retryCurrentPuzzle}
