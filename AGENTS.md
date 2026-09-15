@@ -7,3 +7,27 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+# ChessZ AI Agent Engineering Guide
+
+> **Important**: Read `ARCHITECTURE_AND_AGENT_GUIDE.md` for complete codebase architecture, math models, and routing topologies before making any modifications.
+
+## 1. Quick Verification Commands
+Always verify your changes with these commands before finishing:
+```bash
+# 1. Run full automated test suite (all 30 tests must pass)
+npm test
+
+# 2. Strict TypeScript type check (must exit 0 with 0 errors)
+npx tsc --noEmit
+
+# 3. Next.js 16 Turbopack production build (must generate all 17 static pages)
+npm run build
+```
+
+## 2. Core Operational Rules
+1. **Header Consistency**: The 3 main pages (`/`, `/diagnose`, `/weakness`) share a single unified header. Never duplicate buttons (e.g., Weakness Studio on left and right). The action button order is strictly: `[Connect Lichess]` ➔ `[Volume]` ➔ `[Settings]` ➔ `[Save/Exit]`.
+2. **Lichess Logo**: Always use `LichessIcon` from `@/components/LichessModal` (`viewBox="0 0 24 24"`). Never introduce arbitrary or corrupted SVG paths.
+3. **Stockfish WASM Lifecycle**: When transitioning between puzzles, always call `stopAnalysis()` and `setEngineEnabled(false)` to prevent analysis leaks.
+4. **Pedagogical Integrity**: Maintain the 5-pillar blunder classification system in `lib/mistakeClassifier.ts`.
+5. **Zero-Yapping Protocol**: Keep answers and summaries direct, high-signal, and free of fluff.

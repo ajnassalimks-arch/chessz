@@ -8,18 +8,20 @@
 [![Framework: Next.js 16](https://img.shields.io/badge/Framework-Next.js%2016%20Turbopack-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![Database: Supabase](https://img.shields.io/badge/Database-Supabase%20Free%20Tier-green?style=for-the-badge&logo=supabase)](https://supabase.com/)
 [![OAuth: Lichess](https://img.shields.io/badge/OAuth-Lichess%20API-orange?style=for-the-badge&logo=lichess)](https://lichess.org)
+[![Engine: Stockfish 16 WASM](https://img.shields.io/badge/Engine-Stockfish%2016%20WASM-blueviolet?style=for-the-badge)](https://stockfishchess.org/)
 
 ---
 
 ## 🌐 Live Application
 * **Production Deployment:** [https://chesszapp.vercel.app/](https://chesszapp.vercel.app/)
-* **Interactive Level Diagnosis:** [https://chesszapp.vercel.app/diagnose](https://chesszapp.vercel.app/diagnose)
+* **Interactive Skill Diagnosis:** [https://chesszapp.vercel.app/diagnose](https://chesszapp.vercel.app/diagnose)
+* **Weakness Studio:** [https://chesszapp.vercel.app/weakness](https://chesszapp.vercel.app/weakness)
 * **GitHub Repository:** [https://github.com/ajnassalimks-arch/chessz](https://github.com/ajnassalimks-arch/chessz)
 
 ---
 
 ## 💡 The Disruption Hook: 100% Free Forever
-Traditional platforms restrict free players to **3 puzzles a day** and charge ₹1,500 to ₹10,000/year for unlimited tactical training.
+Commercial chess platforms restrict free players to **3 puzzles a day** and charge ₹1,500 to ₹10,000/year for unlimited tactical training and blunder reviews.
 
 **ChessZ** eliminates this paywall with a clean, high-performance architecture:
 * **Unlimited Training:** 100% free access to verified tactical positions.
@@ -28,16 +30,22 @@ Traditional platforms restrict free players to **3 puzzles a day** and charge �
 
 ---
 
-## 💎 Brand Identity & Visual Language
+## 🧭 The 3 Core Routes
 
-### 1. Geometric Knight-Z Brandmark (Masterwork A)
-* Handcrafted SVG brand identity with sharp 45-degree facets that fuse a noble knight profile with an integrated geometric **'Z'** monogram.
-* Evokes authority, strategic precision, and institutional prestige.
+ChessZ is organized around a unified three-view navigation hierarchy:
 
-### 2. Modernistic Typography Hierarchy
-* **Brand & Headers (`Space Grotesk`)**: Algorithmic, proportional geometric sans-serif mirroring the angular cuts of the Knight-Z emblem.
-* **Interface & Controls (`Inter`)**: Clean, neutral micro-scale legibility optimized for rapid calculation.
-* **Notation & Timers (`JetBrains Mono`)**: Monospace tabular numbers (`tnum`) for jitter-free clock recording and move notation.
+```
+                  ┌───────────────────────────────┐
+                  │          ChessZ App           │
+                  └──────────────┬────────────────┘
+         ┌───────────────────────┼───────────────────────┐
+         ▼                       ▼                       ▼
+   Train (`/`)          Skill Test (`/diagnose`)   Weakness Studio (`/weakness`)
+• Tactical Arena        • 3-Puzzle Benchmark       • 50-Game NDJSON Stream
+• 5-Tier Lobby          • Millisecond Telemetry    • 5-Pillar Blunder Taxonomy
+• 5-Puzzle Curriculum   • Psychological Conviction • Critical Phase Turning Points
+• Stockfish Auto-Eval   • Cognitive Dossier        • Direct Lichess Deep Links
+```
 
 ---
 
@@ -46,7 +54,7 @@ Traditional platforms restrict free players to **3 puzzles a day** and charge �
 The diagnostic engine benchmarks a player's tactical vision, calculation speed, and psychological conviction in ~2.5 minutes:
 
 ### 1. Curated 10-Puzzle Benchmark Pool
-Instead of static tests, `/diagnose` randomly samples 3 balanced, non-repeating puzzles across ratings 850 to 1750:
+Instead of static quizzes, `/diagnose` dynamically samples 3 balanced, non-repeating puzzles across ratings 850 to 1750:
 1. **Opening Benchmark**: Légal's Counter-Trap (850)
 2. **Central Fork**: Double-Threat Geometry (950)
 3. **Corridor Benchmark**: Back-Rank Overload Decoy (1100)
@@ -69,12 +77,34 @@ Instead of static tests, `/diagnose` randomly samples 3 balanced, non-repeating 
 
 ---
 
-## ⚡ Lichess OAuth 2.0 Integration & Smart Calibration
+## 🔍 Weakness Studio (`/weakness`) & In-Arena Blunder Trainer
 
-* **Seamless Connection**: Secure PKCE OAuth 2.0 flow connecting directly to [Lichess.org](https://lichess.org).
-* **Live Stats Sync**: Syncs username, profile avatar, and live Rapid & Blitz ratings.
-* **Smart Tier Auto-Recommendation**: When connected, ChessZ reads your live rating and places a golden badge on your optimal tier:
-  `Recommended for @username (1420 Rapid)`.
+### 1. Dual-Mode Lichess Game Streaming
+- Direct client-side streaming reader (`lib/lichessStream.ts`) that fetches NDJSON from Lichess incrementally.
+- Automatic fallback proxy (`/api/lichess/games/stream`) with exponential backoff if browser CORS or rate limits occur.
+- Fast browser-side parsing extracts existing Lichess server evaluations (`[%eval +3.4]`) with 0ms server compute.
+
+### 2. 5-Pillar Blunder Classification
+Classifies real game mistakes into 5 skill-calibrated categories:
+1. **Hanging Pieces & Simple Tactics**: Unprotected pieces, undefended captures.
+2. **Threat Perception & Defense**: Overlooked checks, missed king attacks.
+3. **Calculation Depth & Complex Geometry**: Multi-ply combinations, clearance, deflections.
+4. **Opening Principles & Traps**: Moves $\le 10$, development negligence, uncastled king.
+5. **Endgame Conversion & Technique**: King activity, pawn breakthrough, technical rooks.
+
+### 3. Preceding Move Stepper (`BlunderCardItem`)
+Each blunder card provides an interactive move stepper (`◀` `▶` or step pills) that lets players walk through the preceding 2 moves (`setupMoves`) to see how the tactical crisis developed before attempting the fix.
+
+---
+
+## ⚡ Client-Side Stockfish 16 WASM & Auto-Reveal Eval Bar
+
+* **Zero Server Compute**: Multi-threaded Stockfish WASM running entirely in a background Web Worker.
+* **Auto-Reveal on Solved**: When a puzzle is solved, Stockfish immediately analyzes the position and displays:
+  * Canonical evaluation score (`+3.4`, `-1.2`, `Mate in 2`).
+  * Top 4-ply engine continuation line (`Top: Nf3 d5 d4 e6`).
+  * Green `WASM` engine badge.
+* **Clean Lifecycle**: Engine automatically stops (`stopAnalysis()`) when changing positions, avoiding memory leaks.
 
 ---
 
@@ -89,7 +119,6 @@ Instead of static tests, `/diagnose` randomly samples 3 balanced, non-repeating 
 * **King-in-Check Radial Glow**: Dynamic crimson pulse encircling the defending king when placed in check.
 * **Tactical Vector Arrows**: Right-click and drag to project calculation arrows.
 * **ChessBase 17 Exterior Bezel**: Outer coordinate rail keeping the 64 squares completely unobstructed.
-* **Settings & Help Modal**: Complete shortcuts guide accessible via the Settings icon.
 
 ---
 
@@ -105,15 +134,13 @@ Players can tailor the board to their preferred study environment via **Settings
   * **Liquid Chrome** (Y2K Molten Metallic)
   * **Neo-Arcade** (Streetwear Art Toy)
   * **Classic** (Standard FIDE Pro)
-* **Interactive Animations**:
-  * **Animated Red Hand**: Graphic hand that snatches captured pieces off the board.
-  * **Light / Dark Mode**: Instant contrast toggle.
+* **Light / Dark Mode**: Instant contrast toggle.
 
 ---
 
 ## 🔊 Zero-Latency Web Audio Synthesizer
 
-* Zero audio assets to fetch — generates sound on-the-fly using the native browser **Web Audio API**.
+* Zero audio assets to fetch — generates procedural audio on-the-fly using the native browser **Web Audio API**.
 * Wooden move clicks, deep capture strikes, refutation alarms, and victory arpeggios.
 * Header mute toggle synchronized to `localStorage`.
 
@@ -125,35 +152,36 @@ Players can tailor the board to their preferred study environment via **Settings
 | :--- | :--- | :--- |
 | **Framework** | Next.js 16 (App Router, Turbopack, React 19) | Vercel Hobby ($0/mo) |
 | **Styling** | Tailwind CSS v4 with custom `@theme` tokens | Vercel Edge ($0/mo) |
-| **Chess Engine** | `chess.js` & `react-chessboard` | Client-Side ($0/mo) |
+| **Chess Engine** | Stockfish 16 WASM + `chess.js` + `react-chessboard` | Client-Side ($0/mo) |
 | **Typography** | Space Grotesk + Inter + JetBrains Mono | Google Fonts CDN ($0/mo) |
 | **OAuth** | Lichess OAuth 2.0 PKCE (`/api/auth/lichess/*`) | Vercel Serverless ($0/mo) |
-| **Audio** | Web Audio API Synthesizer | Native Browser ($0/mo) |
-| **Icons** | Lucide React | Zero Cost ($0/mo) |
+| **Streaming** | Browser ReadableStream + NDJSON Parser | Client-Side ($0/mo) |
+| **Audio** | Native Web Audio API Procedural Synthesizer | Native Browser ($0/mo) |
+| **Icons** | Official Lichess 24x24 Vector + Lucide React | Zero Cost ($0/mo) |
 
 ---
 
-## 🚀 Local Development
+## 🧪 Testing & Quality Assurance
+
+ChessZ features an automated test suite verifying pure mathematical formulas, game parsing, phase detection, and edge-case boundary conditions:
 
 ```bash
-# Clone the repository
-git clone https://github.com/ajnassalimks-arch/chessz.git
-cd chessz/chessz-app
+# Run 30 automated tests
+npm test
 
-# Install dependencies
-npm install
+# Run TypeScript type check (0 errors required)
+npx tsc --noEmit
 
-# Start development server
-npm run dev
-```
-
-Visit `http://localhost:3000` in your browser.
-
-To run a production build:
-```bash
+# Run Next.js 16 production build
 npm run build
-npm run start
 ```
+
+---
+
+## 📖 AI Agent & Developer Guide
+
+For detailed technical specifications, state machines, math models, and architectural handoff instructions, see:
+👉 **[`ARCHITECTURE_AND_AGENT_GUIDE.md`](./ARCHITECTURE_AND_AGENT_GUIDE.md)**
 
 ---
 
