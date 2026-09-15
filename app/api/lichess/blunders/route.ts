@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     let username = searchParams.get('username')?.trim();
 
     const cookieStore = await cookies();
-    const token = cookieStore.get('lichess_token')?.value;
+    const token = cookieStore.get('chessz_lichess_token')?.value;
 
     const headers: Record<string, string> = {
       Accept: 'application/x-ndjson',
