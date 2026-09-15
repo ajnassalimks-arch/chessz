@@ -1411,7 +1411,7 @@ export default function Home() {
           {/* Dual Bento Action Cards */}
           <div className="w-full max-w-3xl grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
             {/* Card 1: 5-to-6 Trial Level Diagnostic */}
-            <div className="relative rounded-2xl p-4 sm:p-5 theme-surface theme-surface-hover shadow-md border border-[var(--border-subtle)] hover:border-[var(--border-focus)] transition-all flex flex-col justify-between">
+            <div className="relative rounded-2xl p-4 sm:p-5 theme-surface theme-surface-hover shadow-md border border-[var(--border-subtle)] hover:border-[var(--border-focus)] hover:-translate-y-1 hover:shadow-xl transition-all duration-200 flex flex-col justify-between group">
               <div>
                 <div className="flex items-center justify-between gap-2 mb-2">
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full theme-pill text-[10px] font-mono font-bold uppercase tracking-wider">
@@ -1469,7 +1469,7 @@ export default function Home() {
                 )}
                 <Link
                   href="/diagnose"
-                  className={`w-full ${savedDiagnosisProfile ? "sm:w-1/2" : "w-full"} py-2.5 px-4 rounded-xl theme-accent-btn font-bold text-xs tracking-wide flex items-center justify-center gap-1.5 shadow-sm hover:shadow-md transition cursor-pointer group`}
+                  className={`w-full ${savedDiagnosisProfile ? "sm:w-1/2" : "w-full"} py-2.5 px-4 rounded-xl theme-accent-btn font-bold text-xs tracking-wide flex items-center justify-center gap-1.5 shadow-md hover:shadow-lg hover:brightness-105 active:scale-[0.98] transition-all cursor-pointer group`}
                 >
                   <span>{savedDiagnosisProfile ? "Retake Test" : "Take The Test"}</span>
                   <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
@@ -1478,7 +1478,7 @@ export default function Home() {
             </div>
 
             {/* Card 2: Lichess Account & Blunder Studio */}
-            <div className="relative rounded-2xl p-4 sm:p-5 theme-surface theme-surface-hover shadow-md border border-[var(--border-subtle)] hover:border-[var(--border-focus)] transition-all flex flex-col justify-between">
+            <div className="relative rounded-2xl p-4 sm:p-5 theme-surface theme-surface-hover shadow-md border border-[var(--border-subtle)] hover:border-[var(--border-focus)] hover:-translate-y-1 hover:shadow-xl transition-all duration-200 flex flex-col justify-between group">
               <div>
                 <div className="flex items-center justify-between gap-2 mb-2">
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30 text-[10px] font-mono font-bold uppercase tracking-wider">
@@ -1522,14 +1522,14 @@ export default function Home() {
                   <>
                     <button
                       onClick={() => setShowWeaknessDashboard(true)}
-                      className="w-full sm:w-1/2 py-2.5 px-3 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 border border-rose-500/30 font-bold text-xs tracking-wide transition cursor-pointer flex items-center justify-center gap-1.5"
+                      className="w-full sm:w-1/2 py-2.5 px-3 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 border border-rose-500/30 font-bold text-xs tracking-wide transition cursor-pointer flex items-center justify-center gap-1.5 active:scale-95"
                     >
                       <Target className="w-3.5 h-3.5" />
                       <span>Practice My Blunders</span>
                     </button>
                     <button
                       onClick={() => setShowLichessModal(true)}
-                      className="w-full sm:w-1/2 py-2.5 px-3 rounded-xl theme-surface hover:theme-surface-subtle font-bold text-xs tracking-wide border transition cursor-pointer text-center"
+                      className="w-full sm:w-1/2 py-2.5 px-3 rounded-xl theme-surface hover:theme-surface-subtle font-bold text-xs tracking-wide border transition cursor-pointer text-center active:scale-95"
                     >
                       View Profile
                     </button>
@@ -1537,7 +1537,7 @@ export default function Home() {
                 ) : (
                   <button
                     onClick={() => setShowLichessModal(true)}
-                    className="w-full py-2.5 px-4 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/35 font-bold text-xs tracking-wide flex items-center justify-center gap-1.5 shadow-sm transition cursor-pointer active:scale-[0.98]"
+                    className="w-full py-2.5 px-4 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/35 font-bold text-xs tracking-wide flex items-center justify-center gap-1.5 shadow-md hover:shadow-lg transition cursor-pointer active:scale-[0.98]"
                   >
                     <LichessIcon className="w-3.5 h-3.5 text-amber-400" />
                     <span>Connect Lichess Account</span>
@@ -1562,9 +1562,9 @@ export default function Home() {
                 <button
                   key={lvl.id}
                   onClick={() => handleDirectTierSelect(lvl)}
-                  className="flex items-center gap-2 p-2.5 rounded-xl theme-surface theme-surface-hover border border-[var(--border-subtle)] hover:border-[var(--border-focus)] transition group cursor-pointer text-left shadow-2xs active:scale-[0.98]"
+                  className="flex items-center gap-2 p-2.5 rounded-xl theme-surface theme-surface-hover border border-[var(--border-subtle)] hover:border-[var(--border-focus)] hover:-translate-y-0.5 hover:shadow-md transition-all duration-150 group cursor-pointer text-left shadow-2xs active:scale-95"
                 >
-                  <span className="text-base select-none shrink-0">{lvl.pieceSymbol}</span>
+                  <span className="text-base select-none shrink-0 group-hover:scale-110 transition-transform">{lvl.pieceSymbol}</span>
                   <div className="overflow-hidden">
                     <span className="text-xs font-bold theme-text-primary block truncate">{lvl.title}</span>
                     <span className="text-[10px] font-mono theme-text-muted block truncate">
@@ -1592,7 +1592,7 @@ export default function Home() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               {/* Pillar 1 */}
-              <div className="p-3.5 rounded-2xl theme-surface-subtle border border-[var(--border-subtle)]">
+              <div className="p-3.5 rounded-2xl theme-surface-subtle border border-[var(--border-subtle)] hover:-translate-y-1 hover:shadow-md transition-all duration-200">
                 <div className="w-8 h-8 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center mb-2.5">
                   <Zap className="w-4 h-4" />
                 </div>
@@ -1605,7 +1605,7 @@ export default function Home() {
               </div>
 
               {/* Pillar 2 */}
-              <div className="p-3.5 rounded-2xl theme-surface-subtle border border-[var(--border-subtle)]">
+              <div className="p-3.5 rounded-2xl theme-surface-subtle border border-[var(--border-subtle)] hover:-translate-y-1 hover:shadow-md transition-all duration-200">
                 <div className="w-8 h-8 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center mb-2.5">
                   <Swords className="w-4 h-4" />
                 </div>
@@ -1618,7 +1618,7 @@ export default function Home() {
               </div>
 
               {/* Pillar 3 */}
-              <div className="p-3.5 rounded-2xl theme-surface-subtle border border-[var(--border-subtle)]">
+              <div className="p-3.5 rounded-2xl theme-surface-subtle border border-[var(--border-subtle)] hover:-translate-y-1 hover:shadow-md transition-all duration-200">
                 <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-2.5">
                   <Award className="w-4 h-4" />
                 </div>
