@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Chess } from "chess.js";
 import { Chessboard, defaultArrowOptions } from "react-chessboard";
@@ -56,8 +55,10 @@ import {
   Clock,
   Brain,
 } from "lucide-react";
+import { track } from "@vercel/analytics";
 import { useLichess } from "@/lib/useLichess";
 import { LichessModal, LichessIcon } from "@/components/LichessModal";
+import { ChessZMark } from "@/components/ChessZLogo";
 
 export default function DiagnosePage() {
   const router = useRouter();
@@ -342,10 +343,12 @@ export default function DiagnosePage() {
       }
     } catch {}
 
+    // Fresh run only -- a resumed session returns above and is not a new start.
     const quintet = getRandomDiagnosticQuintet();
     diagnosticQuintetRef.current = quintet;
     loadPuzzle(quintet[0]);
     persistDiagnosticSession(quintet, 0, [], 1250);
+    track("test_started");
   }, []);
 
   // Right-click annotation handler
@@ -1070,6 +1073,7 @@ export default function DiagnosePage() {
     const t3 = setTimeout(() => {
       setIsAnalyzing(false);
       setIsFinalScreen(true);
+      track("test_completed", { puzzleCount: attempts.length });
       try {
         sessionStorage.removeItem("chessz_diagnostic_session");
       } catch {}
@@ -1232,15 +1236,8 @@ export default function DiagnosePage() {
             className="flex items-center gap-2 cursor-pointer group"
             title="ChessZ Home"
           >
-            <div className="w-7 h-7 rounded-xl overflow-hidden shrink-0 border border-[var(--border-subtle)] shadow-xs bg-[#0b0f17] flex items-center justify-center group-hover:opacity-90 transition-opacity">
-              <Image
-                src="/logo-icon.png"
-                alt="ChessZ Logo"
-                width={28}
-                height={28}
-                className="w-full h-full object-cover"
-                priority
-              />
+            <div className="w-7 h-7 rounded-xl overflow-hidden shrink-0 shadow-xs flex items-center justify-center group-hover:opacity-90 transition-opacity">
+              <ChessZMark size={28} treatment="tight" className="w-full h-full" />
             </div>
             <span className="font-extrabold text-sm sm:text-base tracking-tight theme-text-primary font-display">
               ChessZ
@@ -1702,7 +1699,10 @@ export default function DiagnosePage() {
                   </span>
                 ) : (
                   <button
-                    onClick={() => setShowEloEstimate(true)}
+                    onClick={() => {
+                      setShowEloEstimate(true);
+                      track("elo_revealed");
+                    }}
                     className="text-[11px] font-mono theme-text-muted hover:theme-text-primary underline underline-offset-2 transition-colors cursor-pointer"
                   >
                     Show estimated Elo

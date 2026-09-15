@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { track } from '@vercel/analytics';
 import { LichessUser } from './lichess';
 
 const LOCAL_STORAGE_KEY = 'chessz_lichess_user_cache';
@@ -77,6 +78,9 @@ export function useLichess() {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       if (params.get('lichess_connected') === '1') {
+        // Fires once per OAuth return; the param is stripped just below, and a
+        // plain mount (cookie rehydration) never reaches here.
+        track('lichess_connected');
         fetchSession(true);
         // Clean URL query params cleanly without reloading
         const url = new URL(window.location.href);
@@ -128,6 +132,7 @@ export function useLichess() {
           try {
             localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data.user));
           } catch {}
+          track('lichess_connected');
           return true;
         }
       }

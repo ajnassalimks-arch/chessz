@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { Chess } from "chess.js";
 import { Chessboard, defaultArrowOptions } from "react-chessboard";
 import { ChessboardFrame } from "@/components/ChessboardFrame";
@@ -44,6 +43,7 @@ import {
 } from "@/lib/puzzles";
 import { sounds } from "@/lib/sounds";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { ChessZMark } from "@/components/ChessZLogo";
 import { THEME_BOARD_COLORS, ThemePalette, ThemeMode } from "@/components/ThemeSwitcher";
 import { SettingsModal } from "@/components/SettingsModal";
 import { getPieceSet, PieceSetStyle } from "@/components/pieces/PieceSets2D";
@@ -1016,15 +1016,8 @@ export default function Home() {
             className="flex items-center gap-2 cursor-pointer group text-left"
             title="ChessZ Home"
           >
-            <div className="w-7 h-7 rounded-xl overflow-hidden shrink-0 border border-[var(--border-subtle)] shadow-xs bg-[#0b0f17] flex items-center justify-center group-hover:opacity-90 transition-opacity">
-              <Image
-                src="/logo-icon.png"
-                alt="ChessZ Logo"
-                width={28}
-                height={28}
-                className="w-full h-full object-cover"
-                priority
-              />
+            <div className="w-7 h-7 rounded-xl overflow-hidden shrink-0 shadow-xs flex items-center justify-center group-hover:opacity-90 transition-opacity">
+              <ChessZMark size={28} treatment="tight" className="w-full h-full" />
             </div>
             <span className="font-extrabold text-sm sm:text-base tracking-tight theme-text-primary font-display">
               ChessZ

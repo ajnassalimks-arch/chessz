@@ -1,0 +1,9 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ChessZ">
+  <title>ChessZ</title>
+  <!-- App icon, solid. Ink tile, bone Z, amber critical block. Tight treatment. -->
+  <rect width="64" height="64" rx="9" fill="#14202B"/>
+  <rect x="21" y="10" width="33" height="11" rx="2" fill="#F4F1EA"/>
+  <rect x="32" y="21" width="11" height="11" fill="#F4F1EA"/>
+  <rect x="21" y="32" width="11" height="11" fill="#E8A33D"/>
+  <rect x="10" y="43" width="33" height="11" rx="2" fill="#F4F1EA"/>
+</svg>
