@@ -1387,196 +1387,260 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Screen 1: Tier Selection & Diagnostic Entry */}
+      {/* Screen 1: Redesigned High-Authority Landing Screen */}
       {!selectedLevel && !isQuizActive && !showDiagnosisModal ? (
         <section className="flex-1 flex flex-col items-center justify-start max-w-md md:max-w-4xl mx-auto w-full pt-1 pb-6 md:pb-8">
-          {/* Lichess Connected Banner (if logged in) */}
-          {lichessUser && (
-            <button
-              onClick={() => setShowLichessModal(true)}
-              className="inline-flex items-center gap-2 text-xs font-mono px-3.5 py-1.5 rounded-full mb-3 border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/15 transition cursor-pointer text-amber-300 shadow-xs"
-            >
-              <LichessIcon className="w-3.5 h-3.5 text-amber-400" />
-              <span>
-                Connected as <strong className="text-white font-bold">@{lichessUser.username}</strong>
-                {lichessUser.perfs?.rapid?.rating ? ` • Rapid ${lichessUser.perfs.rapid.rating}` : ""}
-              </span>
-              <span className="text-[10px] uppercase font-sans font-semibold underline underline-offset-2 ml-0.5 opacity-80">
-                View Profile
-              </span>
-            </button>
-          )}
-
-          {/* Category Eyebrow */}
-          <div className="inline-flex items-center gap-2 text-[11px] font-mono tracking-wide theme-pill px-3 py-1 rounded-full mb-3 shadow-xs">
-            <Award className="w-3.5 h-3.5 text-[var(--accent-primary)]" />
-            <span>Coach-Verified Training • Find Your True Level</span>
+          {/* Eyebrow Pill */}
+          <div className="inline-flex items-center gap-2 text-[11px] font-mono tracking-wide theme-pill px-3.5 py-1 rounded-full mb-3 shadow-xs">
+            <Sparkles className="w-3.5 h-3.5 text-[var(--accent-primary)] animate-pulse" />
+            <span>✨ The vibe check for your chess rating</span>
           </div>
 
           {/* Grandmaster Authority Headline */}
-          <div className="relative text-center mb-5 max-w-2xl mx-auto">
-            {/* Soft Ambient Hero Glow */}
+          <div className="relative text-center mb-6 max-w-2xl mx-auto">
             <div className="absolute -top-8 left-1/2 -translate-x-1/2 w-96 h-32 bg-[var(--accent-primary)]/10 rounded-full blur-3xl pointer-events-none -z-10" />
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-[40px] font-extrabold tracking-tight theme-text-primary leading-[1.18] mb-2 font-display">
-              Master Your Calculation. <br className="hidden sm:inline" />
-              <span className="text-[var(--accent-primary)]">Eliminate Your Blindspots.</span>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-[42px] font-extrabold tracking-tight theme-text-primary leading-[1.15] mb-2.5 font-display">
+              Stop Throwing Won Games. <br className="hidden sm:inline" />
+              <span className="text-[var(--accent-primary)]">Find Your Real Chess Leaks.</span>
             </h1>
-            <p className="theme-text-secondary text-xs sm:text-sm max-w-lg mx-auto leading-relaxed">
-              Test your tactical vision, discover the hidden mistakes holding you back, and train with positions calibrated to your real skill level.
+            <p className="theme-text-secondary text-xs sm:text-sm max-w-xl mx-auto leading-relaxed">
+              Grinding random puzzles won't stop you from hanging pieces at move 15. ChessZ tests how you actually think under pressure—your speed, confidence, and blindspots—then gives you drills to level up fast.
             </p>
           </div>
 
-          {/* Action 1: The Level Diagnosis Benchmark Bento Hero Card */}
-          <div className="w-full max-w-3xl mb-3">
-            <div className="relative rounded-2xl p-4 sm:p-5 theme-surface theme-surface-hover shadow-md overflow-hidden group border border-[var(--border-subtle)] hover:border-[var(--border-focus)] transition-all">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 relative z-10">
-                <div className="flex items-start gap-3.5">
-                  <div className="w-11 h-11 rounded-2xl bg-linear-to-br from-[var(--accent-subtle)] to-[var(--surface-muted)] border border-[var(--border-focus)] flex items-center justify-center shrink-0 shadow-sm text-[var(--accent-primary)]">
-                    <Sparkles className="w-5 h-5 animate-pulse" />
+          {/* Dual Bento Action Cards */}
+          <div className="w-full max-w-3xl grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+            {/* Card 1: 5-to-6 Trial Level Diagnostic */}
+            <div className="relative rounded-2xl p-4 sm:p-5 theme-surface theme-surface-hover shadow-md border border-[var(--border-subtle)] hover:border-[var(--border-focus)] transition-all flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full theme-pill text-[10px] font-mono font-bold uppercase tracking-wider">
+                    <Sparkles className="w-3 h-3 text-[var(--accent-primary)]" />
+                    <span>5-Move Vibe Check</span>
                   </div>
-                  <div>
-                    <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full theme-pill text-[10px] font-mono font-bold uppercase tracking-wider mb-1.5">
-                      <span>3-Puzzle Quick Test</span>
-                      <span>•</span>
-                      <span>~2.5 Minutes</span>
-                    </div>
-                    <h3 className="text-base sm:text-lg font-extrabold theme-text-primary tracking-tight">
-                      Test Your Real Chess Level
-                    </h3>
-                    <p className="text-xs theme-text-secondary mt-0.5 max-w-lg leading-relaxed">
-                      Play 3 test positions to see how fast you calculate, check your confidence on critical moves, and find your real rating.
-                    </p>
-
-                    {/* Telemetry Micro-Pills */}
-                    <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-md theme-surface-subtle border text-sky-400 font-semibold flex items-center gap-1">
-                        ⚡ Thinking Speed
-                      </span>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-md theme-surface-subtle border text-amber-400 font-semibold flex items-center gap-1">
-                        🧠 Confidence Check
-                      </span>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-md theme-surface-subtle border text-emerald-400 font-semibold flex items-center gap-1">
-                        🎯 Estimated Rating
-                      </span>
-                    </div>
-
-                    {savedDiagnosisProfile && (
-                      <div className="mt-2.5 flex flex-wrap items-center gap-2 text-[11px] font-mono">
-                        <span className="px-2 py-0.5 rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold">
-                          ✓ Diagnosed: {savedDiagnosisProfile.finalLevel}
-                        </span>
-                        <span className="theme-text-muted">
-                          Pattern: {savedDiagnosisProfile.behavioralPattern}
-                        </span>
-                      </div>
-                    )}
-                  </div>
+                  <span className="text-[10px] font-mono theme-text-muted">~2.5 Mins</span>
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto shrink-0 pt-1 sm:pt-0">
-                  {savedDiagnosisProfile && (
-                    <button
-                      onClick={() => {
-                        const targetLevel =
-                          LEVEL_OPTIONS.find((l) => l.id === savedDiagnosisProfile.tierId) ||
-                          LEVEL_OPTIONS[2];
-                        handleStartDiagnosedTraining(savedDiagnosisProfile, targetLevel);
-                      }}
-                      className="w-full sm:w-auto px-4 py-2.5 rounded-xl theme-surface hover:theme-surface-subtle font-bold text-xs sm:text-sm tracking-wide border transition cursor-pointer"
-                    >
-                      <span>Start Training</span>
-                    </button>
-                  )}
-                  <Link
-                    href="/diagnose"
-                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl theme-accent-btn font-bold text-xs sm:text-sm tracking-wide flex items-center justify-center gap-2 shadow-sm hover:shadow-md transition-all duration-150 active:scale-[0.98] cursor-pointer group"
+                <h3 className="text-base sm:text-lg font-extrabold theme-text-primary tracking-tight mb-1">
+                  Find Your Real Elo
+                </h3>
+                <p className="text-xs theme-text-secondary leading-relaxed mb-3">
+                  Play 5 quick benchmark positions. We test your speed, confidence, and tactical vision to uncover your true rating—from rookie to chess demon.
+                </p>
+
+                {/* Telemetry Micro-Pills */}
+                <div className="flex flex-wrap items-center gap-1.5 mb-3">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-md theme-surface-subtle border text-sky-400 font-semibold">
+                    ⚡ Speed Test
+                  </span>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-md theme-surface-subtle border text-amber-400 font-semibold">
+                    🎯 Bluff or Sure?
+                  </span>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-md theme-surface-subtle border text-purple-400 font-semibold">
+                    👑 Boss Level (2150+)
+                  </span>
+                </div>
+
+                {savedDiagnosisProfile && (
+                  <div className="mb-3 p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-[11px] font-mono flex items-center justify-between">
+                    <span className="font-bold text-emerald-400">
+                      ✓ Diagnosed: {savedDiagnosisProfile.finalLevel} (~{savedDiagnosisProfile.finalElo} Elo)
+                    </span>
+                    <span className="text-[10px] theme-text-muted">
+                      {savedDiagnosisProfile.behavioralPattern}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-2 flex flex-col sm:flex-row items-center gap-2">
+                {savedDiagnosisProfile && (
+                  <button
+                    onClick={() => {
+                      const targetLevel =
+                        LEVEL_OPTIONS.find((l) => l.id === savedDiagnosisProfile.tierId) ||
+                        LEVEL_OPTIONS[2];
+                      handleStartDiagnosedTraining(savedDiagnosisProfile, targetLevel);
+                    }}
+                    className="w-full sm:w-1/2 py-2.5 px-3 rounded-xl theme-surface hover:theme-surface-subtle font-bold text-xs tracking-wide border transition cursor-pointer text-center"
                   >
-                    <span>{savedDiagnosisProfile ? "Retake Diagnosis" : "Start Level Diagnosis"}</span>
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </Link>
+                    Resume Training
+                  </button>
+                )}
+                <Link
+                  href="/diagnose"
+                  className={`w-full ${savedDiagnosisProfile ? "sm:w-1/2" : "w-full"} py-2.5 px-4 rounded-xl theme-accent-btn font-bold text-xs tracking-wide flex items-center justify-center gap-1.5 shadow-sm hover:shadow-md transition cursor-pointer group`}
+                >
+                  <span>{savedDiagnosisProfile ? "Retake Test" : "Take The Test"}</span>
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              </div>
+            </div>
+
+            {/* Card 2: Lichess Account & Blunder Studio */}
+            <div className="relative rounded-2xl p-4 sm:p-5 theme-surface theme-surface-hover shadow-md border border-[var(--border-subtle)] hover:border-[var(--border-focus)] transition-all flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30 text-[10px] font-mono font-bold uppercase tracking-wider">
+                    <LichessIcon className="w-3 h-3 text-amber-400" />
+                    <span>Lichess Sync</span>
+                  </div>
+                  <span className="text-[10px] font-mono text-emerald-400 font-semibold">1-Click Sync</span>
                 </div>
+
+                <h3 className="text-base sm:text-lg font-extrabold theme-text-primary tracking-tight mb-1">
+                  Turn Your Blunders Into XP
+                </h3>
+                <p className="text-xs theme-text-secondary leading-relaxed mb-3">
+                  Connect Lichess to automatically scan the real games where you threw, and turn your exact mistakes into custom practice puzzles.
+                </p>
+
+                {lichessUser ? (
+                  <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 mb-3 flex items-center justify-between text-xs font-mono">
+                    <div className="flex items-center gap-2">
+                      <LichessIcon className="w-4 h-4 text-amber-400" />
+                      <span className="font-bold theme-text-primary">@{lichessUser.username}</span>
+                    </div>
+                    <span className="text-[11px] px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 font-bold">
+                      Rapid: {lichessUser.perfs?.rapid?.rating || lichessUser.perfs?.blitz?.rating || "Synced"}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap items-center gap-1.5 mb-3">
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-md theme-surface-subtle border theme-text-muted">
+                      ✓ Syncs Your Live Rating
+                    </span>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-md theme-surface-subtle border theme-text-muted">
+                      ✓ Practice Real Games You Lost
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-2 flex flex-col sm:flex-row items-center gap-2">
+                {lichessUser ? (
+                  <>
+                    <button
+                      onClick={() => setShowWeaknessDashboard(true)}
+                      className="w-full sm:w-1/2 py-2.5 px-3 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 border border-rose-500/30 font-bold text-xs tracking-wide transition cursor-pointer flex items-center justify-center gap-1.5"
+                    >
+                      <Target className="w-3.5 h-3.5" />
+                      <span>Practice My Blunders</span>
+                    </button>
+                    <button
+                      onClick={() => setShowLichessModal(true)}
+                      className="w-full sm:w-1/2 py-2.5 px-3 rounded-xl theme-surface hover:theme-surface-subtle font-bold text-xs tracking-wide border transition cursor-pointer text-center"
+                    >
+                      View Profile
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={() => setShowLichessModal(true)}
+                    className="w-full py-2.5 px-4 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/35 font-bold text-xs tracking-wide flex items-center justify-center gap-1.5 shadow-sm transition cursor-pointer active:scale-[0.98]"
+                  >
+                    <LichessIcon className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Connect Lichess Account</span>
+                  </button>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Action 2: Direct Tier Selection (Skip Diagnostic) */}
-          <div className="w-full max-w-3xl mb-2">
+          {/* Compact Direct Practice Bar (Replaces the 4 Giant Cluttered Boxes) */}
+          <div className="w-full max-w-3xl mb-5">
             <div className="flex items-center gap-3 my-2 text-zinc-400">
               <div className="flex-1 h-px bg-[var(--border-subtle)]" />
               <span className="text-[10px] uppercase tracking-widest font-semibold theme-text-muted font-mono">
-                Or Select Tier Directly
+                Or Pick Your Lobby
               </span>
               <div className="flex-1 h-px bg-[var(--border-subtle)]" />
             </div>
 
-            <div className="flex items-center justify-between text-xs theme-text-secondary px-1 mb-2 font-medium">
-              <span className="font-mono text-[11px] hidden sm:inline">Select your rating bracket for direct tactical training:</span>
-              <span className="font-mono text-[11px] sm:hidden">Select rating bracket:</span>
-              <span className="text-[var(--accent-primary)] font-mono text-[11px] font-semibold shrink-0">Immediate Practice</span>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {LEVEL_OPTIONS.map((lvl) => (
+                <button
+                  key={lvl.id}
+                  onClick={() => handleDirectTierSelect(lvl)}
+                  className="flex items-center gap-2 p-2.5 rounded-xl theme-surface theme-surface-hover border border-[var(--border-subtle)] hover:border-[var(--border-focus)] transition group cursor-pointer text-left shadow-2xs active:scale-[0.98]"
+                >
+                  <span className="text-base select-none shrink-0">{lvl.pieceSymbol}</span>
+                  <div className="overflow-hidden">
+                    <span className="text-xs font-bold theme-text-primary block truncate">{lvl.title}</span>
+                    <span className="text-[10px] font-mono theme-text-muted block truncate">
+                      {lvl.chessComRange}
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* "Why ChessZ?" — The 3 Pillars Section */}
+          <div className="w-full max-w-3xl my-3 p-4 sm:p-5 rounded-3xl theme-surface border border-[var(--border-subtle)] shadow-sm">
+            <div className="text-center mb-4">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[var(--accent-primary)] block mb-1">
+                Why ChessZ Hits Different
+              </span>
+              <h2 className="text-base sm:text-lg md:text-xl font-extrabold theme-text-primary font-display">
+                Endless random puzzles are an L.
+              </h2>
+              <p className="text-xs theme-text-secondary max-w-md mx-auto mt-1 leading-relaxed">
+                Memorizing 12-move queen sacrifices won't help when you hang rooks in rapid. Here's how ChessZ actually helps you climb:
+              </p>
             </div>
 
-            <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-2.5">
-              {LEVEL_OPTIONS.map((lvl, idx) => {
-                const isRecommended = lvl.id === recommendedTierId;
-                return (
-                  <button
-                    key={lvl.id}
-                    onClick={() => handleDirectTierSelect(lvl)}
-                    style={{ animationDelay: `${idx * 60}ms` }}
-                    className={`group relative w-full text-left p-3 rounded-2xl theme-surface theme-surface-hover animate-card-entrance cursor-pointer ${
-                      isRecommended
-                        ? "ring-2 ring-amber-500/70 border-amber-500/40 bg-amber-500/[0.03] shadow-md"
-                        : ""
-                    }`}
-                  >
-                    {isRecommended && (
-                      <div className="absolute -top-2.5 right-3 flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-linear-to-r from-amber-500 to-amber-600 text-neutral-950 text-[10px] font-extrabold shadow-md z-20 font-display">
-                        <Sparkles className="w-2.5 h-2.5 fill-current" />
-                        <span>Recommended for @{lichessUser?.username} ({lichessRating})</span>
-                      </div>
-                    )}
-                    <div className="flex items-start justify-between mb-1">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl theme-surface-subtle flex items-center justify-center text-base font-bold select-none shrink-0">
-                          {lvl.pieceSymbol}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2 mb-0.5">
-                            <span className="font-bold theme-text-primary text-sm sm:text-base">{lvl.title}</span>
-                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full theme-surface-subtle theme-text-secondary font-mono">
-                              {lvl.chessComRange}
-                            </span>
-                          </div>
-                          <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-mono">
-                            <span className="px-1.5 py-0.5 rounded theme-surface-subtle theme-text-muted">
-                              Lichess: {lvl.lichessRange}
-                            </span>
-                            {lvl.fideRange && (
-                              <span className="px-1.5 py-0.5 rounded theme-pill font-medium">
-                                FIDE: {lvl.fideRange}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <ChevronRight className="w-4 h-4 theme-text-muted group-hover:theme-text-primary transition group-hover:translate-x-0.5" />
-                    </div>
-                    <p className="text-xs theme-text-secondary pl-10">
-                      {lvl.desc}
-                    </p>
-                  </button>
-                );
-              })}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {/* Pillar 1 */}
+              <div className="p-3.5 rounded-2xl theme-surface-subtle border border-[var(--border-subtle)]">
+                <div className="w-8 h-8 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center mb-2.5">
+                  <Zap className="w-4 h-4" />
+                </div>
+                <h3 className="text-xs font-bold theme-text-primary uppercase tracking-wide mb-1 font-display">
+                  1. Speed & Bluff Check
+                </h3>
+                <p className="text-[11px] theme-text-secondary leading-relaxed">
+                  Did you calculate it or did you panic-guess? We track hesitation and confidence so you stop bluffing yourself.
+                </p>
+              </div>
+
+              {/* Pillar 2 */}
+              <div className="p-3.5 rounded-2xl theme-surface-subtle border border-[var(--border-subtle)]">
+                <div className="w-8 h-8 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center mb-2.5">
+                  <Swords className="w-4 h-4" />
+                </div>
+                <h3 className="text-xs font-bold theme-text-primary uppercase tracking-wide mb-1 font-display">
+                  2. Computer Claps Back
+                </h3>
+                <p className="text-[11px] theme-text-secondary leading-relaxed">
+                  Ever wonder "why can't I just play this?" The engine immediately plays the winning counter-punch right on your board.
+                </p>
+              </div>
+
+              {/* Pillar 3 */}
+              <div className="p-3.5 rounded-2xl theme-surface-subtle border border-[var(--border-subtle)]">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-2.5">
+                  <Award className="w-4 h-4" />
+                </div>
+                <h3 className="text-xs font-bold theme-text-primary uppercase tracking-wide mb-1 font-display">
+                  3. Cheat Codes That Stick
+                </h3>
+                <p className="text-[11px] theme-text-secondary leading-relaxed">
+                  No boring 500-page opening manuals. Just sticky rules like *The 2-Second Bodyguard Rule* to stop gifting free elo.
+                </p>
+              </div>
             </div>
           </div>
 
           {/* Clear Human-Friendly Trust Markers */}
-          <div className="mt-1 md:mt-2 flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-[11px] theme-text-secondary theme-surface px-4 py-1.5 rounded-full border shadow-2xs font-mono">
-            <span className="font-semibold text-emerald-400">✓ Coach-Approved Training</span>
+          <div className="mt-2 flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-[11px] theme-text-secondary theme-surface px-4 py-1.5 rounded-full border shadow-2xs font-mono">
+            <span className="font-semibold text-emerald-400">✓ 100% Free Forever</span>
             <span className="hidden sm:inline theme-text-muted">•</span>
-            <span className="font-semibold text-[var(--accent-primary)]">✓ Sync with Lichess</span>
+            <span className="font-semibold text-[var(--accent-primary)]">✓ Built-In Engine</span>
             <span className="hidden sm:inline theme-text-muted">•</span>
-            <span className="theme-text-muted">Real Game Tactics</span>
+            <span className="font-semibold text-amber-400">✓ Lichess Connected</span>
+            <span className="hidden sm:inline theme-text-muted">•</span>
+            <span className="theme-text-muted">No Ads • Zero Paywalls</span>
           </div>
         </section>
       ) : isQuizActive && !showDiagnosisModal ? (

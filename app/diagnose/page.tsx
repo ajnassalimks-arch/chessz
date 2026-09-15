@@ -1191,15 +1191,15 @@ export default function DiagnosePage() {
             </div>
             <div className="text-center">
               <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-purple-400">
-                Elite Performance Unlocked
+                Master Challenge Unlocked
               </span>
               <h3 className="text-xl font-bold theme-text-primary mt-1">
-                Grandmaster Crucible
+                Master Level Challenge
               </h3>
               <p className="text-xs theme-text-secondary mt-2 leading-relaxed">
-                You solved all 5 diagnostic trials flawlessly and reached{" "}
+                You solved all 5 puzzles cleanly and reached{" "}
                 <strong className="theme-text-primary font-bold">~{currentRating} Elo</strong>.
-                Take on the <strong className="text-purple-400 font-bold">Grandmaster Crucible (2150+ Elo)</strong> to test if your tactical depth breaks past the 2000 ceiling into Master level, or finalize your diagnosis now.
+                Take on the <strong className="text-purple-400 font-bold">Master Challenge (2150+ Elo)</strong> to see if you can break into Master level, or view your rating now.
               </p>
             </div>
             <div className="space-y-2 pt-2">
@@ -1207,7 +1207,7 @@ export default function DiagnosePage() {
                 onClick={startCrucibleTrial}
                 className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
               >
-                <span>Enter Grandmaster Crucible (Trial 6)</span>
+                <span>Take the Master Challenge (Puzzle 6)</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
               <button
@@ -1217,7 +1217,7 @@ export default function DiagnosePage() {
                 }}
                 className="w-full py-2.5 px-4 rounded-xl theme-surface-subtle hover:bg-[var(--surface-muted)] text-xs font-semibold theme-text-secondary border transition cursor-pointer"
               >
-                Finish & View Final Diagnosis (~{currentRating} Elo)
+                Finish & View Rating (~{currentRating} Elo)
               </button>
             </div>
           </div>
@@ -1246,7 +1246,7 @@ export default function DiagnosePage() {
           </span>
           <div className="flex items-center gap-1.5 ml-2 px-2.5 py-0.5 rounded-full text-[11px] font-medium theme-pill">
             <Sparkles className="w-3 h-3 text-[var(--accent-primary)] animate-pulse" />
-            <span>Level Diagnosis Benchmark</span>
+            <span>Skill Test</span>
           </div>
         </div>
 
@@ -1430,14 +1430,14 @@ export default function DiagnosePage() {
                 </div>
                 <span className="text-[11px] font-mono theme-text-muted">
                   {puzzleIndex === 0
-                    ? "Opening Radar Benchmark"
+                    ? "Opening Traps & Awareness"
                     : puzzleIndex === 1
-                    ? "Tactical Geometry Benchmark"
+                    ? "Tactical Patterns"
                     : puzzleIndex === 2 && hasBookMemoryFlag
-                    ? "Novelty Crucible (Calculation Check)"
+                    ? "Fresh Position (Pure Calculation)"
                     : puzzleIndex === 5
-                    ? "Grandmaster Crucible (Title Test)"
-                    : `Adaptive Calibration`}
+                    ? "Master Challenge"
+                    : `Skill Test`}
                 </span>
               </div>
 
@@ -1560,7 +1560,7 @@ export default function DiagnosePage() {
 
             {/* The 3 Real Data Telemetry Cards */}
             <div className="space-y-2.5 mb-5 font-mono text-xs">
-              {/* Telemetry 1: Real Seconds Per Move */}
+              {/* Real Data Card 1: Real Seconds Per Move */}
               <div className={`p-3 rounded-xl border transition-all duration-300 ${
                 analyzingPhase >= 0
                   ? "theme-surface border-[var(--border-focus)] shadow-xs"
@@ -1569,7 +1569,7 @@ export default function DiagnosePage() {
                 <div className="flex items-center justify-between text-[11px] mb-1.5">
                   <span className="font-bold flex items-center gap-1.5 theme-text-primary">
                     <Clock className="w-3.5 h-3.5 text-sky-500" />
-                    <span>Decision Velocity</span>
+                    <span>Thinking Speed</span>
                   </span>
                   <span className="theme-text-muted">
                     Total: {((attempts.reduce((acc, a) => acc + (a.timeMs || 4000), 0)) / 1000).toFixed(1)}s
@@ -1587,7 +1587,7 @@ export default function DiagnosePage() {
                 </div>
               </div>
 
-              {/* Telemetry 2: Conviction & Self-Trust */}
+              {/* Real Data Card 2: Confidence & Intuition */}
               <div className={`p-3 rounded-xl border transition-all duration-300 ${
                 analyzingPhase >= 1
                   ? "theme-surface border-[var(--border-focus)] shadow-xs"
@@ -1596,14 +1596,14 @@ export default function DiagnosePage() {
                 <div className="flex items-center justify-between text-[11px] mb-1.5">
                   <span className="font-bold flex items-center gap-1.5 theme-text-primary">
                     <Zap className="w-3.5 h-3.5 text-amber-500" />
-                    <span>Conviction Architecture</span>
+                    <span>Confidence & Intuition</span>
                   </span>
                   <span className="text-emerald-600 dark:text-emerald-400 font-bold">
                     {detectedPattern.patternName}
                   </span>
                 </div>
                 <div className="text-[11px] theme-text-secondary leading-snug">
-                  Commitment profile:{" "}
+                  Your confidence:{" "}
                   {attempts.slice(2).filter((a) => a.commitment).length > 0 ? (
                     attempts
                       .slice(2)
@@ -1614,12 +1614,12 @@ export default function DiagnosePage() {
                         </span>
                       ))
                   ) : (
-                    <span>Direct Tactical Intuition across trials</span>
+                    <span>Fast intuition across all moves</span>
                   )}
                 </div>
               </div>
 
-              {/* Telemetry 3: Animated Rating Convergence */}
+              {/* Real Data Card 3: Rating Calculation */}
               <div className={`p-3 rounded-xl border transition-all duration-300 ${
                 analyzingPhase >= 2
                   ? "theme-surface border-[var(--border-focus)] shadow-xs"
@@ -1628,16 +1628,16 @@ export default function DiagnosePage() {
                 <div className="flex items-center justify-between text-[11px]">
                   <span className="font-bold flex items-center gap-1.5 theme-text-primary">
                     <Target className="w-3.5 h-3.5 text-rose-500" />
-                    <span>Dynamic Rating Calibrator</span>
+                    <span>Calculating Rating</span>
                   </span>
                   <span className="text-base font-extrabold text-[var(--accent-primary)] font-mono">
                     ~{displayElo} Elo
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-[10px] theme-text-muted mt-1">
-                  <span>Base: 1250 (Progressive K)</span>
+                  <span>Starting: 1250</span>
                   <span className="font-semibold theme-text-primary">
-                    Calibrated: {currentLevelInfo.levelName}
+                    Level: {currentLevelInfo.levelName}
                   </span>
                 </div>
               </div>
@@ -1646,7 +1646,7 @@ export default function DiagnosePage() {
             {/* Bottom Status Ticker */}
             <div className="text-center text-[11px] font-mono theme-text-muted flex items-center justify-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-              <span>Synthesizing personalized training playlist...</span>
+              <span>Building your custom practice plan...</span>
             </div>
           </div>
         </section>
@@ -1661,7 +1661,7 @@ export default function DiagnosePage() {
                 <span>Level Diagnosis Complete</span>
               </div>
               <span className="text-[10px] font-mono theme-text-muted px-2 py-0.5 rounded-full theme-surface-subtle border">
-                {isCrucibleActive ? "6-Trial GM Benchmark" : "5-Puzzle Benchmark"}
+                {isCrucibleActive ? "6-Puzzle Master Test" : "5-Puzzle Skill Test"}
               </span>
             </div>
 
@@ -1690,17 +1690,17 @@ export default function DiagnosePage() {
                 )}
               </div>
 
-              {/* Cognitive Verification & Crucible Badges */}
+              {/* Calculation & Master Badges */}
               {(noveltyVerified || isCrucibleActive) && (
                 <div className="mt-2.5 flex flex-wrap items-center justify-center gap-2">
                   {noveltyVerified && (
                     <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
-                      <span>✓</span> Novelty Verified (Pure Calculation)
+                      <span>✓</span> Calculation Verified (Not Memorized)
                     </span>
                   )}
                   {isCrucibleActive && (
                     <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30 flex items-center gap-1">
-                      <span>👑</span> Grandmaster Crucible Tested
+                      <span>👑</span> Master Challenge Tested
                     </span>
                   )}
                 </div>
@@ -1711,7 +1711,7 @@ export default function DiagnosePage() {
             <div className="theme-surface-subtle border border-[var(--border-focus)] rounded-2xl p-4 my-3">
               <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[var(--accent-primary)] mb-1">
                 <Award className="w-4 h-4" />
-                <span>Behavioral Pattern: {detectedPattern.patternName}</span>
+                <span>Playing Style: {detectedPattern.patternName}</span>
               </div>
               <p className="text-xs sm:text-sm theme-text-primary italic mt-1 leading-relaxed">
                 "{detectedPattern.insight}"
@@ -1731,7 +1731,7 @@ export default function DiagnosePage() {
 
               <div className="p-3 rounded-2xl theme-surface border">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-amber-500 block mb-1">
-                  Target Weakness
+                  Area to Improve
                 </span>
                 <span className="text-xs font-semibold theme-text-primary leading-tight block">
                   {detectedPattern.weakness}
@@ -1739,13 +1739,13 @@ export default function DiagnosePage() {
               </div>
             </div>
 
-            {/* Lichess Benchmark & Cross-Platform Calibration Card */}
+            {/* Lichess Benchmark & Cross-Platform Comparison Card */}
             <div className="p-3.5 rounded-2xl theme-surface border border-[var(--border-subtle)] my-3">
               <div className="flex items-center justify-between gap-2 mb-2">
                 <div className="flex items-center gap-2">
                   <LichessIcon className="w-4 h-4 text-amber-400" />
                   <span className="text-xs font-bold font-mono tracking-tight theme-text-primary">
-                    Lichess Rating Calibration
+                    Lichess Rating Comparison
                   </span>
                 </div>
                 {lichessUser ? (
