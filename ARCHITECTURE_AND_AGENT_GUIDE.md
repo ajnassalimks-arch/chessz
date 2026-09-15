@@ -9,10 +9,10 @@
 **ChessZ** is an open-source, zero-paywall chess training platform built to disrupt traditional commercial chess apps (which limit free users to 3 puzzles/day or charge ₹1,500–₹10,000/year for premium features).
 
 ### Core Differentiators
-1. **100% Free Tactical Arena**: Unlimited curated tactical puzzles across 5 skill tiers (Beginner to Grandmaster).
-2. **Interactive 3-Puzzle Diagnostic Benchmark (`/diagnose`)**: Calibrates accurate Elo in under 3 minutes using millisecond move telemetry, psychological conviction tracking (*"Sure"*, *"Think so"*, *"Guessing"*), and behavioral archetypes.
-3. **Weakness Studio (`/weakness`) & Blunder Trainer**: Connects to any player's Lichess account (via OAuth PKCE or public username) to stream and parse their recent games, extract exact blunder positions where they threw, and categorize them into 5 actionable pedagogical pillars.
-4. **Client-Side Stockfish 16 WASM**: Multi-threaded in-browser engine running with 0ms server latency and $0/mo server compute cost. Auto-reveals real-time evaluation and top 4 continuation moves upon puzzle completion.
+1. **100% Free Tactical Arena**: Unlimited curated tactical puzzles across 4 skill tiers (Beginner to Advanced).
+2. **Interactive 5-Puzzle Diagnostic Benchmark (`/diagnose`)**: Calibrates accurate Elo in 5 trials (+1 optional Grandmaster Crucible) using millisecond move telemetry, psychological conviction tracking (*"Sure"*, *"Think so"*, *"Guessing"*), and behavioral archetypes.
+3. **Weakness Studio (`/weakness`) & Blunder Trainer**: Connects to any player's Lichess account (via OAuth PKCE or public username) to stream and parse their recent games, extract exact blunder positions, and categorize them into actionable pedagogical categories.
+4. **Client-Side Stockfish WASM**: Single-threaded in-browser engine running in a Web Worker with 0ms server latency and zero server compute cost. Auto-reveals real-time evaluation and top 4 continuation moves upon puzzle completion.
 5. **Tournament-Grade Board Engine**: `react-chessboard` + `chess.js` wrapped in a custom bezel (`ChessboardFrame.tsx`) with right-click tactical annotations, outside coordinates, check radial glow, and Web Audio API synthesized sounds.
 
 ---
@@ -22,57 +22,60 @@
 ```
 c:\ChessZ\chessz-app\
 ├── app/
+│   ├── _client.tsx            # Client component for Tactical Arena
 │   ├── api/
-│   │   ├── auth/lichess/          # Lichess OAuth 2.0 PKCE flow (login, callback, me, logout)
-│   │   ├── cron/keepalive/        # Vercel cron heartbeat for serverless warm-up
+│   │   ├── auth/lichess/      # Lichess OAuth 2.0 PKCE flow (login, callback, me, logout)
+│   │   ├── cron/keepalive/    # Vercel cron heartbeat for serverless warm-up
 │   │   └── lichess/
-│   │       ├── blunders/route.ts  # Extracts blunder puzzles with setupMoves from games
-│   │       ├── games/stream/      # Streaming NDJSON proxy with browser fallback
-│   │       └── user/validate/     # Lichess username lookup & validation
+│   │       ├── blunders/route.ts # Extracts blunder puzzles with setupMoves from games
+│   │       ├── games/stream/  # Streaming NDJSON proxy with browser fallback
+│   │       └── user/validate/ # Lichess username lookup & validation
 │   ├── diagnose/
-│   │   └── page.tsx               # 3-Puzzle diagnostic benchmark & cognitive dossier
+│   │   ├── _client.tsx        # 5-Puzzle diagnostic benchmark client component
+│   │   └── page.tsx           # Server component with route metadata & canonical link
 │   ├── weakness/
-│   │   └── page.tsx               # Standalone Weakness Studio deep analytics page
-│   ├── layout.tsx                 # Root layout with global metadata, fonts, and styles
-│   └── page.tsx                   # Main Tactical Arena, lobby, and curriculum trainer
+│   │   ├── _client.tsx        # Standalone Weakness Studio client component
+│   │   └── page.tsx           # Server component with indexable intro & metadata
+│   ├── layout.tsx             # Root layout with metadataBase, fonts, analytics, styles
+│   └── page.tsx               # Server component for homepage with dedicated metadata
 ├── components/
-│   ├── pieces/                    # Custom SVG piece sets (Liquid Chrome, Neo-Arcade, Classic)
-│   ├── ChessboardFrame.tsx        # Outer bezel, coordinate rails, square highlights & check glow
-│   ├── LichessModal.tsx           # Lichess login/connection modal + official LichessIcon SVG
-│   ├── SettingsModal.tsx          # Palette switcher, piece selector, wallpaper toggle, sound mute
-│   ├── ThemeSwitcher.tsx          # Board color themes & theme tokens
-│   └── WeaknessDashboard.tsx      # Modal blunder trainer with 2-move stepper (BlunderCardItem)
+│   ├── pieces/                # Staunton SVG pieces (cburnett) & theme support
+│   ├── ChessboardFrame.tsx    # Outer bezel, coordinate rails, square highlights & check glow
+│   ├── ChessZLogo.tsx         # Official ChessZ 4x4 vector brandmark & lockups
+│   ├── LichessModal.tsx       # Lichess login/connection modal + official LichessIcon SVG
+│   ├── SettingsModal.tsx      # Palette switcher, piece selector, wallpaper toggle, sound mute
+│   ├── ThemeSwitcher.tsx      # Board color themes & theme tokens
+│   └── WeaknessDashboard.tsx  # Modal blunder trainer with 2-move stepper (BlunderCardItem)
 ├── lib/
-│   ├── chessMetrics/              # Pure TypeScript math engine
-│   │   ├── gameParser.ts          # PGN tokenizer, phase detection, eval extraction
-│   │   ├── math.ts                # Centipawns-to-win% curve, accuracy formula, Wilson score
-│   │   └── types.ts               # Data interfaces for games, plies, stats, and critical moments
-│   ├── diagnosisEngine.ts         # 10-puzzle benchmark pool, seed rating, behavioral classifiers
-│   ├── lichess.ts                 # Lichess user interfaces & API helpers
-│   ├── lichessStream.ts           # Client-side streaming reader for NDJSON games
-│   ├── mistakeClassifier.ts       # 5-pillar blunder categorization engine
-│   ├── puzzles.ts                 # Core puzzle datasets (CONTINUOUS, DIAGNOSTIC, ALL_PUZZLES_MAP)
-│   ├── sounds.ts                  # Web Audio API zero-latency procedural synthesizer
-│   ├── supabaseWeakness.ts        # Supabase caching layer for scanned games & stats
-│   ├── useLichess.ts              # React hook managing Lichess auth state & storage
-│   └── useStockfish.ts            # Stockfish 16 WASM Web Worker controller
+│   ├── chessMetrics/          # Pure TypeScript math engine
+│   │   ├── gameParser.ts      # PGN tokenizer, phase detection, eval extraction
+│   │   ├── math.ts            # Centipawns-to-win% curve, accuracy formula, Wilson score
+│   │   └── types.ts           # Data interfaces for games, plies, stats, and critical moments
+│   ├── diagnosisEngine.ts     # 13-puzzle historical benchmark pool, adaptive selector, classifiers
+│   ├── lichess.ts             # Lichess user interfaces & API helpers
+│   ├── lichessStream.ts       # Client-side streaming reader for NDJSON games
+│   ├── mistakeClassifier.ts   # 3-tier x 5-category blunder taxonomy (TIER_CATEGORY_DEFINITIONS)
+│   ├── puzzles.ts             # 500 authentic Lichess puzzles (CONTINUOUS, DIAGNOSTIC, ALL_PUZZLES_MAP)
+│   ├── sounds.ts              # Web Audio API zero-latency procedural synthesizer
+│   ├── supabaseWeakness.ts    # Supabase caching layer for scanned games & stats
+│   ├── useLichess.ts          # React hook managing Lichess auth state & storage
+│   └── useStockfish.ts        # Stockfish WASM Web Worker controller
 ├── public/
-│   ├── pieces/lichess/            # Standard piece SVG assets
-│   ├── stockfish/                 # stockfish.js, stockfish.wasm, stockfish.wasm.js
-│   ├── wallpapers/                # Background wallpaper textures (emerald-glitter.jpg)
-│   ├── logo-icon.png              # Geometric Knight-Z brandmark
-│   └── og-image.jpg               # OpenGraph social banner
+│   ├── pieces/lichess/        # Standard piece SVG assets
+│   ├── stockfish/             # stockfish.js, stockfish.wasm, stockfish.wasm.js
+│   ├── wallpapers/            # Background wallpaper textures (emerald-glitter.jpg)
+│   ├── logo-mark.svg          # Official vector brandmark
+│   └── og-image.jpg           # OpenGraph social banner
 ├── tests/
-│   ├── behavioralPatterns.test.ts # Tests for conviction & archetype classifications
-│   ├── chessMetrics.test.ts       # Tests for pure math, winPct, and PGN tokenization
-│   ├── diagnosticCon1.test.ts     # Category rules & refutation trees
-│   ├── diagnosticCon2.test.ts     # Velocity heuristic & novelty crucible
-│   ├── diagnosticCon3.test.ts     # Master ceiling & grandmaster crucible
-│   └── qaStress.test.ts           # Stress testing boundary conditions & edge cases
-├── AGENTS.md                      # Instructions for autonomous AI agents
-├── CLAUDE.md                      # Quick reference file for AI assistants
-├── package.json                   # Dependencies, scripts, test runner
-└── README.md                      # Public project documentation
+│   ├── chessMetrics.test.ts          # Pure math, winPct curve, PGN tokenization
+│   ├── diagnosticEnhancements.test.ts # Category rules, velocity heuristic, master ceiling
+│   ├── puzzleIntegrity.test.ts       # Validates FENs, solution lines, mates, and refutations
+│   └── qaStress.test.ts              # Stress testing boundary conditions & edge cases
+├── AGENTS.md                  # Instructions for autonomous AI agents
+├── CLAUDE.md                  # Quick reference file for AI assistants
+├── LICENSE                    # MIT License
+├── package.json               # Dependencies, scripts, test runner
+└── README.md                  # Public project documentation
 ```
 
 ---
@@ -97,12 +100,14 @@ c:\ChessZ\chessz-app\
   Renders a mini-eval bar inside the solved banner with numerical score (`Eval: +3.4` or `Mate in 2`), top 4 continuation moves, and the `WASM` badge.
   When loading the next puzzle (`loadPuzzle`), the engine is cleanly stopped (`stopAnalysis()`) and disabled to avoid leaking moves across positions.
 
-### B. Route 2: The 3-Puzzle Skill Diagnostic (`/diagnose` ➔ `app/diagnose/page.tsx`)
-- **Primary Responsibility**: Rapid 3-puzzle diagnostic benchmark estimating true playing strength.
+### B. Route 2: The 5-Puzzle Skill Diagnostic (`/diagnose` ➔ `app/diagnose/page.tsx`)
+- **Primary Responsibility**: Rapid 5-puzzle diagnostic benchmark (+1 optional Grandmaster Crucible) estimating true playing strength.
 - **Flow**:
-  1. **Trial 1**: Silent calibration puzzle (zero hints, zero immediate feedback, pure calculation telemetry).
-  2. **Trial 2 & 3**: Adaptive difficulty puzzles with psychological conviction prompt (*"Sure"*, *"Think so"*, *"Guessing"*).
-  3. **Results Screen**: Generates estimated Elo (`calibratedRating`), cognitive archetype (e.g., *Tactical Precisionist*, *Overconfident Striker*, *Hesitant Calculator*), and a 1-click button to start a targeted 5-puzzle curriculum on `/`.
+  1. **Trial 1**: Historic Opening Radar benchmark puzzle (`HISTORICAL_BENCHMARKS_STAGE_1`).
+  2. **Trial 2**: Historic Tactical Geometry benchmark puzzle (`HISTORICAL_BENCHMARKS_STAGE_2`).
+  3. **Trials 3–5**: Dynamic adaptive puzzles chosen in real-time from the 500-puzzle Lichess pool (`selectAdaptivePuzzle`) with psychological conviction prompt (*"Sure"*, *"Think so"*, *"Guessing"*).
+  4. **Trial 6 (Optional)**: Grandmaster Crucible ($K=260$), unlocked if player scores 5/5 first-try correct and achieves $\ge 1700$ rating.
+  5. **Results Screen**: Generates converged rating (`calibratedRating`), behavioral archetype, and an option to train targeted blindspots on `/`.
 
 ### C. Route 3: Deep Weakness Studio (`/weakness` ➔ `app/weakness/page.tsx`)
 - **Primary Responsibility**: Full-page analytics studio scanning up to 50 recent Lichess games.
@@ -157,17 +162,17 @@ $$\text{accuracy}(\Delta winPct) = 103.1668 \times e^{-0.04354 \times \Delta win
 Clamped strictly to $[0, 100]$.
 
 ### C. Wilson Score Interval
-Calculates 95% confidence lower and upper bounds for tactical success rates:
+Calculates 95% confidence lower and upper bounds for opening repertoire performance:
 $$p \pm \frac{z^2}{2n} \pm z \sqrt{\frac{p(1-p)}{n} + \frac{z^2}{4n^2}} \Big/ \left(1 + \frac{z^2}{n}\right)$$
-Used to provide statistically sound blunder frequencies without sample size distortion.
+Used in `lib/chessMetrics/gameParser.ts` to compute statistically sound opening win rates and confidence intervals without small-sample distortion.
 
-### D. 5-Pillar Blunder Taxonomy
-Classifies any blunder into one of 5 skill categories based on game phase, piece values, and tactical patterns:
-1. `hanging`: Unprotected pieces, basic forks, simple undefended captures.
-2. `threat`: Overlooked opponent threats, failing to block or parry checks.
-3. `tactical`: Pins, skewers, discovered attacks, deflection, clearance.
-4. `opening`: Early blunders ($\le 10$ moves), premature queen sorties, neglected castling.
-5. `endgame`: King activity, pawn promotion races, rook endings ($\le 6$ pieces left).
+### D. Blunder Taxonomy
+Classifies blunders using the 3-tier x 5-category matrix defined in `TIER_CATEGORY_DEFINITIONS` (`lib/mistakeClassifier.ts`):
+1. `hanging_piece`: Unprotected pieces, loose pieces dropping off.
+2. `threat_missed`: Overlooked opponent threats, failing to parry attacks.
+3. `tactical_leak`: Pins, skewers, discovered attacks, clearance, deflections.
+4. `opening_development`: Early blunders, king safety, neglected development.
+5. `endgame_technique`: King activity, pawn promotion races, conversion technique.
 
 ---
 
@@ -176,7 +181,7 @@ Classifies any blunder into one of 5 skill categories based on game phase, piece
 The test suite is located in `tests/` and executes using Node's native runner via `tsx`:
 
 ```bash
-# Run all automated tests (30/30 suites)
+# Run all automated tests (36 tests in 7 suites)
 npm test
 
 # Run TypeScript type check (must exit 0 with zero errors)

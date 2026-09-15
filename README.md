@@ -1,14 +1,14 @@
 # ♟️ ChessZ — Zero-Paywall Chess Training Platform
 
 > **"Why Pay ₹1,500/yr For Diamond? Unlimited Coach-Verified Training • Free Forever."**  
-> Built by FIDE rated coaches at Premier Chess Academy (PCA), Ernakulam.
+> Built with coaching pedagogy developed in consultation with academy coaches at Premier Chess Academy (PCA), Ernakulam.
 
 [![Live Production](https://img.shields.io/badge/Production-Live%20on%20Vercel-emerald?style=for-the-badge&logo=vercel)](https://chesszapp.vercel.app/)
-[![License: CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-blue.svg?style=for-the-badge)](https://creativecommons.org/licenses/by/4.0/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](./LICENSE)
 [![Framework: Next.js 16](https://img.shields.io/badge/Framework-Next.js%2016%20Turbopack-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![Database: Supabase](https://img.shields.io/badge/Database-Supabase%20Free%20Tier-green?style=for-the-badge&logo=supabase)](https://supabase.com/)
 [![OAuth: Lichess](https://img.shields.io/badge/OAuth-Lichess%20API-orange?style=for-the-badge&logo=lichess)](https://lichess.org)
-[![Engine: Stockfish 16 WASM](https://img.shields.io/badge/Engine-Stockfish%2016%20WASM-blueviolet?style=for-the-badge)](https://stockfishchess.org/)
+[![Engine: Stockfish WASM](https://img.shields.io/badge/Engine-Stockfish%20WASM-blueviolet?style=for-the-badge)](https://stockfishchess.org/)
 
 ---
 
@@ -97,9 +97,9 @@ Each blunder card provides an interactive move stepper (`◀` `▶` or step pill
 
 ---
 
-## ⚡ Client-Side Stockfish 16 WASM & Auto-Reveal Eval Bar
+## ⚡ Client-Side Stockfish WASM & Auto-Reveal Eval Bar
 
-* **Zero Server Compute**: Multi-threaded Stockfish WASM running entirely in a background Web Worker.
+* **Client-Side Engine**: In-browser single-threaded Stockfish WASM running in a background Web Worker (zero server compute).
 * **Auto-Reveal on Solved**: When a puzzle is solved, Stockfish immediately analyzes the position and displays:
   * Canonical evaluation score (`+3.4`, `-1.2`, `Mate in 2`).
   * Top 4-ply engine continuation line (`Top: Nf3 d5 d4 e6`).
@@ -131,9 +131,9 @@ Players can tailor the board to their preferred study environment via **Settings
   * **Sage Nordic** (Calm Scandinavian Atelier)
   * **Terracotta Kyoto** (Warm Japanese Sandstone)
 * **2D Piece Sets**:
+  * **Classic Staunton** (Official Staunton Vectors by cburnett)
   * **Liquid Chrome** (Y2K Molten Metallic)
   * **Neo-Arcade** (Streetwear Art Toy)
-  * **Classic** (Standard FIDE Pro)
 * **Light / Dark Mode**: Instant contrast toggle.
 
 ---
@@ -148,25 +148,25 @@ Players can tailor the board to their preferred study environment via **Settings
 
 ## 🛠️ Tech Stack & Architecture
 
-| Layer | Technology | Hosting & Cost |
+| Layer | Technology | Hosting & Execution |
 | :--- | :--- | :--- |
-| **Framework** | Next.js 16 (App Router, Turbopack, React 19) | Vercel Hobby ($0/mo) |
-| **Styling** | Tailwind CSS v4 with custom `@theme` tokens | Vercel Edge ($0/mo) |
-| **Chess Engine** | Stockfish 16 WASM + `chess.js` + `react-chessboard` | Client-Side ($0/mo) |
-| **Typography** | Space Grotesk + Inter + JetBrains Mono | Google Fonts CDN ($0/mo) |
-| **OAuth** | Lichess OAuth 2.0 PKCE (`/api/auth/lichess/*`) | Vercel Serverless ($0/mo) |
-| **Streaming** | Browser ReadableStream + NDJSON Parser | Client-Side ($0/mo) |
-| **Audio** | Native Web Audio API Procedural Synthesizer | Native Browser ($0/mo) |
-| **Icons** | Official Lichess 24x24 Vector + Lucide React | Zero Cost ($0/mo) |
+| **Framework** | Next.js 16 (App Router, Turbopack, React 19) | Vercel Hobby |
+| **Styling** | Tailwind CSS v4 with custom `@theme` tokens | Client-Side |
+| **Chess Engine** | Single-Threaded Stockfish WASM + `chess.js` | In-Browser Web Worker |
+| **Typography** | Space Grotesk + Inter + JetBrains Mono | Google Fonts CDN (OFL) |
+| **OAuth** | Lichess OAuth 2.0 PKCE (`/api/auth/lichess/*`) | Vercel Serverless |
+| **Streaming** | Browser ReadableStream + NDJSON Parser | Client-Side |
+| **Audio** | Native Web Audio API Procedural Synthesizer | Native Browser |
+| **Icons** | Official Lichess Vector + Lucide React | Client-Side |
 
 ---
 
 ## 🧪 Testing & Quality Assurance
 
-ChessZ features an automated test suite verifying pure mathematical formulas, game parsing, phase detection, and edge-case boundary conditions:
+ChessZ features an automated test suite verifying pure mathematical formulas, game parsing, phase detection, puzzle integrity, and edge-case boundary conditions:
 
 ```bash
-# Run 30 automated tests
+# Run 36 automated tests
 npm test
 
 # Run TypeScript type check (0 errors required)
@@ -186,6 +186,8 @@ For detailed technical specifications, state machines, math models, and architec
 ---
 
 ## ⚖️ License & Attribution
-* **Chess Puzzle Data**: Derived from the public domain and open datasets of [Lichess.org](https://lichess.org) under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
-* **Pedagogy & Heuristics**: Diagnostic cognitive framework designed by FIDE coaches at Premier Chess Academy (PCA).
-* **Codebase**: Licensed under the MIT License.
+* **Chess Puzzle Data**: Puzzles courtesy of [Lichess.org](https://lichess.org) under the [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) Universal Public Domain Dedication.
+* **Chess Engine**: Powered by [Stockfish.js](https://github.com/niklasf/stockfish.js) (GNU GPLv3).
+* **Piece Artwork**: Staunton vectors by Colin M.L. Burnett (cburnett, CC BY-SA 3.0 / GPL) and Lichess contributors (AGPLv3).
+* **Pedagogy & Heuristics**: Diagnostic cognitive framework designed in consultation with academy chess coaches.
+* **Codebase**: Licensed under the [MIT License](./LICENSE).

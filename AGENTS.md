@@ -15,7 +15,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 ## 1. Quick Verification Commands
 Always verify your changes with these commands before finishing:
 ```bash
-# 1. Run full automated test suite (all 30 tests must pass)
+# 1. Run full automated test suite (all 36 tests must pass)
 npm test
 
 # 2. Strict TypeScript type check (must exit 0 with 0 errors)
@@ -26,8 +26,8 @@ npm run build
 ```
 
 ## 2. Core Operational Rules
-1. **Header Consistency**: The 3 main pages (`/`, `/diagnose`, `/weakness`) share a single unified header. Never duplicate buttons (e.g., Weakness Studio on left and right). The action button order is strictly: `[Connect Lichess]` ➔ `[Volume]` ➔ `[Settings]` ➔ `[Save/Exit]`.
+1. **Header Consistency**: The 3 main pages (`/`, `/diagnose`, `/weakness`) share a single unified header with the ChessZ mark. Never duplicate buttons. The action button order is strictly: `[Connect Lichess]` ➔ `[Volume]` ➔ `[Settings]` ➔ `[Save/Exit]`.
 2. **Lichess Logo**: Always use `LichessIcon` from `@/components/LichessModal` (`viewBox="0 0 24 24"`). Never introduce arbitrary or corrupted SVG paths.
 3. **Stockfish WASM Lifecycle**: When transitioning between puzzles, always call `stopAnalysis()` and `setEngineEnabled(false)` to prevent analysis leaks.
-4. **Pedagogical Integrity**: Maintain the 5-pillar blunder classification system in `lib/mistakeClassifier.ts`.
+4. **Pedagogical Integrity**: Maintain the blunder taxonomy in `lib/mistakeClassifier.ts` (`TIER_CATEGORY_DEFINITIONS`: 3 skill tiers x 5 tactical/strategic categories).
 5. **Zero-Yapping Protocol**: Keep answers and summaries direct, high-signal, and free of fluff.
