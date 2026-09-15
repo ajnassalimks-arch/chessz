@@ -38,7 +38,6 @@ import {
   DIAGNOSTIC_PUZZLES,
   CONTINUOUS_PUZZLES,
   ALL_PUZZLES_MAP,
-  getCuratedDiagnosisPlaylist,
   ChessPuzzle,
   RefutationMove,
   LevelType
@@ -156,209 +155,6 @@ const LEVEL_OPTIONS: LevelOption[] = [
   },
 ];
 
-interface DiagnosticOption {
-  label: string;
-  score: number;
-}
-
-interface DiagnosticQuestion {
-  category: string;
-  weight: number;
-  question: string;
-  options: DiagnosticOption[];
-}
-
-const DIAGNOSTIC_QUESTIONS: DiagnosticQuestion[] = [
-  {
-    category: "Vision & Calculation (Weight: 30%)",
-    weight: 0.30,
-    question: "When it's your turn, what is the first thing you look for?",
-    options: [
-      { label: "I just react to whatever my opponent attacked.", score: 500 },
-      { label: "I check which pieces are defended and which are free to take.", score: 900 },
-      { label: "I ask: 'What is my opponent planning next?'", score: 1300 },
-      { label: "I calculate 3 to 4 moves ahead before touching a piece.", score: 1700 },
-    ],
-  },
-  {
-    category: "Blunder Defense (Weight: 30%)",
-    weight: 0.30,
-    question: "What is the most common way you lose games?",
-    options: [
-      { label: "I leave a piece completely unprotected and lose it for free.", score: 500 },
-      { label: "I get caught in forks, pins, or surprise checkmates.", score: 900 },
-      { label: "I get a winning position, but make a mistake in the endgame.", score: 1300 },
-      { label: "I slowly run out of good moves and get outplayed.", score: 1700 },
-    ],
-  },
-  {
-    category: "Strategy & Planning (Weight: 20%)",
-    weight: 0.20,
-    question: "When there are no direct captures on the board, what do you do?",
-    options: [
-      { label: "I feel stuck and don't know what to move.", score: 500 },
-      { label: "I try to trade pieces or push pawns forward.", score: 900 },
-      { label: "I move my worst piece to a better square.", score: 1300 },
-      { label: "I find a weak square in my opponent's camp and build an attack.", score: 1700 },
-    ],
-  },
-  {
-    category: "Pressure & Composure (Weight: 20%)",
-    weight: 0.20,
-    question: "When the clock is running low or the game gets tense, what happens?",
-    options: [
-      { label: "I panic and make fast moves without looking.", score: 500 },
-      { label: "I defend, but usually miss opponent tricks.", score: 900 },
-      { label: "I stay calm and stick to solid basics.", score: 1300 },
-      { label: "I play even faster and find precise tactical shots.", score: 1700 },
-    ],
-  },
-];
-
-const ARCHETYPE_TITLES: string[][] = [
-  // q0 = 0 (Reactive / 1-move horizon)
-  [
-    "The Instinctive Scrapper",          // q3 = 0
-    "The Reactive Defender",             // q3 = 1
-    "The Resilient Fighter",             // q3 = 2
-    "The High-Octane Blitz Attacker",    // q3 = 3
-  ],
-  // q0 = 1 (Piece Protection & Material Radar)
-  [
-    "The Eager Opportunist",             // q3 = 0
-    "The Cautious Defender",             // q3 = 1
-    "The Disciplined Competitor",        // q3 = 2
-    "The Sharp Tactical Poacher",        // q3 = 3
-  ],
-  // q0 = 2 (Intent & Prophylaxis reader)
-  [
-    "The Ambitious Strategist",          // q3 = 0
-    "The Measured Counter-Puncher",      // q3 = 1
-    "The Methodical Positionalist",      // q3 = 2
-    "The Prophylactic Striker",          // q3 = 3
-  ],
-  // q0 = 3 (3-4 moves deep calculator)
-  [
-    "The Deep-Thinker in Time Trouble",  // q3 = 0
-    "The Analytical Perfectionist",      // q3 = 1
-    "The Cold-Blooded Calculator",       // q3 = 2
-    "The Master Blitz Prodigy",          // q3 = 3
-  ],
-];
-
-const VISION_NARRATIVES: string[] = [
-  "You play with fast instinctive reflexes, scanning the board one move at a time.",
-  "You possess strong piece-protection radar and consistently monitor friendly and enemy piece safety.",
-  "You read the board through intent, actively deducing what your opponent plans before choosing your candidate moves.",
-  "You calculate deep multi-ply candidate variations before touching a piece with grandmaster-like discipline.",
-];
-
-const LEAK_DEFINITIONS = [
-  {
-    name: "Free-Piece Blindspot",
-    ruleTitle: "The 2-Second Bodyguard Rule",
-    ruleBody: "Before touching any piece, take 2 seconds to check: 'Does every one of my pieces have an active teammate protecting it?' Never donate free points.",
-    leakDetail: "Leaving friendly pieces unguarded in open skirmishes when focusing on your own attack.",
-    focus: "Piece Protection & Hanging Pieces",
-    starterPuzzleId: "beginner_1a",
-  },
-  {
-    name: "Same-Color Fork Radar Leak",
-    ruleTitle: "The Geometric Radar Rule",
-    ruleBody: "Knights can only fork pieces on the EXACT same square color. Always notice when your King and heavy pieces share square colors.",
-    leakDetail: "Falling victim to surprise knight forks, bishop pins, and tactical batteries.",
-    focus: "Forks, Pins & Double Attacks",
-    starterPuzzleId: "adv_beginner_2a",
-  },
-  {
-    name: "Endgame Conversion Gap",
-    ruleTitle: "King Activity & Passed Pawn Priority",
-    ruleBody: "In the endgame, passive kings lose games. Activate your King toward the center aggressively and march passed pawns immediately.",
-    leakDetail: "Outplaying opponents in the middlegame, then letting winning advantages slip in the endgame.",
-    focus: "Endgame Technique & Passed Pawns",
-    starterPuzzleId: "intermediate_3a",
-  },
-  {
-    name: "Positional Stagnation",
-    ruleTitle: "Steinitz's Worst-Placed Piece Principle",
-    ruleBody: "When tactics fade, locate your least active piece, reposition it with tempo, and systematically restrict your opponent's counterplay.",
-    leakDetail: "Running out of constructive plans when no direct captures exist, allowing opponents to squeeze you.",
-    focus: "Piece Harmony & Prophylaxis",
-    starterPuzzleId: "advanced_4a",
-  },
-];
-
-const STRATEGY_ANTIDOTES: string[] = [
-  "Antidote: Break frozen positions by systematically listing candidate moves (Checks, Captures, Threats).",
-  "Antidote: Stop making cosmetic trades. Maintain tension until an exchange opens a file or creates a passed pawn.",
-  "Antidote: Reroute your least active piece to a dominant central outpost before seeking an attack.",
-  "Antidote: Focus multi-piece pressure onto your opponent's weakest square or pawn until their structure cracks.",
-];
-
-const COMPOSURE_TIPS: string[] = [
-  "Composure Directive: Breathe and take a mandatory 3-second pause before moving when your clock drops.",
-  "Composure Directive: In time trouble, prioritize King safety and simple solid defenses over wild complications.",
-  "Composure Directive: Your steady composure under tension is an elite superpower. Keep trusting your fundamentals.",
-  "Composure Directive: Channel your rapid speed into forcing tactical knockout strikes.",
-];
-
-function calculateDiagnosticResult(answers: number[]) {
-  let weightedScore = 0;
-  for (let i = 0; i < DIAGNOSTIC_QUESTIONS.length; i++) {
-    const optIdx = answers[i] ?? 0;
-    const score = DIAGNOSTIC_QUESTIONS[i].options[optIdx].score;
-    weightedScore += score * DIAGNOSTIC_QUESTIONS[i].weight;
-  }
-  const calibratedRating = Math.round(weightedScore);
-
-  let targetTierId: LevelType = "beginner";
-  if (calibratedRating < 750) {
-    targetTierId = "beginner";
-  } else if (calibratedRating < 1150) {
-    targetTierId = "adv_beginner";
-  } else if (calibratedRating < 1550) {
-    targetTierId = "intermediate";
-  } else {
-    targetTierId = "advanced";
-  }
-
-  const targetLevel = LEVEL_OPTIONS.find((l) => l.id === targetTierId) || LEVEL_OPTIONS[0];
-
-  const q0Ans = Math.min(Math.max(answers[0] ?? 0, 0), 3);
-  const q1Ans = Math.min(Math.max(answers[1] ?? 0, 0), 3);
-  const q2Ans = Math.min(Math.max(answers[2] ?? 0, 0), 3);
-  const q3Ans = Math.min(Math.max(answers[3] ?? 0, 0), 3);
-
-  const archetypeTitle = ARCHETYPE_TITLES[q0Ans][q3Ans];
-  const visionDesc = VISION_NARRATIVES[q0Ans];
-  const cleanVision = visionDesc.charAt(0).toLowerCase() + visionDesc.slice(1);
-  const leak = LEAK_DEFINITIONS[q1Ans];
-  const antidote = STRATEGY_ANTIDOTES[q2Ans];
-  const composure = COMPOSURE_TIPS[q3Ans];
-
-  const headline = `Diagnosed: ${archetypeTitle} — ${leak.name}`;
-  const personalizedSummary = `As ${archetypeTitle}, ${cleanVision} However, your ${leak.name} holds your rating back because you are ${leak.leakDetail.toLowerCase()} ${antidote} ${composure}`;
-
-  const curatedPlaylist = getCuratedDiagnosisPlaylist(calibratedRating, [q0Ans, q1Ans, q2Ans, q3Ans]);
-
-  const diagnosis: CoachDiagnosis = {
-    archetypeTitle,
-    headline,
-    ruleTitle: leak.ruleTitle,
-    ruleBody: leak.ruleBody,
-    targetFocus: leak.focus,
-    leakName: leak.name,
-    leakDetail: leak.leakDetail,
-    strategicAntidote: antidote,
-    composureTip: composure,
-    personalizedSummary,
-    curatedPlaylist,
-    starterPuzzleId: curatedPlaylist[0]?.id || leak.starterPuzzleId,
-  };
-
-  return { calibratedRating, targetLevel, diagnosis };
-}
-
 type PuzzleStatus = "solving" | "refuting" | "failed" | "solved";
 
 interface LegalMoveTarget {
@@ -396,14 +192,8 @@ export default function Home() {
   } = useStockfish();
 
   const [selectedLevel, setSelectedLevel] = useState<LevelOption | null>(null);
-  const [isQuizActive, setIsQuizActive] = useState<boolean>(false);
-  const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
-  const [analyzingPhase, setAnalyzingPhase] = useState<number>(0);
   const [calibratedRating, setCalibratedRating] = useState<number>(900);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
-  const [calibrationAnswers, setCalibrationAnswers] = useState<number[]>([]);
   const [coachDiagnosis, setCoachDiagnosis] = useState<CoachDiagnosis | null>(null);
-  const [showDiagnosisModal, setShowDiagnosisModal] = useState<boolean>(false);
   const [isCalibrated, setIsCalibrated] = useState<boolean>(false);
 
   // 5-Puzzle Diagnostic Curriculum State
@@ -648,29 +438,10 @@ export default function Home() {
     };
   }, []);
 
-  // Start 4-Question Mathematical Diagnostic Quiz
-  const startDiagnosticQuiz = () => {
-    setIsQuizActive(true);
-    setIsAnalyzing(false);
-    setCurrentQuestionIndex(0);
-    setCalibrationAnswers([]);
-    setCoachDiagnosis(null);
-    setShowDiagnosisModal(false);
-    setIsCalibrated(false);
-    setSelectedLevel(null);
-    setIsCurriculumActive(false);
-    setCurriculumIndex(0);
-    setCurriculumCompleted(false);
-    setDiagnosisPlaylist([]);
-  };
-
-  // Direct Tier Selection (Skip Diagnostic)
+  // Direct Tier Selection
   const handleDirectTierSelect = (level: LevelOption) => {
     setSelectedLevel(level);
     setCalibratedRating(level.approxRating);
-    setIsQuizActive(false);
-    setIsAnalyzing(false);
-    setShowDiagnosisModal(false);
     setIsCalibrated(true);
     setIsCurriculumActive(false);
     setCurriculumIndex(0);
@@ -683,9 +454,6 @@ export default function Home() {
   const handleStartDiagnosedTraining = (profile: any, level: LevelOption) => {
     setSelectedLevel(level);
     setCalibratedRating(profile.finalElo || level.approxRating);
-    setIsQuizActive(false);
-    setIsAnalyzing(false);
-    setShowDiagnosisModal(false);
     setIsCalibrated(true);
     setIsCurriculumActive(true);
     setCurriculumIndex(0);
@@ -714,55 +482,12 @@ export default function Home() {
   const handleStartBlunderTraining = (puzzle: ChessPuzzle) => {
     const tier = LEVEL_OPTIONS.find((l) => l.id === puzzle.tier) || LEVEL_OPTIONS[2];
     setSelectedLevel(tier);
-    setIsQuizActive(false);
-    setIsAnalyzing(false);
-    setShowDiagnosisModal(false);
     setShowLichessModal(false);
     setShowWeaknessDashboard(false);
     setIsCalibrated(true);
     setIsCurriculumActive(false);
     loadPuzzle(puzzle);
     setEngineEnabled(true);
-  };
-
-  // Answer a Question in the 4-Question Quiz
-  const handleAnswerDiagnosticQuestion = (optionIndex: number) => {
-    const nextAnswers = [...calibrationAnswers, optionIndex];
-    setCalibrationAnswers(nextAnswers);
-
-    if (currentQuestionIndex + 1 < DIAGNOSTIC_QUESTIONS.length) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-    } else {
-      // 1. Run Pure Math Diagnostic Algorithm & Playlist Curation!
-      const result = calculateDiagnosticResult(nextAnswers);
-      setSelectedLevel(result.targetLevel);
-      setCalibratedRating(result.calibratedRating);
-      setCoachDiagnosis(result.diagnosis);
-      setDiagnosisPlaylist(result.diagnosis.curatedPlaylist);
-      setCurriculumIndex(0);
-      setCurriculumCompleted(false);
-
-      // 2. Instant Transition to Personalized Diagnostic Dossier (0 artificial delay)
-      setIsQuizActive(false);
-      setIsAnalyzing(false);
-      setShowDiagnosisModal(true);
-      sounds.playVictory();
-    }
-  };
-
-  // Start 5-Puzzle Targeted Curriculum from Diagnosis Card
-  const startDiagnosedCurriculum = () => {
-    if (!selectedLevel || !coachDiagnosis) return;
-    const playlist = coachDiagnosis.curatedPlaylist && coachDiagnosis.curatedPlaylist.length > 0
-      ? coachDiagnosis.curatedPlaylist
-      : diagnosisPlaylist;
-    setShowDiagnosisModal(false);
-    setIsCalibrated(true);
-    setIsCurriculumActive(true);
-    setCurriculumIndex(0);
-    setCurriculumCompleted(false);
-    const firstPz = playlist[0] || DIAGNOSTIC_PUZZLES[coachDiagnosis.starterPuzzleId] || DIAGNOSTIC_PUZZLES["beginner_1a"];
-    loadPuzzle(firstPz);
   };
 
   // Advance to next puzzle in the 5-puzzle curriculum
@@ -1164,18 +889,12 @@ export default function Home() {
   const resetCalibration = () => {
     clearPuzzleTimeouts();
     setSelectedLevel(null);
-    setIsQuizActive(false);
-    setIsAnalyzing(false);
-    setAnalyzingPhase(0);
     setIsCalibrated(false);
     setIsCurriculumActive(false);
     setCurriculumIndex(0);
     setCurriculumCompleted(false);
     setDiagnosisPlaylist([]);
-    setCurrentQuestionIndex(0);
-    setCalibrationAnswers([]);
     setCoachDiagnosis(null);
-    setShowDiagnosisModal(false);
     setGame(null);
     setCurrentPuzzle(null);
     setPuzzleStatus("solving");
@@ -1276,23 +995,53 @@ export default function Home() {
       {/* Top Header */}
       <header className="w-full max-w-md md:max-w-5xl lg:max-w-6xl mx-auto flex items-center justify-between py-2.5 px-3.5 sm:px-4 rounded-2xl theme-surface mb-4 md:mb-6 shrink-0 border shadow-xs relative z-30">
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-xl overflow-hidden shrink-0 border border-[var(--border-subtle)] shadow-xs bg-[#0b0f17] flex items-center justify-center">
-            <Image
-              src="/logo-icon.png"
-              alt="ChessZ Logo"
-              width={28}
-              height={28}
-              className="w-full h-full object-cover"
-              priority
-            />
-          </div>
-          <span className="font-extrabold text-sm sm:text-base tracking-tight theme-text-primary font-display">
-            ChessZ
-          </span>
-          <div className="hidden sm:flex items-center gap-1.5 ml-2 px-2.5 py-0.5 rounded-full text-[11px] font-medium theme-pill">
-            <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-primary)] animate-pulse" />
-            <span>Coach-Verified Tactics • Free Forever</span>
-          </div>
+          <button
+            onClick={resetCalibration}
+            className="flex items-center gap-2 cursor-pointer group text-left"
+            title="ChessZ Home"
+          >
+            <div className="w-7 h-7 rounded-xl overflow-hidden shrink-0 border border-[var(--border-subtle)] shadow-xs bg-[#0b0f17] flex items-center justify-center group-hover:opacity-90 transition-opacity">
+              <Image
+                src="/logo-icon.png"
+                alt="ChessZ Logo"
+                width={28}
+                height={28}
+                className="w-full h-full object-cover"
+                priority
+              />
+            </div>
+            <span className="font-extrabold text-sm sm:text-base tracking-tight theme-text-primary font-display">
+              ChessZ
+            </span>
+          </button>
+
+          {/* Harmonized Global Navigation */}
+          <nav className="hidden md:flex items-center gap-1 ml-2 pl-2 border-l border-[var(--border-subtle)] text-xs font-mono">
+            <button
+              onClick={resetCalibration}
+              className={`px-2.5 py-1 rounded-lg font-semibold transition cursor-pointer ${
+                !selectedLevel
+                  ? "bg-[var(--accent-primary)]/15 text-[var(--accent-primary)]"
+                  : "theme-text-secondary hover:theme-text-primary hover:bg-[var(--surface-muted)]"
+              }`}
+            >
+              Train
+            </button>
+            <Link
+              href="/diagnose"
+              className="px-2.5 py-1 rounded-lg font-semibold theme-text-secondary hover:theme-text-primary hover:bg-[var(--surface-muted)] transition flex items-center gap-1"
+            >
+              <span>Skill Test</span>
+              <span className="text-[9px] px-1 py-0.2 rounded bg-[var(--accent-primary)]/20 text-[var(--accent-primary)] font-bold">5m</span>
+            </Link>
+            <button
+              onClick={() => setShowWeaknessDashboard(true)}
+              className="px-2.5 py-1 rounded-lg font-semibold theme-text-secondary hover:theme-text-primary hover:bg-[var(--surface-muted)] transition flex items-center gap-1 cursor-pointer"
+            >
+              <span>Weakness Studio</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+            </button>
+          </nav>
         </div>
 
         <div className="flex items-center gap-1.5">
@@ -1388,7 +1137,7 @@ export default function Home() {
       </header>
 
       {/* Screen 1: Redesigned High-Authority Landing Screen */}
-      {!selectedLevel && !isQuizActive && !showDiagnosisModal ? (
+      {!selectedLevel ? (
         <section className="flex-1 flex flex-col items-center justify-start max-w-md md:max-w-4xl mx-auto w-full pt-1 pb-6 md:pb-8">
           {/* Eyebrow Pill */}
           <div className="inline-flex items-center gap-2 text-[11px] font-mono tracking-wide theme-pill px-3.5 py-1 rounded-full mb-3 shadow-xs">
@@ -1574,6 +1323,26 @@ export default function Home() {
                 </button>
               ))}
             </div>
+
+            {lichessUser && (
+              <button
+                onClick={() => setShowWeaknessDashboard(true)}
+                className="w-full mt-2 flex items-center justify-between p-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/15 border border-rose-500/30 text-rose-300 hover:border-rose-500/50 hover:-translate-y-0.5 hover:shadow-md transition-all duration-150 group cursor-pointer text-left shadow-2xs active:scale-95"
+              >
+                <div className="flex items-center gap-2.5 overflow-hidden">
+                  <span className="text-base select-none shrink-0 group-hover:scale-110 transition-transform">♟️</span>
+                  <div>
+                    <span className="text-xs font-bold text-rose-300 block">Train My Real Game Blunders</span>
+                    <span className="text-[10px] font-mono text-rose-400/80 block">
+                      Curated from @{lichessUser.username}&apos;s games with engine refutations
+                    </span>
+                  </div>
+                </div>
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/40 shrink-0">
+                  Open Studio ➔
+                </span>
+              </button>
+            )}
           </div>
 
           {/* "Why ChessZ?" — The 3 Pillars Section */}
@@ -1643,171 +1412,8 @@ export default function Home() {
             <span className="theme-text-muted">No Ads • Zero Paywalls</span>
           </div>
         </section>
-      ) : isQuizActive && !showDiagnosisModal ? (
-        /* Screen 2: 4-Question Pure Math Diagnostic Assessment */
-        <section className="flex-1 flex flex-col items-center justify-center max-w-md md:max-w-xl mx-auto w-full py-4 min-h-0 animate-card-entrance">
-          <div className="w-full mb-3">
-            <div className="flex items-center justify-between text-xs theme-text-secondary mb-1.5 font-mono">
-              <span className="font-semibold text-[var(--accent-primary)]">
-                {DIAGNOSTIC_QUESTIONS[currentQuestionIndex].category}
-              </span>
-              <span>Question {currentQuestionIndex + 1} of 4</span>
-            </div>
-            {/* Progress Bar */}
-            <div className="w-full h-1.5 theme-surface-subtle rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-[var(--accent-primary)] transition-all duration-300 rounded-full"
-                style={{ width: `${((currentQuestionIndex + 1) / 4) * 100}%` }}
-              />
-            </div>
-          </div>
-
-          <div className="w-full theme-surface rounded-2xl p-4 sm:p-5 mb-3 shadow-md border">
-            <h2 className="text-sm sm:text-base md:text-lg font-bold theme-text-primary mb-3.5 leading-snug">
-              {DIAGNOSTIC_QUESTIONS[currentQuestionIndex].question}
-            </h2>
-
-            <div className="flex flex-col gap-2.5">
-              {DIAGNOSTIC_QUESTIONS[currentQuestionIndex].options.map((opt, oIdx) => (
-                <button
-                  key={oIdx}
-                  onClick={() => handleAnswerDiagnosticQuestion(oIdx)}
-                  className="w-full text-left p-3 rounded-xl theme-surface-subtle hover:theme-pill theme-text-primary transition-all duration-150 text-xs sm:text-sm font-medium flex items-center justify-between group cursor-pointer border"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="w-6 h-6 rounded-lg theme-surface border flex items-center justify-center text-xs font-mono font-bold theme-text-muted group-hover:text-[var(--accent-primary)]">
-                      {oIdx + 1}
-                    </span>
-                    <span>{opt.label}</span>
-                  </div>
-                  <ChevronRight className="w-4 h-4 theme-text-muted group-hover:text-[var(--accent-primary)] transition group-hover:translate-x-0.5 shrink-0" />
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between w-full px-1 text-xs">
-            <p className="text-[11px] theme-text-muted">
-              Pick the answer that best matches your play.
-            </p>
-            <button
-              onClick={() => setIsQuizActive(false)}
-              className="text-[11px] theme-text-secondary hover:theme-text-primary underline underline-offset-2 cursor-pointer transition"
-            >
-              Skip to Direct Level Selection ➔
-            </button>
-          </div>
-        </section>
-      ) : showDiagnosisModal && coachDiagnosis && selectedLevel ? (
-        /* Screen 2.5: The Coach Diagnosis & Calibrated Rating Dossier */
-        <section className="flex-1 flex flex-col items-center justify-center max-w-md md:max-w-xl mx-auto w-full py-2 sm:py-3 min-h-0 animate-card-entrance">
-          <div className="w-full theme-surface rounded-3xl p-4 sm:p-5 shadow-xl relative overflow-hidden max-h-[85vh] overflow-y-auto border">
-            <div className="flex items-center justify-between gap-2 mb-2">
-              <div className="flex items-center gap-2">
-                <span className="p-1.5 rounded-lg theme-pill">
-                  <Lightbulb className="w-4 h-4 text-[var(--accent-primary)]" />
-                </span>
-                <span className="text-xs font-bold uppercase tracking-wider text-[var(--accent-primary)]">
-                  FIDE Coach Diagnosis
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5 theme-pill px-2.5 py-1 rounded-full text-[11px] font-mono font-bold">
-                <span>Rating:</span>
-                <span>~{calibratedRating}</span>
-              </div>
-            </div>
-
-            <h2 className="text-base sm:text-lg md:text-xl font-extrabold theme-text-primary leading-tight mb-1">
-              {coachDiagnosis.headline}
-            </h2>
-
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-[10px] sm:text-[11px] font-bold px-2.5 py-0.5 rounded-full theme-surface-subtle theme-text-primary border">
-                {selectedLevel.title}
-              </span>
-              <span className="text-[10px] sm:text-[11px] font-mono px-2.5 py-0.5 rounded-full theme-surface-subtle theme-text-secondary border">
-                Focus: {coachDiagnosis.targetFocus}
-              </span>
-            </div>
-
-            {/* Personalized Narrative Breakdown */}
-            <p className="text-xs theme-text-secondary leading-relaxed mb-2.5 theme-surface-subtle p-3 rounded-xl border">
-              {coachDiagnosis.personalizedSummary}
-            </p>
-
-            {/* Golden Rule Callout Box */}
-            <div className="theme-surface-subtle border border-[var(--border-focus)] rounded-xl p-3 mb-2.5">
-              <div className="text-[11px] font-bold text-[var(--accent-primary)] uppercase tracking-wide mb-0.5 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>{coachDiagnosis.ruleTitle}</span>
-              </div>
-              <p className="text-xs theme-text-primary leading-relaxed">
-                {coachDiagnosis.ruleBody}
-              </p>
-            </div>
-
-            {/* 5-Puzzle Targeted Curriculum Roadmap Preview */}
-            <div className="theme-surface-subtle border rounded-xl p-3 mb-3">
-              <div className="flex items-center justify-between text-[10px] font-bold theme-text-primary uppercase tracking-wider mb-2">
-                <span className="flex items-center gap-1 text-[var(--accent-primary)]">
-                  <Target className="w-3.5 h-3.5" />
-                  Your 5-Puzzle Curriculum:
-                </span>
-                <span className="theme-text-muted font-mono">Curated</span>
-              </div>
-              <div className="space-y-1">
-                {(coachDiagnosis.curatedPlaylist || diagnosisPlaylist).map((pz, pIdx) => (
-                  <div
-                    key={pz.id || pIdx}
-                    className="flex items-center justify-between p-2 rounded-lg theme-surface border text-xs theme-text-primary"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="w-4 h-4 rounded theme-pill flex items-center justify-center text-[10px] font-mono font-bold shrink-0">
-                        {pIdx + 1}
-                      </span>
-                      <span className="font-medium text-[11px] truncate max-w-[190px] sm:max-w-[280px]">
-                        {pz.title}
-                      </span>
-                    </div>
-                    <span className="text-[9px] font-mono theme-text-muted theme-surface-subtle px-1.5 py-0.5 rounded border shrink-0">
-                      {pz.ratingBadge}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Put This Rule to the Test CTA */}
-            <button
-              onClick={startDiagnosedCurriculum}
-              className="w-full py-2.5 px-4 rounded-xl theme-accent-btn font-bold text-xs sm:text-sm tracking-wide flex items-center justify-center gap-2 shadow-sm transition-all duration-150 active:scale-[0.98] cursor-pointer"
-            >
-              <span>Start 5-Puzzle Curriculum</span>
-              <Play className="w-4 h-4 fill-current" />
-            </button>
-
-            {/* Share Diagnosis CTA */}
-            <button
-              onClick={handleShareDiagnosis}
-              className="w-full mt-1.5 py-2 px-4 rounded-xl theme-surface theme-surface-hover font-semibold text-xs tracking-wide flex items-center justify-center gap-2 transition duration-150 cursor-pointer border"
-              title="Share or Copy your diagnosis card"
-            >
-              {shareCopied ? (
-                <>
-                  <Check className="w-3.5 h-3.5 text-[var(--accent-primary)]" />
-                  <span className="text-[var(--accent-primary)] font-bold">Diagnosis Copied to Clipboard!</span>
-                </>
-              ) : (
-                <>
-                  <Share2 className="w-3.5 h-3.5 text-[var(--accent-primary)]" />
-                  <span>Share My Coach Diagnosis</span>
-                </>
-              )}
-            </button>
-          </div>
-        </section>
       ) : (
-        /* Screen 3: The Interactive Chessboard Arena (Chess.com Desktop Layout Reference) */
+        /* Screen 2: The Interactive Chessboard Arena (Chess.com Desktop Layout Reference) */
         <section className="flex-1 flex flex-col md:flex-row items-center justify-center gap-4 lg:gap-8 max-w-6xl mx-auto w-full py-1 md:py-2 min-h-0">
           {/* Mobile Only: Top HUD */}
           <div className="w-full flex md:hidden items-center justify-between mb-1 px-1">
@@ -2233,19 +1839,46 @@ export default function Home() {
                     ) : (
                       <div className="space-y-2">
                         <div className="p-2.5 theme-pill rounded-xl text-center">
-                          <span className="text-xs font-bold theme-text-primary block">
-                            5/5 Curriculum Mastered!
+                          <span className="text-xs font-bold text-emerald-400 block">
+                            🎉 5/5 Curriculum Mastered!
                           </span>
                           <span className="text-[11px] theme-text-secondary">
-                            Your leak ({coachDiagnosis?.leakName}) is now patched.
+                            Target leak patched: <strong className="theme-text-primary">{coachDiagnosis?.leakName || "Tactical Precision"}</strong>
                           </span>
                         </div>
+
                         <button
                           onClick={continueToUnlimitedPractice}
                           className="group relative w-full py-2.5 px-3 rounded-xl theme-accent-btn font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all duration-200 shadow-sm cursor-pointer animate-next-btn btn-shimmer-effect hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]"
                         >
-                          <span className="relative z-10">Continue to Unlimited Practice</span>
+                          <span className="relative z-10">Keep Practicing ({selectedLevel?.title})</span>
                           <Zap className="w-4 h-4 fill-current relative z-10 group-hover:scale-110 transition-transform duration-200" />
+                        </button>
+
+                        <div className="grid grid-cols-2 gap-1.5">
+                          <Link
+                            href="/diagnose"
+                            className="py-2 px-2.5 rounded-lg theme-surface hover:theme-surface-subtle border text-[11px] font-bold theme-text-primary flex items-center justify-center gap-1 transition text-center"
+                          >
+                            <Sparkles className="w-3 h-3 text-[var(--accent-primary)]" />
+                            <span>Retake Test</span>
+                          </Link>
+
+                          <button
+                            onClick={() => setShowWeaknessDashboard(true)}
+                            className="py-2 px-2.5 rounded-lg theme-surface hover:theme-surface-subtle border text-[11px] font-bold theme-text-primary flex items-center justify-center gap-1 transition cursor-pointer"
+                          >
+                            <Target className="w-3 h-3 text-rose-400" />
+                            <span>My Blunders</span>
+                          </button>
+                        </div>
+
+                        <button
+                          onClick={handleShareDiagnosis}
+                          className="w-full py-1.5 px-3 rounded-lg theme-surface hover:theme-surface-subtle border text-[11px] font-medium theme-text-secondary flex items-center justify-center gap-1.5 transition cursor-pointer"
+                        >
+                          <Share2 className="w-3 h-3 text-[var(--accent-primary)]" />
+                          <span>{shareCopied ? "Copied to Clipboard!" : "Share Training Report"}</span>
                         </button>
                       </div>
                     )

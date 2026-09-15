@@ -209,6 +209,27 @@ function WeaknessDashboardContent() {
               </p>
             </div>
           </div>
+
+          {/* Harmonized Global Navigation */}
+          <nav className="hidden md:flex items-center gap-1 ml-3 pl-3 border-l border-[var(--border-subtle)] text-xs font-mono">
+            <Link
+              href="/"
+              className="px-2.5 py-1 rounded-lg font-semibold theme-text-secondary hover:theme-text-primary hover:bg-[var(--surface-muted)] transition"
+            >
+              Train
+            </Link>
+            <Link
+              href="/diagnose"
+              className="px-2.5 py-1 rounded-lg font-semibold theme-text-secondary hover:theme-text-primary hover:bg-[var(--surface-muted)] transition flex items-center gap-1"
+            >
+              <span>Skill Test</span>
+              <span className="text-[9px] px-1 py-0.2 rounded bg-[var(--accent-primary)]/20 text-[var(--accent-primary)] font-bold">5m</span>
+            </Link>
+            <span className="px-2.5 py-1 rounded-lg font-semibold bg-rose-500/15 text-rose-400 border border-rose-500/30 flex items-center gap-1">
+              <span>Weakness Studio</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse"></span>
+            </span>
+          </nav>
         </div>
 
         {/* Username Search Input Bar */}

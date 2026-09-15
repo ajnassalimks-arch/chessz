@@ -1229,25 +1229,44 @@ export default function DiagnosePage() {
         <div className="flex items-center gap-2.5">
           <Link
             href="/"
-            className="w-7 h-7 rounded-xl overflow-hidden shrink-0 border border-[var(--border-subtle)] shadow-xs bg-[#0b0f17] flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity"
+            className="flex items-center gap-2 cursor-pointer group"
             title="ChessZ Home"
           >
-            <Image
-              src="/logo-icon.png"
-              alt="ChessZ Logo"
-              width={28}
-              height={28}
-              className="w-full h-full object-cover"
-              priority
-            />
+            <div className="w-7 h-7 rounded-xl overflow-hidden shrink-0 border border-[var(--border-subtle)] shadow-xs bg-[#0b0f17] flex items-center justify-center group-hover:opacity-90 transition-opacity">
+              <Image
+                src="/logo-icon.png"
+                alt="ChessZ Logo"
+                width={28}
+                height={28}
+                className="w-full h-full object-cover"
+                priority
+              />
+            </div>
+            <span className="font-extrabold text-sm sm:text-base tracking-tight theme-text-primary font-display">
+              ChessZ
+            </span>
           </Link>
-          <span className="font-extrabold text-sm sm:text-base tracking-tight theme-text-primary font-display">
-            ChessZ
-          </span>
-          <div className="flex items-center gap-1.5 ml-2 px-2.5 py-0.5 rounded-full text-[11px] font-medium theme-pill">
-            <Sparkles className="w-3 h-3 text-[var(--accent-primary)] animate-pulse" />
-            <span>Skill Test</span>
-          </div>
+
+          {/* Harmonized Global Navigation */}
+          <nav className="hidden md:flex items-center gap-1 ml-2 pl-2 border-l border-[var(--border-subtle)] text-xs font-mono">
+            <Link
+              href="/"
+              className="px-2.5 py-1 rounded-lg font-semibold theme-text-secondary hover:theme-text-primary hover:bg-[var(--surface-muted)] transition"
+            >
+              Train
+            </Link>
+            <span className="px-2.5 py-1 rounded-lg font-semibold bg-[var(--accent-primary)]/15 text-[var(--accent-primary)] flex items-center gap-1">
+              <span>Skill Test</span>
+              <span className="text-[9px] px-1 py-0.2 rounded bg-[var(--accent-primary)]/20 text-[var(--accent-primary)] font-bold">5m</span>
+            </span>
+            <Link
+              href="/weakness"
+              className="px-2.5 py-1 rounded-lg font-semibold theme-text-secondary hover:theme-text-primary hover:bg-[var(--surface-muted)] transition flex items-center gap-1"
+            >
+              <span>Weakness Studio</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+            </Link>
+          </nav>
         </div>
 
         <div className="flex items-center gap-1.5">
