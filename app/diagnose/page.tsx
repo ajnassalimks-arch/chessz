@@ -1270,26 +1270,6 @@ export default function DiagnosePage() {
         </div>
 
         <div className="flex items-center gap-1.5">
-          <button
-            onClick={() => {
-              const nextMuted = !isMuted;
-              setIsMuted(nextMuted);
-              sounds.setMuted(nextMuted);
-              try {
-                localStorage.setItem("chessz_muted", String(nextMuted));
-              } catch {}
-            }}
-            className="w-8 h-8 rounded-xl theme-surface hover:theme-surface-subtle flex items-center justify-center cursor-pointer transition border"
-            title={isMuted ? "Unmute Sound" : "Mute Sound"}
-            aria-label={isMuted ? "Unmute Sound" : "Mute Sound"}
-          >
-            {isMuted ? (
-              <VolumeX className="w-4 h-4 opacity-50" />
-            ) : (
-              <Volume2 className="w-4 h-4 text-[var(--accent-primary)]" />
-            )}
-          </button>
-
           {/* Lichess Account / Sync Button */}
           <button
             onClick={() => setShowLichessModal(true)}
@@ -1309,6 +1289,27 @@ export default function DiagnosePage() {
               <span className="hidden md:inline px-1 py-0.2 rounded bg-amber-500/20 text-[10px] text-amber-300 font-bold">
                 {lichessUser.perfs.rapid.rating}
               </span>
+            )}
+          </button>
+
+          {/* Mute Toggle */}
+          <button
+            onClick={() => {
+              const nextMuted = !isMuted;
+              setIsMuted(nextMuted);
+              sounds.setMuted(nextMuted);
+              try {
+                localStorage.setItem("chessz_muted", String(nextMuted));
+              } catch {}
+            }}
+            className="w-8 h-8 rounded-xl theme-surface hover:theme-surface-subtle flex items-center justify-center cursor-pointer transition border"
+            title={isMuted ? "Unmute Sound" : "Mute Sound"}
+            aria-label={isMuted ? "Unmute Sound" : "Mute Sound"}
+          >
+            {isMuted ? (
+              <VolumeX className="w-4 h-4 opacity-50" />
+            ) : (
+              <Volume2 className="w-4 h-4 text-[var(--accent-primary)]" />
             )}
           </button>
 

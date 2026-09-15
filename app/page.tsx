@@ -1836,10 +1836,10 @@ export default function Home() {
                         <Cpu className="w-3 h-3" />
                       </div>
                       <span className="font-bold text-emerald-400 shrink-0">
-                        {engineEvaluation
-                          ? engineEvaluation.isMate
-                            ? `Mate in ${Math.abs(engineEvaluation.mateIn || 0)}`
-                            : `${(engineEvaluation.score ?? 0) > 0 ? "+" : ""}${((engineEvaluation.score ?? 0) / 100).toFixed(1)}`
+                        {engineEvaluation?.displayScore
+                          ? `Eval: ${engineEvaluation.displayScore}`
+                          : engineEvaluation?.isMate
+                          ? `Mate in ${Math.abs(engineEvaluation.mateIn || 0)}`
                           : "Eval: +Decisive"}
                       </span>
                       {engineBestLine && engineBestLine.length > 0 ? (

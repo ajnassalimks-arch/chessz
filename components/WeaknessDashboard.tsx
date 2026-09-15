@@ -307,10 +307,11 @@ export function WeaknessDashboard({
     });
 
     const enriched = blunders.map((b) => {
+      const bestUci = b.solutionMoves?.[0] ? `${b.solutionMoves[0].from}${b.solutionMoves[0].to}` : '';
       const c = classifyMistake(
         b.initialFen,
         b.playedSan,
-        b.solutionMoves[0]?.from + b.solutionMoves[0]?.to,
+        bestUci,
         b.moveNumber * 2,
         b.evalSwingPawns,
         selectedTier

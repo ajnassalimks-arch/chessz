@@ -249,7 +249,7 @@ function WeaknessDashboardContent() {
               placeholder="Lichess username..."
               className="w-36 sm:w-48 pl-8 pr-3 py-1.5 rounded-xl theme-surface border text-xs font-mono theme-text-primary focus:outline-none focus:border-[var(--accent-primary)] transition"
             />
-            <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+            <LichessIcon className="w-3.5 h-3.5 text-amber-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
 
           <button
