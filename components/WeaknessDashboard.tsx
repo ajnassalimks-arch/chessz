@@ -44,6 +44,160 @@ interface WeaknessDashboardProps {
   onStartTraining: (puzzle: ChessPuzzle) => void;
 }
 
+interface BlunderCardItemProps {
+  puzzle: any;
+  isMastered: boolean;
+  onStartTraining: (puzzle: ChessPuzzle) => void;
+  onClose: () => void;
+}
+
+function BlunderCardItem({
+  puzzle,
+  isMastered,
+  onStartTraining,
+  onClose,
+}: BlunderCardItemProps) {
+  const setupMoves =
+    puzzle.setupMoves && puzzle.setupMoves.length > 0
+      ? puzzle.setupMoves
+      : [
+          {
+            ply: 0,
+            moveNumber: puzzle.moveNumber,
+            turnPrefix: '',
+            san: puzzle.playedSan,
+            fen: puzzle.initialFen,
+          },
+        ];
+
+  // Step index within setup moves (default to the last move, the blunder)
+  const [stepIdx, setStepIdx] = useState<number>(setupMoves.length - 1);
+  const phaseName =
+    puzzle.moveNumber <= 10
+      ? 'Opening'
+      : puzzle.moveNumber <= 30
+      ? 'Middlegame'
+      : 'Endgame';
+
+  return (
+    <div className="p-3.5 rounded-2xl theme-surface-subtle border border-[var(--border-subtle)] hover:border-[var(--border-focus)] transition flex flex-col justify-between space-y-2.5">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold theme-text-primary truncate">
+              {puzzle.title}
+            </span>
+            <span className="text-[9px] font-mono uppercase px-1.5 py-0.2 rounded bg-rose-500/15 text-rose-400 font-bold shrink-0">
+              Move {puzzle.moveNumber} • {phaseName}
+            </span>
+          </div>
+          <div className="text-[11px] font-mono text-rose-400 mt-0.5 flex items-center gap-1.5 flex-wrap">
+            <span>
+              Played: <strong>{puzzle.playedSan}</strong>
+            </span>
+            {puzzle.evalSwingPawns && (
+              <span className="text-[10px] text-amber-400 bg-amber-500/10 px-1 rounded">
+                -~{puzzle.evalSwingPawns} pts
+              </span>
+            )}
+            <span className="text-emerald-400">
+              Best: <strong>{puzzle.bestSan}</strong>
+            </span>
+          </div>
+        </div>
+
+        {isMastered && (
+          <span className="text-[10px] font-mono font-bold text-emerald-400 flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 shrink-0">
+            <CheckCircle2 className="w-3 h-3" />
+            Fixed
+          </span>
+        )}
+      </div>
+
+      {/* Preceding Setup Moves Stepper (How the position arose) */}
+      {setupMoves.length > 1 && (
+        <div className="flex items-center justify-between p-2 rounded-xl bg-black/25 border border-[var(--border-subtle)] text-xs font-mono">
+          <div className="flex items-center gap-1.5 overflow-hidden">
+            <span className="text-[10px] theme-text-muted uppercase shrink-0">
+              Setup:
+            </span>
+            <div className="flex items-center gap-1 overflow-x-auto custom-scrollbar">
+              {setupMoves.map((sm: any, idx: number) => {
+                const isSelected = stepIdx === idx;
+                const isFinal = idx === setupMoves.length - 1;
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setStepIdx(idx)}
+                    className={`px-1.5 py-0.5 rounded text-[10px] font-bold transition cursor-pointer shrink-0 ${
+                      isSelected
+                        ? isFinal
+                          ? 'bg-rose-500 text-white shadow-xs'
+                          : 'bg-[var(--accent-primary)] text-white shadow-xs'
+                        : 'theme-surface theme-text-secondary hover:theme-text-primary'
+                    }`}
+                    title={`Step ${idx + 1}: ${sm.turnPrefix || ''} ${sm.san}`}
+                  >
+                    <span>
+                      {sm.turnPrefix ? `${sm.turnPrefix} ` : ''}
+                      {sm.san}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1 shrink-0 ml-1.5">
+            <button
+              type="button"
+              onClick={() => setStepIdx(Math.max(0, stepIdx - 1))}
+              disabled={stepIdx === 0}
+              className="w-6 h-6 rounded-lg theme-surface hover:theme-surface-subtle border flex items-center justify-center cursor-pointer disabled:opacity-30 text-[10px] transition"
+              title="Step back 1 move"
+            >
+              ◀
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                setStepIdx(Math.min(setupMoves.length - 1, stepIdx + 1))
+              }
+              disabled={stepIdx === setupMoves.length - 1}
+              className="w-6 h-6 rounded-lg theme-surface hover:theme-surface-subtle border flex items-center justify-center cursor-pointer disabled:opacity-30 text-[10px] transition"
+              title="Step forward 1 move"
+            >
+              ▶
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="text-[11px] theme-text-secondary line-clamp-1 italic">
+        "{puzzle.ruleTitle}"
+      </div>
+
+      <div className="pt-2 border-t border-[var(--border-subtle)] flex items-center justify-between gap-2">
+        <span className="text-[10px] font-mono theme-text-muted">
+          {puzzle.categoryTitle}
+        </span>
+
+        <button
+          onClick={() => {
+            onStartTraining(puzzle);
+            onClose();
+          }}
+          className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 text-xs font-bold transition cursor-pointer shrink-0"
+        >
+          <span>{isMastered ? 'Train Again' : 'Fix It'}</span>
+          <ArrowRight className="w-3.5 h-3.5" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function WeaknessDashboard({
   isOpen,
   onClose,
@@ -597,65 +751,15 @@ export function WeaknessDashboard({
 
                 {/* Blunder Cards Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 max-h-72 overflow-y-auto custom-scrollbar pr-1">
-                  {filteredBlunders.map((puzzle) => {
-                    const isMastered = masteredIds.includes(puzzle.id);
-                    return (
-                      <div
-                        key={puzzle.id}
-                        className="p-3.5 rounded-2xl theme-surface-subtle border border-[var(--border-subtle)] hover:border-[var(--border-focus)] transition flex flex-col justify-between space-y-2.5"
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs font-bold theme-text-primary truncate">
-                                {puzzle.title}
-                              </span>
-                              <span className="text-[9px] font-mono uppercase px-1.5 py-0.2 rounded bg-rose-500/15 text-rose-400 font-bold shrink-0">
-                                Move {puzzle.moveNumber}
-                              </span>
-                            </div>
-                            <div className="text-[11px] font-mono text-rose-400 mt-0.5 flex items-center gap-1.5 flex-wrap">
-                              <span>Played: <strong>{puzzle.playedSan}</strong></span>
-                              {puzzle.evalSwingPawns && (
-                                <span className="text-[10px] text-amber-400 bg-amber-500/10 px-1 rounded">
-                                  -~{puzzle.evalSwingPawns} pts
-                                </span>
-                              )}
-                              <span className="text-emerald-400">Best: <strong>{puzzle.bestSan}</strong></span>
-                            </div>
-                          </div>
-
-                          {isMastered && (
-                            <span className="text-[10px] font-mono font-bold text-emerald-400 flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 shrink-0">
-                              <CheckCircle2 className="w-3 h-3" />
-                              Fixed
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="text-[11px] theme-text-secondary line-clamp-1 italic">
-                          "{puzzle.ruleTitle}"
-                        </div>
-
-                        <div className="pt-2 border-t border-[var(--border-subtle)] flex items-center justify-between gap-2">
-                          <span className="text-[10px] font-mono theme-text-muted">
-                            {puzzle.categoryTitle}
-                          </span>
-
-                          <button
-                            onClick={() => {
-                              onStartTraining(puzzle);
-                              onClose();
-                            }}
-                            className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 text-xs font-bold transition cursor-pointer shrink-0"
-                          >
-                            <span>{isMastered ? 'Train Again' : 'Fix It'}</span>
-                            <ArrowRight className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
+                  {filteredBlunders.map((puzzle) => (
+                    <BlunderCardItem
+                      key={puzzle.id}
+                      puzzle={puzzle}
+                      isMastered={masteredIds.includes(puzzle.id)}
+                      onStartTraining={onStartTraining}
+                      onClose={onClose}
+                    />
+                  ))}
                 </div>
               </div>
             </>

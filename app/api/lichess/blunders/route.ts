@@ -154,8 +154,9 @@ export async function GET(request: NextRequest) {
           const bestUci = a.best;
           if (!bestUci || bestUci.length < 4) continue;
 
-          // Replay moves up to ply i to get exact FEN before the blunder
+          // Replay moves up to ply i to get exact FEN before the blunder and capture setup moves
           const chess = new Chess();
+          const fensHistory: string[] = [chess.fen()];
           let validReplay = true;
           for (let m = 0; m < i; m++) {
             try {
@@ -164,6 +165,7 @@ export async function GET(request: NextRequest) {
                 validReplay = false;
                 break;
               }
+              fensHistory.push(chess.fen());
             } catch {
               validReplay = false;
               break;
@@ -177,6 +179,20 @@ export async function GET(request: NextRequest) {
           const bestFrom = bestUci.slice(0, 2);
           const bestTo = bestUci.slice(2, 4);
           const bestProm = bestUci.length > 4 ? bestUci[4] : undefined;
+
+          // Collect preceding setup moves leading up to the mistake
+          const setupMoves: { ply: number; moveNumber: number; turnPrefix: string; san: string; fen: string }[] = [];
+          if (i >= 2) {
+            const m2Num = Math.floor((i - 2) / 2) + 1;
+            const m2Prefix = (i - 2) % 2 === 0 ? `${m2Num}.` : `${m2Num}...`;
+            setupMoves.push({ ply: i - 2, moveNumber: m2Num, turnPrefix: m2Prefix, san: moves[i - 2], fen: fensHistory[i - 2] });
+          }
+          if (i >= 1) {
+            const m1Num = Math.floor((i - 1) / 2) + 1;
+            const m1Prefix = (i - 1) % 2 === 0 ? `${m1Num}.` : `${m1Num}...`;
+            setupMoves.push({ ply: i - 1, moveNumber: m1Num, turnPrefix: m1Prefix, san: moves[i - 1], fen: fensHistory[i - 1] });
+          }
+          setupMoves.push({ ply: i, moveNumber: Math.floor(i / 2) + 1, turnPrefix: userColor === 'white' ? `${Math.floor(i / 2) + 1}.` : `${Math.floor(i / 2) + 1}...`, san: playedSan, fen: fenBefore });
 
           // Verify best move is legal on FEN
           let bestSan = `${bestFrom}-${bestTo}`;
@@ -229,6 +245,7 @@ export async function GET(request: NextRequest) {
             bestSan,
             evalSwingPawns,
             judgmentName,
+            setupMoves,
             category: classified.categoryId,
             categoryTitle: classified.categoryTitle,
             categoryBadge: classified.badge,

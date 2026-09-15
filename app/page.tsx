@@ -588,6 +588,10 @@ export default function Home() {
       setSolvedCount((prev) => prev + 1);
       setStatus("Tactical Win! Rule Mastered 🎉");
 
+      // Auto-reveal Stockfish engine analysis on solved position
+      setEngineEnabled(true);
+      startAnalysis(testChess.fen());
+
       // If this was a Lichess blunder puzzle, mark it as mastered in localStorage
       if (currentPuzzle.id && currentPuzzle.id.startsWith("lichess_")) {
         try {
@@ -1835,6 +1839,34 @@ export default function Home() {
                   <p className="text-xs theme-text-primary leading-relaxed mb-3">
                     {currentPuzzle.successExplanation}
                   </p>
+
+                  {/* Auto-Revealed Mini-Eval Bar with Top Engine Line */}
+                  <div className="mb-3 p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-between text-xs font-mono animate-in fade-in duration-200">
+                    <div className="flex items-center gap-2 overflow-hidden">
+                      <div className="w-5 h-5 rounded-md bg-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
+                        <Cpu className="w-3 h-3" />
+                      </div>
+                      <span className="font-bold text-emerald-400 shrink-0">
+                        {engineEvaluation
+                          ? engineEvaluation.isMate
+                            ? `Mate in ${Math.abs(engineEvaluation.mateIn || 0)}`
+                            : `${(engineEvaluation.score ?? 0) > 0 ? "+" : ""}${((engineEvaluation.score ?? 0) / 100).toFixed(1)}`
+                          : "Eval: +Decisive"}
+                      </span>
+                      {engineBestLine && engineBestLine.length > 0 ? (
+                        <span className="theme-text-secondary truncate max-w-[170px] sm:max-w-[270px]">
+                          Top: {engineBestLine.slice(0, 4).join(" ")}
+                        </span>
+                      ) : (
+                        <span className="theme-text-muted italic text-[11px]">
+                          Stockfish calculating...
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-[10px] font-bold text-emerald-400 px-1.5 py-0.5 rounded bg-emerald-500/20 border border-emerald-500/30 uppercase shrink-0">
+                      WASM
+                    </span>
+                  </div>
                   {isCurriculumActive ? (
                     curriculumIndex < 4 ? (
                       <button
