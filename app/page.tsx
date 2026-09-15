@@ -1038,13 +1038,13 @@ export default function Home() {
               <span>Skill Test</span>
               <span className="text-[9px] px-1 py-0.2 rounded bg-[var(--accent-primary)]/20 text-[var(--accent-primary)] font-bold">5m</span>
             </Link>
-            <button
-              onClick={() => setShowWeaknessDashboard(true)}
-              className="px-2.5 py-1 rounded-lg font-semibold theme-text-secondary hover:theme-text-primary hover:bg-[var(--surface-muted)] transition flex items-center gap-1 cursor-pointer"
+            <Link
+              href="/weakness"
+              className="px-2.5 py-1 rounded-lg font-semibold theme-text-secondary hover:theme-text-primary hover:bg-[var(--surface-muted)] transition flex items-center gap-1"
             >
               <span>Weakness Studio</span>
               <span className="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
-            </button>
+            </Link>
           </nav>
         </div>
 
@@ -1069,17 +1069,6 @@ export default function Home() {
                 {lichessUser.perfs.rapid.rating}
               </span>
             )}
-          </button>
-
-          {/* Weakness Studio Button */}
-          <button
-            onClick={() => setShowWeaknessDashboard(true)}
-            className="flex items-center gap-1.5 text-[11px] font-mono font-semibold px-2.5 py-1.5 rounded-xl cursor-pointer transition border bg-rose-500/10 border-rose-500/30 text-rose-400 hover:bg-rose-500/20 shadow-xs"
-            title="Weakness Studio & Blunder Diagnostic"
-            aria-label="Weakness Studio"
-          >
-            <Target className="w-3.5 h-3.5 text-rose-400" />
-            <span className="hidden sm:inline">Weakness Studio</span>
           </button>
 
           {/* Mute Toggle */}
