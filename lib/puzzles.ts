@@ -66,7 +66,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qb8",
         "coachExplanation": "Opponent plays Qb8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rxa8+ is the engine-verified winning move from Lichess #005N7."
+      "successExplanation": "Tactical precision! 1. Rxa8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00CYP",
@@ -89,12 +89,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "f8",
-        "to": "e8",
-        "san": "Kf8",
-        "coachExplanation": "Opponent responds with Kf8! Inaccurate continuation."
+        "from": "h2",
+        "to": "g3",
+        "san": "Qg3+",
+        "coachExplanation": "Opponent punishes with Qg3+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxd8# is the engine-verified winning move from Lichess #00CYP."
+      "successExplanation": "Decisive execution! 1. Qxd8# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_00FHX",
@@ -117,12 +117,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "b1",
-        "to": "c2",
-        "san": "Bb1",
-        "coachExplanation": "Opponent responds with Bb1! Inaccurate continuation."
+        "from": "c8",
+        "to": "c1",
+        "san": "Rxc1+",
+        "coachExplanation": "Opponent punishes with Rxc1+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rxc8# is the engine-verified winning move from Lichess #00FHX."
+      "successExplanation": "Decisive execution! 1. Rxc8# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_00NR5",
@@ -146,11 +146,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       ],
       "defaultRefutation": {
         "from": "d8",
-        "to": "d7",
-        "san": "Rd8",
-        "coachExplanation": "Opponent responds with Rd8! Inaccurate continuation."
+        "to": "b8",
+        "san": "Rxb8",
+        "coachExplanation": "Opponent punishes with Rxb8! This captures the undefended r and wins material. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rxd8# is the engine-verified winning move from Lichess #00NR5."
+      "successExplanation": "Decisive execution! 1. Rxd8# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_00X1l",
@@ -174,11 +174,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       ],
       "defaultRefutation": {
         "from": "g2",
-        "to": "f3",
-        "san": "fxg2",
-        "coachExplanation": "Opponent responds with fxg2! Inaccurate continuation."
+        "to": "f1",
+        "san": "gxf1=Q#",
+        "coachExplanation": "Opponent punishes with gxf1=Q#! This delivers immediate checkmate. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rxf8# is the engine-verified winning move from Lichess #00X1l."
+      "successExplanation": "Decisive execution! 1. Rxf8# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_00eCY",
@@ -206,7 +206,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "f5",
         "coachExplanation": "Opponent plays f5! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rxd5+ is the engine-verified winning move from Lichess #00eCY."
+      "successExplanation": "Tactical precision! 1. Rxd5+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00vZg",
@@ -229,12 +229,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "h8",
-        "to": "g8",
-        "san": "Kh8",
-        "coachExplanation": "Opponent responds with Kh8! Inaccurate continuation."
+        "from": "e2",
+        "to": "f2",
+        "san": "Qxf2+",
+        "coachExplanation": "Opponent punishes with Qxf2+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxf8# is the engine-verified winning move from Lichess #00vZg."
+      "successExplanation": "Decisive execution! 1. Qxf8# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_00zxV",
@@ -257,12 +257,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "e4",
-        "to": "f6",
-        "san": "Ne4",
-        "coachExplanation": "Opponent responds with Ne4! Inaccurate continuation."
+        "from": "e3",
+        "to": "f2",
+        "san": "Qf2#",
+        "coachExplanation": "Opponent punishes with Qf2#! This delivers immediate checkmate. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxh8# is the engine-verified winning move from Lichess #00zxV."
+      "successExplanation": "Decisive execution! 1. Qxh8# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_0119E",
@@ -286,11 +286,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       ],
       "defaultRefutation": {
         "from": "f8",
-        "to": "e7",
-        "san": "Qxf8",
-        "coachExplanation": "Opponent responds with Qxf8! Inaccurate continuation."
+        "to": "f2",
+        "san": "Qf2+",
+        "coachExplanation": "Opponent punishes with Qf2+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxf8# is the engine-verified winning move from Lichess #0119E."
+      "successExplanation": "Decisive execution! 1. Qxf8# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_01I0q",
@@ -318,7 +318,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qe1",
         "coachExplanation": "Opponent plays Qe1! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qxc1+ is the engine-verified winning move from Lichess #01I0q."
+      "successExplanation": "Tactical precision! 1. Qxc1+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_01LBw",
@@ -342,11 +342,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       ],
       "defaultRefutation": {
         "from": "g4",
-        "to": "d1",
-        "san": "Qxg4",
-        "coachExplanation": "Opponent responds with Qxg4! Inaccurate continuation."
+        "to": "e6",
+        "san": "Qe6+",
+        "coachExplanation": "Opponent punishes with Qe6+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxg4# is the engine-verified winning move from Lichess #01LBw."
+      "successExplanation": "Decisive execution! 1. Qxg4# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_01QIH",
@@ -369,12 +369,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "c7",
-        "to": "e7",
-        "san": "Rxc7",
-        "coachExplanation": "Opponent responds with Rxc7! Inaccurate continuation."
+        "from": "h6",
+        "to": "f7",
+        "san": "Nf7+",
+        "coachExplanation": "Opponent punishes with Nf7+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rxe1# is the engine-verified winning move from Lichess #01QIH."
+      "successExplanation": "Decisive execution! 1. Rxe1# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_01QTc",
@@ -402,7 +402,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kh7",
         "coachExplanation": "Opponent plays Kh7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rxc8+ is the engine-verified winning move from Lichess #01QTc."
+      "successExplanation": "Tactical precision! 1. Rxc8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_01gl3",
@@ -426,11 +426,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       ],
       "defaultRefutation": {
         "from": "g5",
-        "to": "d8",
-        "san": "Qg5",
-        "coachExplanation": "Opponent responds with Qg5! Inaccurate continuation."
+        "to": "d2",
+        "san": "Qxd2+",
+        "coachExplanation": "Opponent punishes with Qxd2+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rxf8# is the engine-verified winning move from Lichess #01gl3."
+      "successExplanation": "Decisive execution! 1. Rxf8# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_01uI5",
@@ -453,12 +453,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "f3",
-        "to": "h5",
-        "san": "Bxf3",
-        "coachExplanation": "Opponent responds with Bxf3! Inaccurate continuation."
+        "from": "e8",
+        "to": "e7",
+        "san": "Rxe7",
+        "coachExplanation": "Opponent punishes with Rxe7! This captures the undefended b and wins material. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rxe8# is the engine-verified winning move from Lichess #01uI5."
+      "successExplanation": "Decisive execution! 1. Rxe8# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_01zWA",
@@ -481,12 +481,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "g5",
-        "to": "f5",
-        "san": "Rxg5",
-        "coachExplanation": "Opponent responds with Rxg5! Inaccurate continuation."
+        "from": "e4",
+        "to": "g6",
+        "san": "Qg6#",
+        "coachExplanation": "Opponent punishes with Qg6#! This delivers immediate checkmate. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rxf1# is the engine-verified winning move from Lichess #01zWA."
+      "successExplanation": "Decisive execution! 1. Rxf1# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_0217e",
@@ -510,11 +510,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       ],
       "defaultRefutation": {
         "from": "d5",
-        "to": "d1",
-        "san": "Qxd5",
-        "coachExplanation": "Opponent responds with Qxd5! Inaccurate continuation."
+        "to": "c6",
+        "san": "Qc6+",
+        "coachExplanation": "Opponent punishes with Qc6+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxe1# is the engine-verified winning move from Lichess #0217e."
+      "successExplanation": "Decisive execution! 1. Qxe1# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_021Lo",
@@ -537,12 +537,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "f3",
-        "to": "g5",
-        "san": "Ng5+",
-        "coachExplanation": "Opponent plays Ng5+! Always look for forcing responses before deciding."
+        "from": "d1",
+        "to": "d8",
+        "san": "Qxd8+",
+        "coachExplanation": "Opponent punishes with Qxd8+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Kxf7 is the engine-verified winning move from Lichess #021Lo."
+      "successExplanation": "Tactical precision! 1. Kxf7 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_021cG",
@@ -570,7 +570,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qe1",
         "coachExplanation": "Opponent plays Qe1! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qxd1+ is the engine-verified winning move from Lichess #021cG."
+      "successExplanation": "Tactical precision! 1. Qxd1+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_025Et",
@@ -593,12 +593,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "a2",
-        "to": "e2",
-        "san": "Rxa2",
-        "coachExplanation": "Opponent responds with Rxa2! Inaccurate continuation."
+        "from": "b7",
+        "to": "f7",
+        "san": "Qxf7+",
+        "coachExplanation": "Opponent punishes with Qxf7+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxe1# is the engine-verified winning move from Lichess #025Et."
+      "successExplanation": "Decisive execution! 1. Qxe1# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_02IQK",
@@ -621,12 +621,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "d8",
-        "to": "f7",
-        "san": "Nd8",
-        "coachExplanation": "Opponent responds with Nd8! Inaccurate continuation."
+        "from": "e8",
+        "to": "e1",
+        "san": "Re1+",
+        "coachExplanation": "Opponent punishes with Re1+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxe8# is the engine-verified winning move from Lichess #02IQK."
+      "successExplanation": "Decisive execution! 1. Qxe8# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_02MII",
@@ -654,7 +654,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Ne8",
         "coachExplanation": "Opponent plays Ne8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rxc8+ is the engine-verified winning move from Lichess #02MII."
+      "successExplanation": "Tactical precision! 1. Rxc8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_02MgK",
@@ -677,12 +677,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "h8",
-        "to": "g8",
-        "san": "Kh8",
-        "coachExplanation": "Opponent responds with Kh8! Inaccurate continuation."
+        "from": "a7",
+        "to": "a2",
+        "san": "Qa2+",
+        "coachExplanation": "Opponent punishes with Qa2+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxc8# is the engine-verified winning move from Lichess #02MgK."
+      "successExplanation": "Decisive execution! 1. Qxc8# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_02Or9",
@@ -706,11 +706,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       ],
       "defaultRefutation": {
         "from": "e5",
-        "to": "f6",
-        "san": "Bxe5",
-        "coachExplanation": "Opponent responds with Bxe5! Inaccurate continuation."
+        "to": "h2",
+        "san": "Bh2+",
+        "coachExplanation": "Opponent punishes with Bh2+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxf8# is the engine-verified winning move from Lichess #02Or9."
+      "successExplanation": "Decisive execution! 1. Qxf8# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_02T7b",
@@ -733,12 +733,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "h2",
-        "to": "g2",
-        "san": "Rh2",
-        "coachExplanation": "Opponent responds with Rh2! Inaccurate continuation."
+        "from": "d5",
+        "to": "b7",
+        "san": "Qb7+",
+        "coachExplanation": "Opponent punishes with Qb7+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxf1# is the engine-verified winning move from Lichess #02T7b."
+      "successExplanation": "Decisive execution! 1. Qxf1# forces an inescapable checkmate on the exposed king."
     }
   ],
   "beginner_1": [
@@ -764,11 +764,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       ],
       "defaultRefutation": {
         "from": "e6",
-        "to": "d4",
-        "san": "Nxe6",
-        "coachExplanation": "Opponent responds with Nxe6! Inaccurate continuation."
+        "to": "f8",
+        "san": "Nxf8+",
+        "coachExplanation": "Opponent punishes with Nxf8+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxh2# is the engine-verified winning move from Lichess #000rZ."
+      "successExplanation": "Decisive execution! 1. Qxh2# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_001KR",
@@ -791,12 +791,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "g8",
-        "to": "h8",
-        "san": "Kxg8",
-        "coachExplanation": "Opponent responds with Kxg8! Inaccurate continuation."
+        "from": "c4",
+        "to": "f1",
+        "san": "Qxf1+",
+        "coachExplanation": "Opponent punishes with Qxf1+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rf8# is the engine-verified winning move from Lichess #001KR."
+      "successExplanation": "Decisive execution! 1. Rf8# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_002vV",
@@ -820,11 +820,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       ],
       "defaultRefutation": {
         "from": "b6",
-        "to": "c6",
-        "san": "Rb6",
-        "coachExplanation": "Opponent responds with Rb6! Inaccurate continuation."
+        "to": "b8",
+        "san": "Rb8+",
+        "coachExplanation": "Opponent punishes with Rb8+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rh1# is the engine-verified winning move from Lichess #002vV."
+      "successExplanation": "Decisive execution! 1. Rh1# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_00465",
@@ -847,12 +847,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "f8",
-        "to": "d8",
-        "san": "Rxf8",
-        "coachExplanation": "Opponent responds with Rxf8! Inaccurate continuation."
+        "from": "d1",
+        "to": "e1",
+        "san": "Rxe1#",
+        "coachExplanation": "Opponent punishes with Rxe1#! This delivers immediate checkmate. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rxf8# is the engine-verified winning move from Lichess #00465."
+      "successExplanation": "Decisive execution! 1. Rxf8# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_004iZ",
@@ -875,12 +875,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "d5",
-        "to": "f6",
-        "san": "Nxd5",
-        "coachExplanation": "Opponent responds with Nxd5! Inaccurate continuation."
+        "from": "a8",
+        "to": "a3",
+        "san": "Rxa3",
+        "coachExplanation": "Opponent punishes with Rxa3! This captures the undefended p and wins material. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxg7# is the engine-verified winning move from Lichess #004iZ."
+      "successExplanation": "Decisive execution! 1. Qxg7# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_004yJ",
@@ -903,12 +903,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "e5",
-        "to": "f3",
-        "san": "Ne5",
-        "coachExplanation": "Opponent responds with Ne5! Inaccurate continuation."
+        "from": "d3",
+        "to": "h7",
+        "san": "Bxh7+",
+        "coachExplanation": "Opponent punishes with Bxh7+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxg2# is the engine-verified winning move from Lichess #004yJ."
+      "successExplanation": "Decisive execution! 1. Qxg2# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_005Ep",
@@ -931,12 +931,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "b5",
-        "to": "d4",
-        "san": "Nb5",
-        "coachExplanation": "Opponent responds with Nb5! Inaccurate continuation."
+        "from": "b4",
+        "to": "c4",
+        "san": "Rc4+",
+        "coachExplanation": "Opponent punishes with Rc4+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rd8# is the engine-verified winning move from Lichess #005Ep."
+      "successExplanation": "Decisive execution! 1. Rd8# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_005x9",
@@ -959,12 +959,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "c1",
-        "to": "d1",
-        "san": "Kc1",
-        "coachExplanation": "Opponent responds with Kc1! Inaccurate continuation."
+        "from": "h8",
+        "to": "e5",
+        "san": "Qe5+",
+        "coachExplanation": "Opponent punishes with Qe5+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxc2# is the engine-verified winning move from Lichess #005x9."
+      "successExplanation": "Decisive execution! 1. Qxc2# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_00656",
@@ -987,12 +987,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "g4",
-        "to": "h3",
-        "san": "hxg4",
-        "coachExplanation": "Opponent responds with hxg4! Inaccurate continuation."
+        "from": "d3",
+        "to": "g6",
+        "san": "Qxg6+",
+        "coachExplanation": "Opponent punishes with Qxg6+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rh1# is the engine-verified winning move from Lichess #00656."
+      "successExplanation": "Decisive execution! 1. Rh1# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_007AH",
@@ -1016,11 +1016,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       ],
       "defaultRefutation": {
         "from": "e2",
-        "to": "d1",
-        "san": "Qe2",
-        "coachExplanation": "Opponent responds with Qe2! Inaccurate continuation."
+        "to": "c4",
+        "san": "Qc4+",
+        "coachExplanation": "Opponent punishes with Qc4+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxg2# is the engine-verified winning move from Lichess #007AH."
+      "successExplanation": "Decisive execution! 1. Qxg2# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_007HB",
@@ -1043,12 +1043,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "d4",
-        "to": "f3",
-        "san": "Nxd4",
-        "coachExplanation": "Opponent responds with Nxd4! Inaccurate continuation."
+        "from": "f5",
+        "to": "h7",
+        "san": "Bxh7+",
+        "coachExplanation": "Opponent punishes with Bxh7+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qe1# is the engine-verified winning move from Lichess #007HB."
+      "successExplanation": "Decisive execution! 1. Qe1# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_007fJ",
@@ -1072,11 +1072,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       ],
       "defaultRefutation": {
         "from": "b8",
-        "to": "b7",
-        "san": "b8=Q",
-        "coachExplanation": "Opponent responds with b8=Q! Inaccurate continuation."
+        "to": "d8",
+        "san": "Qd8+",
+        "coachExplanation": "Opponent punishes with Qd8+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! c2# is the engine-verified winning move from Lichess #007fJ."
+      "successExplanation": "Decisive execution! 1. c2# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_0082f",
@@ -1099,12 +1099,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "b3",
-        "to": "a4",
-        "san": "axb3",
-        "coachExplanation": "Opponent responds with axb3! Inaccurate continuation."
+        "from": "c7",
+        "to": "c2",
+        "san": "Qxc2+",
+        "coachExplanation": "Opponent punishes with Qxc2+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxg7# is the engine-verified winning move from Lichess #0082f."
+      "successExplanation": "Decisive execution! 1. Qxg7# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_008Nz",
@@ -1127,12 +1127,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "e2",
-        "to": "d3",
-        "san": "Be2",
-        "coachExplanation": "Opponent responds with Be2! Inaccurate continuation."
+        "from": "h2",
+        "to": "h1",
+        "san": "Rh1+",
+        "coachExplanation": "Opponent punishes with Rh1+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rd8# is the engine-verified winning move from Lichess #008Nz."
+      "successExplanation": "Decisive execution! 1. Rd8# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_008P4",
@@ -1160,7 +1160,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kc3",
         "coachExplanation": "Opponent plays Kc3! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nb3+ is the engine-verified winning move from Lichess #008P4."
+      "successExplanation": "Tactical precision! 1. Nb3+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_009bn",
@@ -1184,11 +1184,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       ],
       "defaultRefutation": {
         "from": "e6",
-        "to": "c5",
-        "san": "Nxe6",
-        "coachExplanation": "Opponent responds with Nxe6! Inaccurate continuation."
+        "to": "f8",
+        "san": "Nf8+",
+        "coachExplanation": "Opponent punishes with Nf8+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qh2# is the engine-verified winning move from Lichess #009bn."
+      "successExplanation": "Decisive execution! 1. Qh2# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_009fH",
@@ -1212,11 +1212,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       ],
       "defaultRefutation": {
         "from": "b7",
-        "to": "b3",
-        "san": "Qxb7",
-        "coachExplanation": "Opponent responds with Qxb7! Inaccurate continuation."
+        "to": "a8",
+        "san": "Qxa8+",
+        "coachExplanation": "Opponent punishes with Qxa8+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qd1# is the engine-verified winning move from Lichess #009fH."
+      "successExplanation": "Decisive execution! 1. Qd1# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_009tE",
@@ -1244,7 +1244,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kf7",
         "coachExplanation": "Opponent plays Kf7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Ne7+ is the engine-verified winning move from Lichess #009tE."
+      "successExplanation": "Tactical precision! 1. Ne7+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00A9Q",
@@ -1268,11 +1268,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       ],
       "defaultRefutation": {
         "from": "c5",
-        "to": "d3",
-        "san": "Nc5",
-        "coachExplanation": "Opponent responds with Nc5! Inaccurate continuation."
+        "to": "a6",
+        "san": "Nxa6",
+        "coachExplanation": "Opponent punishes with Nxa6! This captures the undefended p and wins material. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Nxf2# is the engine-verified winning move from Lichess #00A9Q."
+      "successExplanation": "Decisive execution! 1. Nxf2# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_00BQD",
@@ -1295,12 +1295,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "d2",
-        "to": "d1",
-        "san": "R1xd2",
-        "coachExplanation": "Opponent responds with R1xd2! Inaccurate continuation."
+        "from": "d7",
+        "to": "f7",
+        "san": "Rxf7+",
+        "coachExplanation": "Opponent punishes with Rxf7+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Re1# is the engine-verified winning move from Lichess #00BQD."
+      "successExplanation": "Decisive execution! 1. Re1# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_00Bn4",
@@ -1328,7 +1328,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kc7",
         "coachExplanation": "Opponent plays Kc7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nd7+ is the engine-verified winning move from Lichess #00Bn4."
+      "successExplanation": "Tactical precision! 1. Nd7+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00DAs",
@@ -1351,12 +1351,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "e7",
-        "to": "g8",
-        "san": "Ne7",
-        "coachExplanation": "Opponent responds with Ne7! Inaccurate continuation."
+        "from": "e5",
+        "to": "f3",
+        "san": "Nf3+",
+        "coachExplanation": "Opponent punishes with Nf3+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Ne4# is the engine-verified winning move from Lichess #00DAs."
+      "successExplanation": "Decisive execution! 1. Ne4# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_00DPQ",
@@ -1380,11 +1380,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       ],
       "defaultRefutation": {
         "from": "h2",
-        "to": "f2",
-        "san": "Rh2",
-        "coachExplanation": "Opponent responds with Rh2! Inaccurate continuation."
+        "to": "h8",
+        "san": "Rxh8+",
+        "coachExplanation": "Opponent punishes with Rxh8+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxh2# is the engine-verified winning move from Lichess #00DPQ."
+      "successExplanation": "Decisive execution! 1. Qxh2# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_00Dlt",
@@ -1408,11 +1408,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       ],
       "defaultRefutation": {
         "from": "f5",
-        "to": "f3",
-        "san": "Qf5",
-        "coachExplanation": "Opponent responds with Qf5! Inaccurate continuation."
+        "to": "e6",
+        "san": "Qe6+",
+        "coachExplanation": "Opponent punishes with Qe6+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxf1# is the engine-verified winning move from Lichess #00Dlt."
+      "successExplanation": "Decisive execution! 1. Qxf1# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_00EBZ",
@@ -1440,7 +1440,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kh2",
         "coachExplanation": "Opponent plays Kh2! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qe1+ is the engine-verified winning move from Lichess #00EBZ."
+      "successExplanation": "Tactical precision! 1. Qe1+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     }
   ],
   "beginner_2": [
@@ -1470,7 +1470,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kd7",
         "coachExplanation": "Opponent plays Kd7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rc8+ is the engine-verified winning move from Lichess #006yP."
+      "successExplanation": "Tactical precision! 1. Rc8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_0071N",
@@ -1498,7 +1498,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Rd8",
         "coachExplanation": "Opponent plays Rd8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rc8+ is the engine-verified winning move from Lichess #0071N."
+      "successExplanation": "Tactical precision! 1. Rc8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_007mr",
@@ -1521,12 +1521,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "e1",
-        "to": "d1",
-        "san": "Rxd1",
-        "coachExplanation": "Opponent plays Rxd1! Always look for forcing responses before deciding."
+        "from": "e4",
+        "to": "e8",
+        "san": "Re8+",
+        "coachExplanation": "Opponent punishes with Re8+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rd1+ is the engine-verified winning move from Lichess #007mr."
+      "successExplanation": "Tactical precision! 1. Rd1+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_008GK",
@@ -1554,7 +1554,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Rd8",
         "coachExplanation": "Opponent plays Rd8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rf8+ is the engine-verified winning move from Lichess #008GK."
+      "successExplanation": "Tactical precision! 1. Rf8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_008aL",
@@ -1582,7 +1582,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Rd1",
         "coachExplanation": "Opponent plays Rd1! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rb1+ is the engine-verified winning move from Lichess #008aL."
+      "successExplanation": "Tactical precision! 1. Rb1+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00AbP",
@@ -1610,7 +1610,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kh7",
         "coachExplanation": "Opponent plays Kh7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rd8+ is the engine-verified winning move from Lichess #00AbP."
+      "successExplanation": "Tactical precision! 1. Rd8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00Bot",
@@ -1638,7 +1638,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Ke5",
         "coachExplanation": "Opponent plays Ke5! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rxa6+ is the engine-verified winning move from Lichess #00Bot."
+      "successExplanation": "Tactical precision! 1. Rxa6+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00Cfq",
@@ -1666,7 +1666,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Rd8",
         "coachExplanation": "Opponent plays Rd8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rc8+ is the engine-verified winning move from Lichess #00Cfq."
+      "successExplanation": "Tactical precision! 1. Rc8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00CpR",
@@ -1694,7 +1694,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Re8",
         "coachExplanation": "Opponent plays Re8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qb8+ is the engine-verified winning move from Lichess #00CpR."
+      "successExplanation": "Tactical precision! 1. Qb8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00DYf",
@@ -1717,12 +1717,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "b1",
-        "to": "c1",
-        "san": "Rxc1",
-        "coachExplanation": "Opponent plays Rxc1! Always look for forcing responses before deciding."
+        "from": "b4",
+        "to": "c5",
+        "san": "bxc5",
+        "coachExplanation": "Opponent punishes with bxc5! This captures the undefended r and wins material. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rc1+ is the engine-verified winning move from Lichess #00DYf."
+      "successExplanation": "Tactical precision! 1. Rc1+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00EXM",
@@ -1750,7 +1750,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Re8",
         "coachExplanation": "Opponent plays Re8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rd8+ is the engine-verified winning move from Lichess #00EXM."
+      "successExplanation": "Tactical precision! 1. Rd8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00F1l",
@@ -1778,7 +1778,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kb8",
         "coachExplanation": "Opponent plays Kb8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Ra7+ is the engine-verified winning move from Lichess #00F1l."
+      "successExplanation": "Tactical precision! 1. Ra7+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00H8a",
@@ -1806,7 +1806,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kh8",
         "coachExplanation": "Opponent plays Kh8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nf6+ is the engine-verified winning move from Lichess #00H8a."
+      "successExplanation": "Tactical precision! 1. Nf6+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00HAM",
@@ -1830,11 +1830,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       ],
       "defaultRefutation": {
         "from": "a8",
-        "to": "f8",
-        "san": "Qxf8",
-        "coachExplanation": "Opponent plays Qxf8! Always look for forcing responses before deciding."
+        "to": "a2",
+        "san": "Qa2+",
+        "coachExplanation": "Opponent punishes with Qa2+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxf8+ is the engine-verified winning move from Lichess #00HAM."
+      "successExplanation": "Tactical precision! 1. Qxf8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00HIV",
@@ -1857,12 +1857,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "f6",
+        "from": "e5",
         "to": "e4",
-        "san": "Nxe4",
-        "coachExplanation": "Opponent plays Nxe4! Always look for forcing responses before deciding."
+        "san": "e4+",
+        "coachExplanation": "Opponent punishes with e4+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Ne4+ is the engine-verified winning move from Lichess #00HIV."
+      "successExplanation": "Tactical precision! 1. Ne4+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00HPz",
@@ -1886,11 +1886,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       ],
       "defaultRefutation": {
         "from": "c3",
-        "to": "e2",
-        "san": "Nc3",
-        "coachExplanation": "Opponent responds with Nc3! Inaccurate continuation."
+        "to": "b5",
+        "san": "Nb5+",
+        "coachExplanation": "Opponent punishes with Nb5+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! c5# is the engine-verified winning move from Lichess #00HPz."
+      "successExplanation": "Decisive execution! 1. c5# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_00Hfa",
@@ -1913,12 +1913,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "f2",
-        "to": "c2",
-        "san": "Rxf2",
-        "coachExplanation": "Opponent responds with Rxf2! Inaccurate continuation."
+        "from": "g6",
+        "to": "g2",
+        "san": "Qxg2#",
+        "coachExplanation": "Opponent punishes with Qxg2#! This delivers immediate checkmate. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Re8# is the engine-verified winning move from Lichess #00Hfa."
+      "successExplanation": "Decisive execution! 1. Re8# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_00HzH",
@@ -1946,7 +1946,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kh7",
         "coachExplanation": "Opponent plays Kh7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rxf8+ is the engine-verified winning move from Lichess #00HzH."
+      "successExplanation": "Tactical precision! 1. Rxf8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00K0G",
@@ -1974,7 +1974,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kc6",
         "coachExplanation": "Opponent plays Kc6! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nf4+ is the engine-verified winning move from Lichess #00K0G."
+      "successExplanation": "Tactical precision! 1. Nf4+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00K48",
@@ -1997,12 +1997,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "g8",
-        "to": "h8",
-        "san": "Kxg8",
-        "coachExplanation": "Opponent responds with Kxg8! Inaccurate continuation."
+        "from": "e2",
+        "to": "f1",
+        "san": "exf1=Q#",
+        "coachExplanation": "Opponent punishes with exf1=Q#! This delivers immediate checkmate. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rf8# is the engine-verified winning move from Lichess #00K48."
+      "successExplanation": "Decisive execution! 1. Rf8# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_00KgR",
@@ -2025,12 +2025,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "f6",
-        "to": "f8",
-        "san": "Rxf6",
-        "coachExplanation": "Opponent responds with Rxf6! Inaccurate continuation."
+        "from": "c7",
+        "to": "e5",
+        "san": "Qxe5+",
+        "coachExplanation": "Opponent punishes with Qxe5+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qh7# is the engine-verified winning move from Lichess #00KgR."
+      "successExplanation": "Decisive execution! 1. Qh7# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_00NAM",
@@ -2053,12 +2053,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "a8",
-        "to": "e8",
-        "san": "Rxe8",
-        "coachExplanation": "Opponent plays Rxe8! Always look for forcing responses before deciding."
+        "from": "c4",
+        "to": "c7",
+        "san": "Qc7+",
+        "coachExplanation": "Opponent punishes with Qc7+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Re8+ is the engine-verified winning move from Lichess #00NAM."
+      "successExplanation": "Tactical precision! 1. Re8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00OPi",
@@ -2086,7 +2086,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kd4",
         "coachExplanation": "Opponent plays Kd4! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nc3+ is the engine-verified winning move from Lichess #00OPi."
+      "successExplanation": "Tactical precision! 1. Nc3+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00OPk",
@@ -2109,12 +2109,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "d5",
-        "to": "b5",
-        "san": "Rd5",
-        "coachExplanation": "Opponent responds with Rd5! Inaccurate continuation."
+        "from": "g8",
+        "to": "g4",
+        "san": "Rg4+",
+        "coachExplanation": "Opponent punishes with Rg4+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Nf7# is the engine-verified winning move from Lichess #00OPk."
+      "successExplanation": "Decisive execution! 1. Nf7# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_00OXc",
@@ -2137,12 +2137,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "g5",
-        "to": "g6",
-        "san": "g5",
-        "coachExplanation": "Opponent responds with g5! Inaccurate continuation."
+        "from": "d4",
+        "to": "c5",
+        "san": "Bc5+",
+        "coachExplanation": "Opponent punishes with Bc5+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rh3# is the engine-verified winning move from Lichess #00OXc."
+      "successExplanation": "Decisive execution! 1. Rh3# forces an inescapable checkmate on the exposed king."
     }
   ],
   "beginner_3": [
@@ -2168,11 +2168,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       ],
       "defaultRefutation": {
         "from": "b6",
-        "to": "d8",
-        "san": "Qxd8",
-        "coachExplanation": "Opponent plays Qxd8! Always look for forcing responses before deciding."
+        "to": "e3",
+        "san": "Qxe3+",
+        "coachExplanation": "Opponent punishes with Qxe3+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxd8+ is the engine-verified winning move from Lichess #0042j."
+      "successExplanation": "Tactical precision! 1. Qxd8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00CFp",
@@ -2200,7 +2200,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qf1",
         "coachExplanation": "Opponent plays Qf1! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qd1+ is the engine-verified winning move from Lichess #00CFp."
+      "successExplanation": "Tactical precision! 1. Qd1+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00EXP",
@@ -2223,12 +2223,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "b1",
-        "to": "d1",
-        "san": "Rxd1",
-        "coachExplanation": "Opponent plays Rxd1! Always look for forcing responses before deciding."
+        "from": "c5",
+        "to": "e6",
+        "san": "Nxe6",
+        "coachExplanation": "Opponent punishes with Nxe6! This captures the undefended p and wins material. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rxd1+ is the engine-verified winning move from Lichess #00EXP."
+      "successExplanation": "Tactical precision! 1. Rxd1+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00Ec4",
@@ -2251,12 +2251,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "d8",
-        "to": "g5",
-        "san": "Qxg5",
-        "coachExplanation": "Opponent plays Qxg5! Always look for forcing responses before deciding."
+        "from": "g5",
+        "to": "e3",
+        "san": "Be3+",
+        "coachExplanation": "Opponent punishes with Be3+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxg5 is the engine-verified winning move from Lichess #00Ec4."
+      "successExplanation": "Tactical precision! 1. Qxg5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00HEh",
@@ -2279,12 +2279,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "d8",
-        "to": "e8",
-        "san": "Rxe8",
-        "coachExplanation": "Opponent plays Rxe8! Always look for forcing responses before deciding."
+        "from": "f4",
+        "to": "g5",
+        "san": "Qxg5+",
+        "coachExplanation": "Opponent punishes with Qxg5+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qe8+ is the engine-verified winning move from Lichess #00HEh."
+      "successExplanation": "Tactical precision! 1. Qe8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00HLP",
@@ -2312,7 +2312,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kh1",
         "coachExplanation": "Opponent plays Kh1! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Ne2+ is the engine-verified winning move from Lichess #00HLP."
+      "successExplanation": "Tactical precision! 1. Ne2+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00LdT",
@@ -2335,12 +2335,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "a8",
-        "to": "e8",
-        "san": "Rxe8",
-        "coachExplanation": "Opponent plays Rxe8! Always look for forcing responses before deciding."
+        "from": "g6",
+        "to": "g3",
+        "san": "Qxg3+",
+        "coachExplanation": "Opponent punishes with Qxg3+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Re8+ is the engine-verified winning move from Lichess #00LdT."
+      "successExplanation": "Tactical precision! 1. Re8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00Lvv",
@@ -2368,7 +2368,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Rd8",
         "coachExplanation": "Opponent plays Rd8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qe8+ is the engine-verified winning move from Lichess #00Lvv."
+      "successExplanation": "Tactical precision! 1. Qe8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00MS3",
@@ -2391,12 +2391,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "d8",
-        "to": "e8",
-        "san": "Qxe8",
-        "coachExplanation": "Opponent plays Qxe8! Always look for forcing responses before deciding."
+        "from": "f6",
+        "to": "g5",
+        "san": "Bg5+",
+        "coachExplanation": "Opponent punishes with Bg5+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxe8+ is the engine-verified winning move from Lichess #00MS3."
+      "successExplanation": "Tactical precision! 1. Qxe8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00MTG",
@@ -2419,12 +2419,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "e2",
-        "to": "f2",
-        "san": "Rxf2",
-        "coachExplanation": "Opponent plays Rxf2! Always look for forcing responses before deciding."
+        "from": "e7",
+        "to": "g5",
+        "san": "Qxg5+",
+        "coachExplanation": "Opponent punishes with Qxg5+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rxf2 is the engine-verified winning move from Lichess #00MTG."
+      "successExplanation": "Tactical precision! 1. Rxf2 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00QOa",
@@ -2452,7 +2452,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "f4",
         "coachExplanation": "Opponent plays f4! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Bd6+ is the engine-verified winning move from Lichess #00QOa."
+      "successExplanation": "Tactical precision! 1. Bd6+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00SLR",
@@ -2475,12 +2475,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "f3",
-        "to": "h4",
-        "san": "Nxh4",
-        "coachExplanation": "Opponent plays Nxh4! Always look for forcing responses before deciding."
+        "from": "f4",
+        "to": "f5",
+        "san": "f5",
+        "coachExplanation": "Opponent punishes with f5! This activates pieces and consolidates the position. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Bh4+ is the engine-verified winning move from Lichess #00SLR."
+      "successExplanation": "Tactical precision! 1. Bh4+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00TAb",
@@ -2508,7 +2508,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kh7",
         "coachExplanation": "Opponent plays Kh7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Ne7+ is the engine-verified winning move from Lichess #00TAb."
+      "successExplanation": "Tactical precision! 1. Ne7+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00TOX",
@@ -2536,7 +2536,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kb8",
         "coachExplanation": "Opponent plays Kb8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nd5+ is the engine-verified winning move from Lichess #00TOX."
+      "successExplanation": "Tactical precision! 1. Nd5+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00TU2",
@@ -2559,12 +2559,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "c1",
-        "to": "d1",
-        "san": "Rxd1",
-        "coachExplanation": "Opponent plays Rxd1! Always look for forcing responses before deciding."
+        "from": "f7",
+        "to": "b7",
+        "san": "Qxb7+",
+        "coachExplanation": "Opponent punishes with Qxb7+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qd1+ is the engine-verified winning move from Lichess #00TU2."
+      "successExplanation": "Tactical precision! 1. Qd1+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00Ui0",
@@ -2592,7 +2592,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kf1",
         "coachExplanation": "Opponent plays Kf1! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Ne2+ is the engine-verified winning move from Lichess #00Ui0."
+      "successExplanation": "Tactical precision! 1. Ne2+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00Y1c",
@@ -2620,7 +2620,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kh1",
         "coachExplanation": "Opponent plays Kh1! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qxf2+ is the engine-verified winning move from Lichess #00Y1c."
+      "successExplanation": "Tactical precision! 1. Qxf2+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00ZWD",
@@ -2648,7 +2648,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kf8",
         "coachExplanation": "Opponent plays Kf8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qh7+ is the engine-verified winning move from Lichess #00ZWD."
+      "successExplanation": "Tactical precision! 1. Qh7+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00aU5",
@@ -2676,7 +2676,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Ke5",
         "coachExplanation": "Opponent plays Ke5! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Kb5 is the engine-verified winning move from Lichess #00aU5."
+      "successExplanation": "Tactical precision! 1. Kb5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00awK",
@@ -2699,12 +2699,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "a8",
-        "to": "f8",
-        "san": "Rxf8",
-        "coachExplanation": "Opponent plays Rxf8! Always look for forcing responses before deciding."
+        "from": "c1",
+        "to": "c2",
+        "san": "Qxc2+",
+        "coachExplanation": "Opponent punishes with Qxc2+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qf8+ is the engine-verified winning move from Lichess #00awK."
+      "successExplanation": "Tactical precision! 1. Qf8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00ax2",
@@ -2732,7 +2732,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qf8",
         "coachExplanation": "Opponent plays Qf8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qe8+ is the engine-verified winning move from Lichess #00ax2."
+      "successExplanation": "Tactical precision! 1. Qe8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00baZ",
@@ -2760,7 +2760,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kg2",
         "coachExplanation": "Opponent plays Kg2! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nf3+ is the engine-verified winning move from Lichess #00baZ."
+      "successExplanation": "Tactical precision! 1. Nf3+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00cSF",
@@ -2783,12 +2783,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "f2",
-        "to": "g3",
-        "san": "fxg3",
-        "coachExplanation": "Opponent plays fxg3! Always look for forcing responses before deciding."
+        "from": "g3",
+        "to": "g6",
+        "san": "Qxg6+",
+        "coachExplanation": "Opponent punishes with Qxg6+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxg3 is the engine-verified winning move from Lichess #00cSF."
+      "successExplanation": "Tactical precision! 1. Qxg3 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00dYE",
@@ -2816,7 +2816,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Nd1",
         "coachExplanation": "Opponent plays Nd1! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qe1+ is the engine-verified winning move from Lichess #00dYE."
+      "successExplanation": "Tactical precision! 1. Qe1+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00dpQ",
@@ -2844,7 +2844,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Re8",
         "coachExplanation": "Opponent plays Re8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rc8+ is the engine-verified winning move from Lichess #00dpQ."
+      "successExplanation": "Tactical precision! 1. Rc8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     }
   ],
   "adv_beginner_0": [
@@ -2874,7 +2874,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "c2",
         "coachExplanation": "Opponent plays c2! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nxb5 is the engine-verified winning move from Lichess #002bK."
+      "successExplanation": "Tactical precision! 1. Nxb5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_0071K",
@@ -2897,12 +2897,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "h5",
-        "to": "h7",
-        "san": "Qh7+",
-        "coachExplanation": "Opponent plays Qh7+! Always look for forcing responses before deciding."
+        "from": "a7",
+        "to": "a5",
+        "san": "Rxa5+",
+        "coachExplanation": "Opponent punishes with Rxa5+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Kxa7 is the engine-verified winning move from Lichess #0071K."
+      "successExplanation": "Tactical precision! 1. Kxa7 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00BJm",
@@ -2930,7 +2930,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kh8",
         "coachExplanation": "Opponent plays Kh8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nxe7+ is the engine-verified winning move from Lichess #00BJm."
+      "successExplanation": "Tactical precision! 1. Nxe7+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00HEx",
@@ -2958,7 +2958,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kf2",
         "coachExplanation": "Opponent plays Kf2! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rxd1+ is the engine-verified winning move from Lichess #00HEx."
+      "successExplanation": "Tactical precision! 1. Rxd1+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00dzT",
@@ -2986,7 +2986,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kh2",
         "coachExplanation": "Opponent plays Kh2! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qxf1+ is the engine-verified winning move from Lichess #00dzT."
+      "successExplanation": "Tactical precision! 1. Qxf1+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00hbV",
@@ -3014,7 +3014,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Rxg7",
         "coachExplanation": "Opponent plays Rxg7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nxe6 is the engine-verified winning move from Lichess #00hbV."
+      "successExplanation": "Tactical precision! 1. Nxe6 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00i7t",
@@ -3037,12 +3037,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "f7",
-        "to": "f8",
-        "san": "Rf8",
-        "coachExplanation": "Opponent plays Rf8! Always look for forcing responses before deciding."
+        "from": "e8",
+        "to": "e1",
+        "san": "Rxe1+",
+        "coachExplanation": "Opponent punishes with Rxe1+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rxe8+ is the engine-verified winning move from Lichess #00i7t."
+      "successExplanation": "Tactical precision! 1. Rxe8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00l3p",
@@ -3065,12 +3065,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "h4",
-        "to": "h5",
-        "san": "Kh4",
-        "coachExplanation": "Opponent responds with Kh4! Inaccurate continuation."
+        "from": "d8",
+        "to": "b6",
+        "san": "Qb6+",
+        "coachExplanation": "Opponent punishes with Qb6+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxf4# is the engine-verified winning move from Lichess #00l3p."
+      "successExplanation": "Decisive execution! 1. Qxf4# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_00rTX",
@@ -3093,12 +3093,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "d2",
-        "to": "d1",
-        "san": "Rxd2",
-        "coachExplanation": "Opponent responds with Rxd2! Inaccurate continuation."
+        "from": "c5",
+        "to": "b7",
+        "san": "Nxb7",
+        "coachExplanation": "Opponent punishes with Nxb7! This captures the undefended p and wins material. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxe1# is the engine-verified winning move from Lichess #00rTX."
+      "successExplanation": "Decisive execution! 1. Qxe1# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_00xa4",
@@ -3121,12 +3121,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "g2",
-        "to": "g8",
-        "san": "Rg8+",
-        "coachExplanation": "Opponent plays Rg8+! Always look for forcing responses before deciding."
+        "from": "h6",
+        "to": "g7",
+        "san": "Bxg7",
+        "coachExplanation": "Opponent punishes with Bxg7! This captures the undefended p and wins material. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! gxh6 is the engine-verified winning move from Lichess #00xa4."
+      "successExplanation": "Tactical precision! 1. gxh6 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_01M89",
@@ -3154,7 +3154,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Re1",
         "coachExplanation": "Opponent plays Re1! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! fxe2 is the engine-verified winning move from Lichess #01M89."
+      "successExplanation": "Tactical precision! 1. fxe2 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_01Y2F",
@@ -3182,7 +3182,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Nd6+",
         "coachExplanation": "Opponent plays Nd6+! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! exf5 is the engine-verified winning move from Lichess #01Y2F."
+      "successExplanation": "Tactical precision! 1. exf5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_01YXn",
@@ -3210,7 +3210,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Bxd8",
         "coachExplanation": "Opponent plays Bxd8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nxe4 is the engine-verified winning move from Lichess #01YXn."
+      "successExplanation": "Tactical precision! 1. Nxe4 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_01lNV",
@@ -3238,7 +3238,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qxe8+",
         "coachExplanation": "Opponent plays Qxe8+! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Bxf6 is the engine-verified winning move from Lichess #01lNV."
+      "successExplanation": "Tactical precision! 1. Bxf6 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_01pl8",
@@ -3266,7 +3266,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Bf1",
         "coachExplanation": "Opponent plays Bf1! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rxd1+ is the engine-verified winning move from Lichess #01pl8."
+      "successExplanation": "Tactical precision! 1. Rxd1+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_01pz8",
@@ -3290,11 +3290,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       ],
       "defaultRefutation": {
         "from": "e6",
-        "to": "e8",
-        "san": "Qe6",
-        "coachExplanation": "Opponent responds with Qe6! Inaccurate continuation."
+        "to": "h3",
+        "san": "Qh3+",
+        "coachExplanation": "Opponent punishes with Qh3+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxf8# is the engine-verified winning move from Lichess #01pz8."
+      "successExplanation": "Decisive execution! 1. Qxf8# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_01qfU",
@@ -3322,7 +3322,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Ke7",
         "coachExplanation": "Opponent plays Ke7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qxh8+ is the engine-verified winning move from Lichess #01qfU."
+      "successExplanation": "Tactical precision! 1. Qxh8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_01uDg",
@@ -3350,7 +3350,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Nxf6",
         "coachExplanation": "Opponent plays Nxf6! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nxf8 is the engine-verified winning move from Lichess #01uDg."
+      "successExplanation": "Tactical precision! 1. Nxf8 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_026wE",
@@ -3374,11 +3374,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       ],
       "defaultRefutation": {
         "from": "e5",
-        "to": "e1",
-        "san": "Re1",
-        "coachExplanation": "Opponent plays Re1! Always look for forcing responses before deciding."
+        "to": "e8",
+        "san": "Re8+",
+        "coachExplanation": "Opponent punishes with Re8+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxd1+ is the engine-verified winning move from Lichess #026wE."
+      "successExplanation": "Tactical precision! 1. Qxd1+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_02FVj",
@@ -3402,11 +3402,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       ],
       "defaultRefutation": {
         "from": "g8",
-        "to": "g1",
-        "san": "Rxg8",
-        "coachExplanation": "Opponent responds with Rxg8! Inaccurate continuation."
+        "to": "d8",
+        "san": "Rxd8+",
+        "coachExplanation": "Opponent punishes with Rxd8+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxd1# is the engine-verified winning move from Lichess #02FVj."
+      "successExplanation": "Decisive execution! 1. Qxd1# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_02Mt2",
@@ -3434,7 +3434,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kh1",
         "coachExplanation": "Opponent plays Kh1! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nxf3+ is the engine-verified winning move from Lichess #02Mt2."
+      "successExplanation": "Tactical precision! 1. Nxf3+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_02R1e",
@@ -3457,12 +3457,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "d6",
-        "to": "d1",
-        "san": "Rd1",
-        "coachExplanation": "Opponent plays Rd1! Always look for forcing responses before deciding."
+        "from": "a7",
+        "to": "f7",
+        "san": "Qxf7+",
+        "coachExplanation": "Opponent punishes with Qxf7+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxh1+ is the engine-verified winning move from Lichess #02R1e."
+      "successExplanation": "Tactical precision! 1. Qxh1+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_02a9L",
@@ -3490,7 +3490,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kh2",
         "coachExplanation": "Opponent plays Kh2! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rxe1+ is the engine-verified winning move from Lichess #02a9L."
+      "successExplanation": "Tactical precision! 1. Rxe1+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_02bmv",
@@ -3518,7 +3518,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Ke2",
         "coachExplanation": "Opponent plays Ke2! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qxh1+ is the engine-verified winning move from Lichess #02bmv."
+      "successExplanation": "Tactical precision! 1. Qxh1+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_02l1m",
@@ -3546,7 +3546,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Re8",
         "coachExplanation": "Opponent plays Re8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qxa8+ is the engine-verified winning move from Lichess #02l1m."
+      "successExplanation": "Tactical precision! 1. Qxa8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     }
   ],
   "adv_beginner_1": [
@@ -3576,7 +3576,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kxb4",
         "coachExplanation": "Opponent plays Kxb4! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Bc7+ is the engine-verified winning move from Lichess #000rO."
+      "successExplanation": "Tactical precision! 1. Bc7+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_001wr",
@@ -3604,7 +3604,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kh1",
         "coachExplanation": "Opponent plays Kh1! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qc5+ is the engine-verified winning move from Lichess #001wr."
+      "successExplanation": "Tactical precision! 1. Qc5+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_001xl",
@@ -3632,7 +3632,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Ke5",
         "coachExplanation": "Opponent plays Ke5! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rf7+ is the engine-verified winning move from Lichess #001xl."
+      "successExplanation": "Tactical precision! 1. Rf7+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_0039T",
@@ -3660,7 +3660,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kf2",
         "coachExplanation": "Opponent plays Kf2! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rb1+ is the engine-verified winning move from Lichess #0039T."
+      "successExplanation": "Tactical precision! 1. Rb1+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_003Jb",
@@ -3688,7 +3688,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kb1",
         "coachExplanation": "Opponent plays Kb1! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qg5+ is the engine-verified winning move from Lichess #003Jb."
+      "successExplanation": "Tactical precision! 1. Qg5+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_003eP",
@@ -3716,7 +3716,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kf7",
         "coachExplanation": "Opponent plays Kf7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rh8+ is the engine-verified winning move from Lichess #003eP."
+      "successExplanation": "Tactical precision! 1. Rh8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_003jH",
@@ -3744,7 +3744,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Ke3",
         "coachExplanation": "Opponent plays Ke3! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nd3+ is the engine-verified winning move from Lichess #003jH."
+      "successExplanation": "Tactical precision! 1. Nd3+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_003jb",
@@ -3772,7 +3772,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Bb5",
         "coachExplanation": "Opponent plays Bb5! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qa4+ is the engine-verified winning move from Lichess #003jb."
+      "successExplanation": "Tactical precision! 1. Qa4+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_003jv",
@@ -3800,7 +3800,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Ke4",
         "coachExplanation": "Opponent plays Ke4! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nf7+ is the engine-verified winning move from Lichess #003jv."
+      "successExplanation": "Tactical precision! 1. Nf7+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_003o0",
@@ -3828,7 +3828,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qd2",
         "coachExplanation": "Opponent plays Qd2! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qa5+ is the engine-verified winning move from Lichess #003o0."
+      "successExplanation": "Tactical precision! 1. Qa5+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_003r5",
@@ -3856,7 +3856,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kg1",
         "coachExplanation": "Opponent plays Kg1! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nd3+ is the engine-verified winning move from Lichess #003r5."
+      "successExplanation": "Tactical precision! 1. Nd3+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_004nd",
@@ -3884,7 +3884,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qxf6",
         "coachExplanation": "Opponent plays Qxf6! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nxf6+ is the engine-verified winning move from Lichess #004nd."
+      "successExplanation": "Tactical precision! 1. Nxf6+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_0050w",
@@ -3907,12 +3907,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "e5",
-        "to": "g3",
-        "san": "Bxg3",
-        "coachExplanation": "Opponent plays Bxg3! Always look for forcing responses before deciding."
+        "from": "f8",
+        "to": "f3",
+        "san": "Rfxf3+",
+        "coachExplanation": "Opponent punishes with Rfxf3+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rxg3+ is the engine-verified winning move from Lichess #0050w."
+      "successExplanation": "Tactical precision! 1. Rxg3+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_005nD",
@@ -3940,7 +3940,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Ne7",
         "coachExplanation": "Opponent plays Ne7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qxe6+ is the engine-verified winning move from Lichess #005nD."
+      "successExplanation": "Tactical precision! 1. Qxe6+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_007tv",
@@ -3968,7 +3968,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kd8",
         "coachExplanation": "Opponent plays Kd8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qxf7+ is the engine-verified winning move from Lichess #007tv."
+      "successExplanation": "Tactical precision! 1. Qxf7+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00AB1",
@@ -3996,7 +3996,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Ke6",
         "coachExplanation": "Opponent plays Ke6! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qh8+ is the engine-verified winning move from Lichess #00AB1."
+      "successExplanation": "Tactical precision! 1. Qh8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00Aas",
@@ -4024,7 +4024,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kh1",
         "coachExplanation": "Opponent plays Kh1! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Ne2+ is the engine-verified winning move from Lichess #00Aas."
+      "successExplanation": "Tactical precision! 1. Ne2+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00BNd",
@@ -4052,7 +4052,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kf8",
         "coachExplanation": "Opponent plays Kf8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nxe7+ is the engine-verified winning move from Lichess #00BNd."
+      "successExplanation": "Tactical precision! 1. Nxe7+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00DPI",
@@ -4080,7 +4080,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kg7",
         "coachExplanation": "Opponent plays Kg7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nf6+ is the engine-verified winning move from Lichess #00DPI."
+      "successExplanation": "Tactical precision! 1. Nf6+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00Evs",
@@ -4108,7 +4108,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kh8",
         "coachExplanation": "Opponent plays Kh8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nf6+ is the engine-verified winning move from Lichess #00Evs."
+      "successExplanation": "Tactical precision! 1. Nf6+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00GBX",
@@ -4136,7 +4136,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kg8",
         "coachExplanation": "Opponent plays Kg8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nf7+ is the engine-verified winning move from Lichess #00GBX."
+      "successExplanation": "Tactical precision! 1. Nf7+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00Gvp",
@@ -4164,7 +4164,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kd4",
         "coachExplanation": "Opponent plays Kd4! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nc5+ is the engine-verified winning move from Lichess #00Gvp."
+      "successExplanation": "Tactical precision! 1. Nc5+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00HZa",
@@ -4192,7 +4192,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kf7",
         "coachExplanation": "Opponent plays Kf7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qd8+ is the engine-verified winning move from Lichess #00HZa."
+      "successExplanation": "Tactical precision! 1. Qd8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00ISm",
@@ -4220,7 +4220,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kh6",
         "coachExplanation": "Opponent plays Kh6! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nxg5+ is the engine-verified winning move from Lichess #00ISm."
+      "successExplanation": "Tactical precision! 1. Nxg5+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00KMV",
@@ -4248,7 +4248,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Ke7",
         "coachExplanation": "Opponent plays Ke7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qh8+ is the engine-verified winning move from Lichess #00KMV."
+      "successExplanation": "Tactical precision! 1. Qh8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     }
   ],
   "adv_beginner_2": [
@@ -4278,7 +4278,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "g5",
         "coachExplanation": "Opponent plays g5! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Kd4 is the engine-verified winning move from Lichess #000o3."
+      "successExplanation": "Tactical precision! 1. Kd4 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_001Wz",
@@ -4306,7 +4306,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Re8",
         "coachExplanation": "Opponent plays Re8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rd8+ is the engine-verified winning move from Lichess #001Wz."
+      "successExplanation": "Tactical precision! 1. Rd8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_001wR",
@@ -4334,7 +4334,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kb7",
         "coachExplanation": "Opponent plays Kb7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qa5+ is the engine-verified winning move from Lichess #001wR."
+      "successExplanation": "Tactical precision! 1. Qa5+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_0048h",
@@ -4357,12 +4357,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "d1",
-        "to": "e1",
-        "san": "Rxe1",
-        "coachExplanation": "Opponent plays Rxe1! Always look for forcing responses before deciding."
+        "from": "c6",
+        "to": "c7",
+        "san": "Rc7+",
+        "coachExplanation": "Opponent punishes with Rc7+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Re1+ is the engine-verified winning move from Lichess #0048h."
+      "successExplanation": "Tactical precision! 1. Re1+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_004LZ",
@@ -4390,7 +4390,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Ka2",
         "coachExplanation": "Opponent plays Ka2! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! c2+ is the engine-verified winning move from Lichess #004LZ."
+      "successExplanation": "Tactical precision! 1. c2+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_004Lu",
@@ -4413,12 +4413,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "c7",
-        "to": "d6",
-        "san": "cxd6",
-        "coachExplanation": "Opponent plays cxd6! Always look for forcing responses before deciding."
+        "from": "f4",
+        "to": "f3",
+        "san": "Rxf3+",
+        "coachExplanation": "Opponent punishes with Rxf3+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! d6+ is the engine-verified winning move from Lichess #004Lu."
+      "successExplanation": "Tactical precision! 1. d6+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_006HV",
@@ -4446,7 +4446,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Ka3",
         "coachExplanation": "Opponent plays Ka3! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! b3+ is the engine-verified winning move from Lichess #006HV."
+      "successExplanation": "Tactical precision! 1. b3+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_007hv",
@@ -4470,11 +4470,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       ],
       "defaultRefutation": {
         "from": "c3",
-        "to": "d2",
-        "san": "Qc3",
-        "coachExplanation": "Opponent responds with Qc3! Inaccurate continuation."
+        "to": "d4",
+        "san": "Qxd4+",
+        "coachExplanation": "Opponent punishes with Qxd4+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qg1# is the engine-verified winning move from Lichess #007hv."
+      "successExplanation": "Decisive execution! 1. Qg1# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_0088O",
@@ -4502,7 +4502,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Ke4",
         "coachExplanation": "Opponent plays Ke4! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rg5+ is the engine-verified winning move from Lichess #0088O."
+      "successExplanation": "Tactical precision! 1. Rg5+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_008tL",
@@ -4530,7 +4530,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Re6",
         "coachExplanation": "Opponent plays Re6! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! e2 is the engine-verified winning move from Lichess #008tL."
+      "successExplanation": "Tactical precision! 1. e2 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_0092z",
@@ -4558,7 +4558,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kh8",
         "coachExplanation": "Opponent plays Kh8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qxf7+ is the engine-verified winning move from Lichess #0092z."
+      "successExplanation": "Tactical precision! 1. Qxf7+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_009bR",
@@ -4586,7 +4586,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Rxf8",
         "coachExplanation": "Opponent plays Rxf8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rf8+ is the engine-verified winning move from Lichess #009bR."
+      "successExplanation": "Tactical precision! 1. Rf8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_009f8",
@@ -4614,7 +4614,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Ke4",
         "coachExplanation": "Opponent plays Ke4! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nh4+ is the engine-verified winning move from Lichess #009f8."
+      "successExplanation": "Tactical precision! 1. Nh4+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_009oc",
@@ -4642,7 +4642,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "g5",
         "coachExplanation": "Opponent plays g5! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qf4+ is the engine-verified winning move from Lichess #009oc."
+      "successExplanation": "Tactical precision! 1. Qf4+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00A5v",
@@ -4665,12 +4665,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "e1",
-        "to": "e5",
-        "san": "Rxe5",
-        "coachExplanation": "Opponent plays Rxe5! Always look for forcing responses before deciding."
+        "from": "e5",
+        "to": "e7",
+        "san": "Rxe7",
+        "coachExplanation": "Opponent punishes with Rxe7! This captures the undefended r and wins material. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rxe5 is the engine-verified winning move from Lichess #00A5v."
+      "successExplanation": "Tactical precision! 1. Rxe5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00AOH",
@@ -4693,12 +4693,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "c4",
-        "to": "b6",
-        "san": "Nxb6",
-        "coachExplanation": "Opponent plays Nxb6! Always look for forcing responses before deciding."
+        "from": "b6",
+        "to": "b8",
+        "san": "Rb8+",
+        "coachExplanation": "Opponent punishes with Rb8+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rxb6 is the engine-verified winning move from Lichess #00AOH."
+      "successExplanation": "Tactical precision! 1. Rxb6 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00Aae",
@@ -4726,7 +4726,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Ke7",
         "coachExplanation": "Opponent plays Ke7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rf8+ is the engine-verified winning move from Lichess #00Aae."
+      "successExplanation": "Tactical precision! 1. Rf8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00Af3",
@@ -4754,7 +4754,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Bc4",
         "coachExplanation": "Opponent plays Bc4! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! a6 is the engine-verified winning move from Lichess #00Af3."
+      "successExplanation": "Tactical precision! 1. a6 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00AoZ",
@@ -4777,12 +4777,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "d6",
-        "to": "d7",
-        "san": "Kxd7",
-        "coachExplanation": "Opponent plays Kxd7! Always look for forcing responses before deciding."
+        "from": "d1",
+        "to": "a1",
+        "san": "Ra1+",
+        "coachExplanation": "Opponent punishes with Ra1+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rd7+ is the engine-verified winning move from Lichess #00AoZ."
+      "successExplanation": "Tactical precision! 1. Rd7+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00Au2",
@@ -4810,7 +4810,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qxf5",
         "coachExplanation": "Opponent plays Qxf5! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Bf5+ is the engine-verified winning move from Lichess #00Au2."
+      "successExplanation": "Tactical precision! 1. Bf5+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00Bm8",
@@ -4834,11 +4834,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       ],
       "defaultRefutation": {
         "from": "e4",
-        "to": "d2",
-        "san": "Nxe4",
-        "coachExplanation": "Opponent responds with Nxe4! Inaccurate continuation."
+        "to": "f6",
+        "san": "Nf6+",
+        "coachExplanation": "Opponent punishes with Nf6+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxg2# is the engine-verified winning move from Lichess #00Bm8."
+      "successExplanation": "Decisive execution! 1. Qxg2# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_00CtS",
@@ -4866,7 +4866,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kg6",
         "coachExplanation": "Opponent plays Kg6! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qh8+ is the engine-verified winning move from Lichess #00CtS."
+      "successExplanation": "Tactical precision! 1. Qh8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00DEc",
@@ -4889,12 +4889,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "e3",
-        "to": "f4",
-        "san": "Bxf4",
-        "coachExplanation": "Opponent plays Bxf4! Always look for forcing responses before deciding."
+        "from": "f3",
+        "to": "g5",
+        "san": "Ng5+",
+        "coachExplanation": "Opponent punishes with Ng5+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Nf4+ is the engine-verified winning move from Lichess #00DEc."
+      "successExplanation": "Tactical precision! 1. Nf4+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00EWi",
@@ -4918,11 +4918,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       ],
       "defaultRefutation": {
         "from": "b5",
-        "to": "b6",
-        "san": "Rxb5",
-        "coachExplanation": "Opponent responds with Rxb5! Inaccurate continuation."
+        "to": "b7",
+        "san": "Rb7+",
+        "coachExplanation": "Opponent punishes with Rb7+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! f5# is the engine-verified winning move from Lichess #00EWi."
+      "successExplanation": "Decisive execution! 1. f5# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_00FON",
@@ -4945,12 +4945,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "c2",
-        "to": "b3",
-        "san": "cxb3",
-        "coachExplanation": "Opponent plays cxb3! Always look for forcing responses before deciding."
+        "from": "h4",
+        "to": "g5",
+        "san": "hxg5",
+        "coachExplanation": "Opponent punishes with hxg5! This captures the undefended p and wins material. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! b3 is the engine-verified winning move from Lichess #00FON."
+      "successExplanation": "Tactical precision! 1. b3 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     }
   ],
   "adv_beginner_3": [
@@ -4975,12 +4975,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "h3",
-        "to": "g4",
-        "san": "Bxg4",
-        "coachExplanation": "Opponent plays Bxg4! Always look for forcing responses before deciding."
+        "from": "d8",
+        "to": "d3",
+        "san": "Qxd3",
+        "coachExplanation": "Opponent punishes with Qxd3! This captures the undefended p and wins material. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Bxg4 is the engine-verified winning move from Lichess #0009B."
+      "successExplanation": "Tactical precision! 1. Bxg4 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_001om",
@@ -5008,7 +5008,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "g3",
         "coachExplanation": "Opponent plays g3! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Bf2+ is the engine-verified winning move from Lichess #001om."
+      "successExplanation": "Tactical precision! 1. Bf2+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_001w5",
@@ -5031,12 +5031,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "g8",
-        "to": "h7",
-        "san": "Kxh7",
-        "coachExplanation": "Opponent plays Kxh7! Always look for forcing responses before deciding."
+        "from": "a7",
+        "to": "d4",
+        "san": "Qxd4+",
+        "coachExplanation": "Opponent punishes with Qxd4+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qh7+ is the engine-verified winning move from Lichess #001w5."
+      "successExplanation": "Tactical precision! 1. Qh7+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_002Mm",
@@ -5064,7 +5064,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Ke7",
         "coachExplanation": "Opponent plays Ke7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qh8+ is the engine-verified winning move from Lichess #002Mm."
+      "successExplanation": "Tactical precision! 1. Qh8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_002O7",
@@ -5092,7 +5092,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Nxg4",
         "coachExplanation": "Opponent plays Nxg4! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nxg4 is the engine-verified winning move from Lichess #002O7."
+      "successExplanation": "Tactical precision! 1. Nxg4 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_002p5",
@@ -5120,7 +5120,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kf8",
         "coachExplanation": "Opponent plays Kf8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qh7+ is the engine-verified winning move from Lichess #002p5."
+      "successExplanation": "Tactical precision! 1. Qh7+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_008Y3",
@@ -5143,12 +5143,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "g7",
-        "to": "f6",
-        "san": "gxf6",
-        "coachExplanation": "Opponent plays gxf6! Always look for forcing responses before deciding."
+        "from": "c5",
+        "to": "f2",
+        "san": "Qxf2+",
+        "coachExplanation": "Opponent punishes with Qxf2+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Nxf6+ is the engine-verified winning move from Lichess #008Y3."
+      "successExplanation": "Tactical precision! 1. Nxf6+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_009IO",
@@ -5176,7 +5176,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Rxf7",
         "coachExplanation": "Opponent plays Rxf7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rxf7+ is the engine-verified winning move from Lichess #009IO."
+      "successExplanation": "Tactical precision! 1. Rxf7+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_009Wc",
@@ -5204,7 +5204,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Nxd7",
         "coachExplanation": "Opponent plays Nxd7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nxd7 is the engine-verified winning move from Lichess #009Wc."
+      "successExplanation": "Tactical precision! 1. Nxd7 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_009lk",
@@ -5232,7 +5232,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Re1",
         "coachExplanation": "Opponent plays Re1! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qd1+ is the engine-verified winning move from Lichess #009lk."
+      "successExplanation": "Tactical precision! 1. Qd1+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_009uB",
@@ -5260,7 +5260,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Rxf8",
         "coachExplanation": "Opponent plays Rxf8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rf8+ is the engine-verified winning move from Lichess #009uB."
+      "successExplanation": "Tactical precision! 1. Rf8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00Ahb",
@@ -5288,7 +5288,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qxf4",
         "coachExplanation": "Opponent plays Qxf4! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Bf4+ is the engine-verified winning move from Lichess #00Ahb."
+      "successExplanation": "Tactical precision! 1. Bf4+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00DBg",
@@ -5316,7 +5316,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Be3",
         "coachExplanation": "Opponent plays Be3! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Bc5+ is the engine-verified winning move from Lichess #00DBg."
+      "successExplanation": "Tactical precision! 1. Bc5+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00E29",
@@ -5339,12 +5339,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "g8",
-        "to": "h7",
-        "san": "Kxh7",
-        "coachExplanation": "Opponent plays Kxh7! Always look for forcing responses before deciding."
+        "from": "c6",
+        "to": "a5",
+        "san": "Nxa5",
+        "coachExplanation": "Opponent punishes with Nxa5! This captures the undefended p and wins material. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Bxh7+ is the engine-verified winning move from Lichess #00E29."
+      "successExplanation": "Tactical precision! 1. Bxh7+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00Gt0",
@@ -5367,12 +5367,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "c3",
-        "to": "d4",
-        "san": "Kxd4",
-        "coachExplanation": "Opponent plays Kxd4! Always look for forcing responses before deciding."
+        "from": "a8",
+        "to": "f8",
+        "san": "Rf8+",
+        "coachExplanation": "Opponent punishes with Rf8+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! d4+ is the engine-verified winning move from Lichess #00Gt0."
+      "successExplanation": "Tactical precision! 1. d4+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00Gvr",
@@ -5400,7 +5400,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Bxe4",
         "coachExplanation": "Opponent plays Bxe4! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Ke6 is the engine-verified winning move from Lichess #00Gvr."
+      "successExplanation": "Tactical precision! 1. Ke6 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00HeG",
@@ -5424,11 +5424,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       ],
       "defaultRefutation": {
         "from": "h4",
-        "to": "h6",
-        "san": "Qxh6+",
-        "coachExplanation": "Opponent plays Qxh6+! Always look for forcing responses before deciding."
+        "to": "d8",
+        "san": "Qd8+",
+        "coachExplanation": "Opponent punishes with Qd8+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qh6+ is the engine-verified winning move from Lichess #00HeG."
+      "successExplanation": "Tactical precision! 1. Qh6+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00Htd",
@@ -5451,12 +5451,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "b2",
-        "to": "c3",
-        "san": "bxc3",
-        "coachExplanation": "Opponent plays bxc3! Always look for forcing responses before deciding."
+        "from": "d5",
+        "to": "c6",
+        "san": "Qc6+",
+        "coachExplanation": "Opponent punishes with Qc6+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Bxc3+ is the engine-verified winning move from Lichess #00Htd."
+      "successExplanation": "Tactical precision! 1. Bxc3+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00I8g",
@@ -5479,12 +5479,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "e5",
-        "to": "f5",
-        "san": "Qxf5",
-        "coachExplanation": "Opponent plays Qxf5! Always look for forcing responses before deciding."
+        "from": "d7",
+        "to": "d8",
+        "san": "Rxd8#",
+        "coachExplanation": "Opponent punishes with Rxd8#! This delivers immediate checkmate. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Nf5+ is the engine-verified winning move from Lichess #00I8g."
+      "successExplanation": "Tactical precision! 1. Nf5+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00J1Y",
@@ -5512,7 +5512,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kh8",
         "coachExplanation": "Opponent plays Kh8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qxg6+ is the engine-verified winning move from Lichess #00J1Y."
+      "successExplanation": "Tactical precision! 1. Qxg6+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00JaW",
@@ -5540,7 +5540,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Ka5",
         "coachExplanation": "Opponent plays Ka5! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rd6+ is the engine-verified winning move from Lichess #00JaW."
+      "successExplanation": "Tactical precision! 1. Rd6+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00JfN",
@@ -5568,7 +5568,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kd8",
         "coachExplanation": "Opponent plays Kd8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qf7+ is the engine-verified winning move from Lichess #00JfN."
+      "successExplanation": "Tactical precision! 1. Qf7+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00KOz",
@@ -5596,7 +5596,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kf8",
         "coachExplanation": "Opponent plays Kf8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rh7+ is the engine-verified winning move from Lichess #00KOz."
+      "successExplanation": "Tactical precision! 1. Rh7+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00Keu",
@@ -5624,7 +5624,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kf6",
         "coachExplanation": "Opponent plays Kf6! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! g6+ is the engine-verified winning move from Lichess #00Keu."
+      "successExplanation": "Tactical precision! 1. g6+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00L76",
@@ -5652,7 +5652,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kg7",
         "coachExplanation": "Opponent plays Kg7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rh8+ is the engine-verified winning move from Lichess #00L76."
+      "successExplanation": "Tactical precision! 1. Rh8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     }
   ],
   "intermediate_0": [
@@ -5682,7 +5682,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qxb6",
         "coachExplanation": "Opponent plays Qxb6! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Kxd6 is the engine-verified winning move from Lichess #000lC."
+      "successExplanation": "Tactical precision! 1. Kxd6 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_005wJ",
@@ -5706,11 +5706,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       ],
       "defaultRefutation": {
         "from": "d7",
-        "to": "e5",
-        "san": "Nxd7",
-        "coachExplanation": "Opponent responds with Nxd7! Inaccurate continuation."
+        "to": "b8",
+        "san": "Nxb8+",
+        "coachExplanation": "Opponent punishes with Nxb8+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxc1# is the engine-verified winning move from Lichess #005wJ."
+      "successExplanation": "Decisive execution! 1. Qxc1# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_00Er4",
@@ -5738,7 +5738,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qxf4",
         "coachExplanation": "Opponent plays Qxf4! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Kxd7 is the engine-verified winning move from Lichess #00Er4."
+      "successExplanation": "Tactical precision! 1. Kxd7 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00IF1",
@@ -5766,7 +5766,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "h3",
         "coachExplanation": "Opponent plays h3! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! exf4 is the engine-verified winning move from Lichess #00IF1."
+      "successExplanation": "Tactical precision! 1. exf4 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00InW",
@@ -5794,7 +5794,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kg1",
         "coachExplanation": "Opponent plays Kg1! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Kxf3 is the engine-verified winning move from Lichess #00InW."
+      "successExplanation": "Tactical precision! 1. Kxf3 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00LI0",
@@ -5822,7 +5822,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Bxd8",
         "coachExplanation": "Opponent plays Bxd8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nxd5 is the engine-verified winning move from Lichess #00LI0."
+      "successExplanation": "Tactical precision! 1. Nxd5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00MTn",
@@ -5850,7 +5850,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Bg6+",
         "coachExplanation": "Opponent plays Bg6+! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rxh5 is the engine-verified winning move from Lichess #00MTn."
+      "successExplanation": "Tactical precision! 1. Rxh5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00WzS",
@@ -5878,7 +5878,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kh1",
         "coachExplanation": "Opponent plays Kh1! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Bxe3+ is the engine-verified winning move from Lichess #00WzS."
+      "successExplanation": "Tactical precision! 1. Bxe3+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00kS9",
@@ -5906,7 +5906,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Rxe7",
         "coachExplanation": "Opponent plays Rxe7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Kxh7 is the engine-verified winning move from Lichess #00kS9."
+      "successExplanation": "Tactical precision! 1. Kxh7 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00qIK",
@@ -5934,7 +5934,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kg2",
         "coachExplanation": "Opponent plays Kg2! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qxe3+ is the engine-verified winning move from Lichess #00qIK."
+      "successExplanation": "Tactical precision! 1. Qxe3+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00u0R",
@@ -5962,7 +5962,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Rf8",
         "coachExplanation": "Opponent plays Rf8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rxd8+ is the engine-verified winning move from Lichess #00u0R."
+      "successExplanation": "Tactical precision! 1. Rxd8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_01Amq",
@@ -5990,7 +5990,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "c3",
         "coachExplanation": "Opponent plays c3! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qxf6 is the engine-verified winning move from Lichess #01Amq."
+      "successExplanation": "Tactical precision! 1. Qxf6 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_01Az7",
@@ -6018,7 +6018,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qa5+",
         "coachExplanation": "Opponent plays Qa5+! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Bxe5 is the engine-verified winning move from Lichess #01Az7."
+      "successExplanation": "Tactical precision! 1. Bxe5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_01gcG",
@@ -6041,12 +6041,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "c8",
-        "to": "c2",
-        "san": "Rxc2",
-        "coachExplanation": "Opponent plays Rxc2! Always look for forcing responses before deciding."
+        "from": "d4",
+        "to": "f3",
+        "san": "Nxf3+",
+        "coachExplanation": "Opponent punishes with Nxf3+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! cxd4 is the engine-verified winning move from Lichess #01gcG."
+      "successExplanation": "Tactical precision! 1. cxd4 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_021Ww",
@@ -6074,7 +6074,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qf7+",
         "coachExplanation": "Opponent plays Qf7+! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rxd4 is the engine-verified winning move from Lichess #021Ww."
+      "successExplanation": "Tactical precision! 1. Rxd4 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_021aU",
@@ -6102,7 +6102,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kc1",
         "coachExplanation": "Opponent plays Kc1! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qxd4+ is the engine-verified winning move from Lichess #021aU."
+      "successExplanation": "Tactical precision! 1. Qxd4+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_0257T",
@@ -6125,12 +6125,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "e5",
-        "to": "f6",
-        "san": "Bxe5",
-        "coachExplanation": "Opponent responds with Bxe5! Inaccurate continuation."
+        "from": "f8",
+        "to": "f1",
+        "san": "Rxf1+",
+        "coachExplanation": "Opponent punishes with Rxf1+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rxf8# is the engine-verified winning move from Lichess #0257T."
+      "successExplanation": "Decisive execution! 1. Rxf8# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_02EGv",
@@ -6158,7 +6158,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qh1+",
         "coachExplanation": "Opponent plays Qh1+! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Bxh2 is the engine-verified winning move from Lichess #02EGv."
+      "successExplanation": "Tactical precision! 1. Bxh2 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_02HG7",
@@ -6182,11 +6182,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       ],
       "defaultRefutation": {
         "from": "f5",
-        "to": "h4",
-        "san": "Nh4+",
-        "coachExplanation": "Opponent plays Nh4+! Always look for forcing responses before deciding."
+        "to": "g3",
+        "san": "Ng3+",
+        "coachExplanation": "Opponent punishes with Ng3+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Kxg2 is the engine-verified winning move from Lichess #02HG7."
+      "successExplanation": "Tactical precision! 1. Kxg2 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_02McK",
@@ -6214,7 +6214,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qe8+",
         "coachExplanation": "Opponent plays Qe8+! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nxd5 is the engine-verified winning move from Lichess #02McK."
+      "successExplanation": "Tactical precision! 1. Nxd5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_02O8w",
@@ -6242,7 +6242,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qf1",
         "coachExplanation": "Opponent plays Qf1! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qxd1+ is the engine-verified winning move from Lichess #02O8w."
+      "successExplanation": "Tactical precision! 1. Qxd1+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_02Smp",
@@ -6270,7 +6270,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qxc8",
         "coachExplanation": "Opponent plays Qxc8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Bxd5 is the engine-verified winning move from Lichess #02Smp."
+      "successExplanation": "Tactical precision! 1. Bxd5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_02W8D",
@@ -6298,7 +6298,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kb5",
         "coachExplanation": "Opponent plays Kb5! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Bxh4 is the engine-verified winning move from Lichess #02W8D."
+      "successExplanation": "Tactical precision! 1. Bxh4 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_02cv1",
@@ -6326,7 +6326,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qb5+",
         "coachExplanation": "Opponent plays Qb5+! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rxa1 is the engine-verified winning move from Lichess #02cv1."
+      "successExplanation": "Tactical precision! 1. Rxa1 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_02mTT",
@@ -6349,12 +6349,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "e1",
-        "to": "d2",
-        "san": "Be1",
-        "coachExplanation": "Opponent responds with Be1! Inaccurate continuation."
+        "from": "d1",
+        "to": "a4",
+        "san": "Qa4+",
+        "coachExplanation": "Opponent punishes with Qa4+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxf1# is the engine-verified winning move from Lichess #02mTT."
+      "successExplanation": "Decisive execution! 1. Qxf1# forces an inescapable checkmate on the exposed king."
     }
   ],
   "intermediate_1": [
@@ -6384,7 +6384,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kf1",
         "coachExplanation": "Opponent plays Kf1! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Ne2+ is the engine-verified winning move from Lichess #000Pw."
+      "successExplanation": "Tactical precision! 1. Ne2+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_001m3",
@@ -6412,7 +6412,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Ke2",
         "coachExplanation": "Opponent plays Ke2! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rh1+ is the engine-verified winning move from Lichess #001m3."
+      "successExplanation": "Tactical precision! 1. Rh1+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_002Tf",
@@ -6440,7 +6440,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Nc3",
         "coachExplanation": "Opponent plays Nc3! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qb4+ is the engine-verified winning move from Lichess #002Tf."
+      "successExplanation": "Tactical precision! 1. Qb4+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_003S3",
@@ -6468,7 +6468,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kg8",
         "coachExplanation": "Opponent plays Kg8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Ne6+ is the engine-verified winning move from Lichess #003S3."
+      "successExplanation": "Tactical precision! 1. Ne6+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_003Tx",
@@ -6496,7 +6496,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Ka1",
         "coachExplanation": "Opponent plays Ka1! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nd2+ is the engine-verified winning move from Lichess #003Tx."
+      "successExplanation": "Tactical precision! 1. Nd2+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_003mh",
@@ -6519,12 +6519,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "f8",
-        "to": "e8",
-        "san": "Kxe8",
-        "coachExplanation": "Opponent plays Kxe8! Always look for forcing responses before deciding."
+        "from": "e8",
+        "to": "e1",
+        "san": "Rxe1#",
+        "coachExplanation": "Opponent punishes with Rxe1#! This delivers immediate checkmate. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxe8+ is the engine-verified winning move from Lichess #003mh."
+      "successExplanation": "Tactical precision! 1. Qxe8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_004mT",
@@ -6552,7 +6552,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kd6",
         "coachExplanation": "Opponent plays Kd6! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qa8+ is the engine-verified winning move from Lichess #004mT."
+      "successExplanation": "Tactical precision! 1. Qa8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_005Bm",
@@ -6580,7 +6580,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kg8",
         "coachExplanation": "Opponent plays Kg8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Ng6+ is the engine-verified winning move from Lichess #005Bm."
+      "successExplanation": "Tactical precision! 1. Ng6+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_006wz",
@@ -6603,12 +6603,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "c2",
-        "to": "b2",
-        "san": "Rxb2",
-        "coachExplanation": "Opponent plays Rxb2! Always look for forcing responses before deciding."
+        "from": "b5",
+        "to": "a4",
+        "san": "bxa4",
+        "coachExplanation": "Opponent punishes with bxa4! This captures the undefended p and wins material. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rxb2 is the engine-verified winning move from Lichess #006wz."
+      "successExplanation": "Tactical precision! 1. Rxb2 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00761",
@@ -6631,12 +6631,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "g8",
-        "to": "g7",
-        "san": "Kxg7",
-        "coachExplanation": "Opponent plays Kxg7! Always look for forcing responses before deciding."
+        "from": "d8",
+        "to": "d6",
+        "san": "Rxd6",
+        "coachExplanation": "Opponent punishes with Rxd6! This captures the undefended p and wins material. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rxg7+ is the engine-verified winning move from Lichess #00761."
+      "successExplanation": "Tactical precision! 1. Rxg7+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_008D5",
@@ -6664,7 +6664,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Bd7",
         "coachExplanation": "Opponent plays Bd7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qa4+ is the engine-verified winning move from Lichess #008D5."
+      "successExplanation": "Tactical precision! 1. Qa4+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_009BH",
@@ -6692,7 +6692,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kg8",
         "coachExplanation": "Opponent plays Kg8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qh6+ is the engine-verified winning move from Lichess #009BH."
+      "successExplanation": "Tactical precision! 1. Qh6+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00C8e",
@@ -6716,11 +6716,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       ],
       "defaultRefutation": {
         "from": "a4",
-        "to": "d1",
-        "san": "Qd1+",
-        "coachExplanation": "Opponent plays Qd1+! Always look for forcing responses before deciding."
+        "to": "b3",
+        "san": "Qb3+",
+        "coachExplanation": "Opponent punishes with Qb3+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Kb1 is the engine-verified winning move from Lichess #00C8e."
+      "successExplanation": "Tactical precision! 1. Kb1 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00Ea3",
@@ -6743,12 +6743,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "d6",
-        "to": "c5",
-        "san": "Qc5+",
-        "coachExplanation": "Opponent plays Qc5+! Always look for forcing responses before deciding."
+        "from": "e5",
+        "to": "f3",
+        "san": "Nf3+",
+        "coachExplanation": "Opponent punishes with Nf3+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! dxe5 is the engine-verified winning move from Lichess #00Ea3."
+      "successExplanation": "Tactical precision! 1. dxe5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00F5G",
@@ -6776,7 +6776,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kh8",
         "coachExplanation": "Opponent plays Kh8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nh6+ is the engine-verified winning move from Lichess #00F5G."
+      "successExplanation": "Tactical precision! 1. Nh6+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00HzX",
@@ -6804,7 +6804,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kh2",
         "coachExplanation": "Opponent plays Kh2! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qc1+ is the engine-verified winning move from Lichess #00HzX."
+      "successExplanation": "Tactical precision! 1. Qc1+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00ICz",
@@ -6832,7 +6832,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kd8",
         "coachExplanation": "Opponent plays Kd8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Na7+ is the engine-verified winning move from Lichess #00ICz."
+      "successExplanation": "Tactical precision! 1. Na7+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00IUT",
@@ -6860,7 +6860,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qa3",
         "coachExplanation": "Opponent plays Qa3! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! c5 is the engine-verified winning move from Lichess #00IUT."
+      "successExplanation": "Tactical precision! 1. c5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00Kia",
@@ -6888,7 +6888,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kg8",
         "coachExplanation": "Opponent plays Kg8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qe5+ is the engine-verified winning move from Lichess #00Kia."
+      "successExplanation": "Tactical precision! 1. Qe5+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00Kq4",
@@ -6911,12 +6911,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "c1",
-        "to": "g5",
-        "san": "Qxg5",
-        "coachExplanation": "Opponent plays Qxg5! Always look for forcing responses before deciding."
+        "from": "g5",
+        "to": "e6",
+        "san": "Nxe6",
+        "coachExplanation": "Opponent punishes with Nxe6! This captures the undefended p and wins material. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxg5 is the engine-verified winning move from Lichess #00Kq4."
+      "successExplanation": "Tactical precision! 1. Qxg5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00LNH",
@@ -6944,7 +6944,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qxf5",
         "coachExplanation": "Opponent plays Qxf5! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Bf5 is the engine-verified winning move from Lichess #00LNH."
+      "successExplanation": "Tactical precision! 1. Bf5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00M1q",
@@ -6972,7 +6972,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kf7",
         "coachExplanation": "Opponent plays Kf7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qh7+ is the engine-verified winning move from Lichess #00M1q."
+      "successExplanation": "Tactical precision! 1. Qh7+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00Myw",
@@ -7000,7 +7000,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Rg7",
         "coachExplanation": "Opponent plays Rg7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qf6+ is the engine-verified winning move from Lichess #00Myw."
+      "successExplanation": "Tactical precision! 1. Qf6+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00Nf5",
@@ -7028,7 +7028,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kh1",
         "coachExplanation": "Opponent plays Kh1! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qb6+ is the engine-verified winning move from Lichess #00Nf5."
+      "successExplanation": "Tactical precision! 1. Qb6+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00Ngg",
@@ -7056,7 +7056,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Bc3",
         "coachExplanation": "Opponent plays Bc3! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qa5+ is the engine-verified winning move from Lichess #00Ngg."
+      "successExplanation": "Tactical precision! 1. Qa5+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     }
   ],
   "intermediate_2": [
@@ -7082,11 +7082,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       ],
       "defaultRefutation": {
         "from": "d6",
-        "to": "d8",
-        "san": "Qxd8+",
-        "coachExplanation": "Opponent plays Qxd8+! Always look for forcing responses before deciding."
+        "to": "f8",
+        "san": "Qf8+",
+        "coachExplanation": "Opponent punishes with Qf8+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rd8 is the engine-verified winning move from Lichess #0000D."
+      "successExplanation": "Tactical precision! 1. Rd8 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_0008Q",
@@ -7114,7 +7114,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kf1",
         "coachExplanation": "Opponent plays Kf1! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Re5+ is the engine-verified winning move from Lichess #0008Q."
+      "successExplanation": "Tactical precision! 1. Re5+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_000Zo",
@@ -7142,7 +7142,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kf2",
         "coachExplanation": "Opponent plays Kf2! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Re1+ is the engine-verified winning move from Lichess #000Zo."
+      "successExplanation": "Tactical precision! 1. Re1+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_001cr",
@@ -7165,12 +7165,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "c4",
-        "to": "c5",
-        "san": "c4",
-        "coachExplanation": "Opponent responds with c4! Inaccurate continuation."
+        "from": "h7",
+        "to": "h6",
+        "san": "h6",
+        "coachExplanation": "Opponent punishes with h6! This activates pieces and consolidates the position. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Be8# is the engine-verified winning move from Lichess #001cr."
+      "successExplanation": "Decisive execution! 1. Be8# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_003UW",
@@ -7194,11 +7194,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       ],
       "defaultRefutation": {
         "from": "d5",
-        "to": "e4",
-        "san": "Qxe4",
-        "coachExplanation": "Opponent plays Qxe4! Always look for forcing responses before deciding."
+        "to": "f3",
+        "san": "Qf3+",
+        "coachExplanation": "Opponent punishes with Qf3+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qe4+ is the engine-verified winning move from Lichess #003UW."
+      "successExplanation": "Tactical precision! 1. Qe4+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_0040n",
@@ -7226,7 +7226,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qh3",
         "coachExplanation": "Opponent plays Qh3! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! gxh2 is the engine-verified winning move from Lichess #0040n."
+      "successExplanation": "Tactical precision! 1. gxh2 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_004JD",
@@ -7249,12 +7249,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "e3",
-        "to": "d2",
-        "san": "Ke3",
-        "coachExplanation": "Opponent responds with Ke3! Inaccurate continuation."
+        "from": "a7",
+        "to": "g7",
+        "san": "Rg7+",
+        "coachExplanation": "Opponent punishes with Rg7+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Nc2# is the engine-verified winning move from Lichess #004JD."
+      "successExplanation": "Decisive execution! 1. Nc2# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_004u0",
@@ -7282,7 +7282,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qxd7",
         "coachExplanation": "Opponent plays Qxd7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rd7 is the engine-verified winning move from Lichess #004u0."
+      "successExplanation": "Tactical precision! 1. Rd7 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_004zI",
@@ -7305,12 +7305,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "g6",
-        "to": "h7",
-        "san": "hxg6",
-        "coachExplanation": "Opponent responds with hxg6! Inaccurate continuation."
+        "from": "c8",
+        "to": "c1",
+        "san": "Qc1+",
+        "coachExplanation": "Opponent punishes with Qc1+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qh8# is the engine-verified winning move from Lichess #004zI."
+      "successExplanation": "Decisive execution! 1. Qh8# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_007eS",
@@ -7338,7 +7338,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "g4",
         "coachExplanation": "Opponent plays g4! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! f5 is the engine-verified winning move from Lichess #007eS."
+      "successExplanation": "Tactical precision! 1. f5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_009wR",
@@ -7366,7 +7366,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kg2",
         "coachExplanation": "Opponent plays Kg2! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rf1+ is the engine-verified winning move from Lichess #009wR."
+      "successExplanation": "Tactical precision! 1. Rf1+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00AHY",
@@ -7389,12 +7389,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "g3",
-        "to": "a3",
-        "san": "Rxa3",
-        "coachExplanation": "Opponent plays Rxa3! Always look for forcing responses before deciding."
+        "from": "e7",
+        "to": "e8",
+        "san": "Re8+",
+        "coachExplanation": "Opponent punishes with Re8+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! a3 is the engine-verified winning move from Lichess #00AHY."
+      "successExplanation": "Tactical precision! 1. a3 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00AdI",
@@ -7422,7 +7422,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "g3",
         "coachExplanation": "Opponent plays g3! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rd3+ is the engine-verified winning move from Lichess #00AdI."
+      "successExplanation": "Tactical precision! 1. Rd3+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00B3B",
@@ -7445,12 +7445,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "c8",
-        "to": "d8",
-        "san": "Kxd8",
-        "coachExplanation": "Opponent plays Kxd8! Always look for forcing responses before deciding."
+        "from": "d8",
+        "to": "d4",
+        "san": "Qxd4+",
+        "coachExplanation": "Opponent punishes with Qxd4+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Bxd8 is the engine-verified winning move from Lichess #00B3B."
+      "successExplanation": "Tactical precision! 1. Bxd8 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00BCa",
@@ -7473,12 +7473,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "d6",
-        "to": "c5",
-        "san": "dxc5",
-        "coachExplanation": "Opponent plays dxc5! Always look for forcing responses before deciding."
+        "from": "b8",
+        "to": "g8",
+        "san": "Rxg8+",
+        "coachExplanation": "Opponent punishes with Rxg8+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Nxc5+ is the engine-verified winning move from Lichess #00BCa."
+      "successExplanation": "Tactical precision! 1. Nxc5+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00BSo",
@@ -7506,7 +7506,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Ra7",
         "coachExplanation": "Opponent plays Ra7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Bb4 is the engine-verified winning move from Lichess #00BSo."
+      "successExplanation": "Tactical precision! 1. Bb4 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00CMj",
@@ -7529,12 +7529,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "f2",
-        "to": "e3",
-        "san": "Kxe3",
-        "coachExplanation": "Opponent plays Kxe3! Always look for forcing responses before deciding."
+        "from": "h8",
+        "to": "f8",
+        "san": "Rf8+",
+        "coachExplanation": "Opponent punishes with Rf8+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! e3+ is the engine-verified winning move from Lichess #00CMj."
+      "successExplanation": "Tactical precision! 1. e3+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00CWE",
@@ -7557,12 +7557,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "d5",
-        "to": "e6",
-        "san": "Kd5",
-        "coachExplanation": "Opponent responds with Kd5! Inaccurate continuation."
+        "from": "d4",
+        "to": "d2",
+        "san": "Rd2+",
+        "coachExplanation": "Opponent punishes with Rd2+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Bf7# is the engine-verified winning move from Lichess #00CWE."
+      "successExplanation": "Decisive execution! 1. Bf7# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_00DBP",
@@ -7585,12 +7585,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "f8",
-        "to": "g8",
-        "san": "Kxg8",
-        "coachExplanation": "Opponent plays Kxg8! Always look for forcing responses before deciding."
+        "from": "g8",
+        "to": "g3",
+        "san": "Rxg3",
+        "coachExplanation": "Opponent punishes with Rxg3! This captures the undefended r and wins material. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rxg8+ is the engine-verified winning move from Lichess #00DBP."
+      "successExplanation": "Tactical precision! 1. Rxg8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00DcC",
@@ -7618,7 +7618,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Ke7",
         "coachExplanation": "Opponent plays Ke7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Ne6+ is the engine-verified winning move from Lichess #00DcC."
+      "successExplanation": "Tactical precision! 1. Ne6+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00Dib",
@@ -7646,7 +7646,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Bxg5+",
         "coachExplanation": "Opponent plays Bxg5+! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! g5 is the engine-verified winning move from Lichess #00Dib."
+      "successExplanation": "Tactical precision! 1. g5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00Dke",
@@ -7674,7 +7674,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kg7",
         "coachExplanation": "Opponent plays Kg7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Bxf7+ is the engine-verified winning move from Lichess #00Dke."
+      "successExplanation": "Tactical precision! 1. Bxf7+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00Erm",
@@ -7697,12 +7697,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "e4",
-        "to": "d3",
-        "san": "exd3",
-        "coachExplanation": "Opponent plays exd3! Always look for forcing responses before deciding."
+        "from": "d3",
+        "to": "f2",
+        "san": "Nxf2",
+        "coachExplanation": "Opponent punishes with Nxf2! This captures the undefended p and wins material. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rxd3 is the engine-verified winning move from Lichess #00Erm."
+      "successExplanation": "Tactical precision! 1. Rxd3 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00FAe",
@@ -7730,7 +7730,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Rf1",
         "coachExplanation": "Opponent plays Rf1! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qe1+ is the engine-verified winning move from Lichess #00FAe."
+      "successExplanation": "Tactical precision! 1. Qe1+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00G81",
@@ -7758,7 +7758,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kd4",
         "coachExplanation": "Opponent plays Kd4! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rc8+ is the engine-verified winning move from Lichess #00G81."
+      "successExplanation": "Tactical precision! 1. Rc8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     }
   ],
   "intermediate_3": [
@@ -7788,7 +7788,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kf8",
         "coachExplanation": "Opponent plays Kf8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qxe6+ is the engine-verified winning move from Lichess #000hf."
+      "successExplanation": "Tactical precision! 1. Qxe6+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_001Fg",
@@ -7816,7 +7816,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kh2",
         "coachExplanation": "Opponent plays Kh2! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Ne2+ is the engine-verified winning move from Lichess #001Fg."
+      "successExplanation": "Tactical precision! 1. Ne2+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_002uV",
@@ -7839,12 +7839,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "e1",
-        "to": "e7",
-        "san": "Rxe7",
-        "coachExplanation": "Opponent plays Rxe7! Always look for forcing responses before deciding."
+        "from": "f5",
+        "to": "f7",
+        "san": "Qxf7+",
+        "coachExplanation": "Opponent punishes with Qxf7+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! exf5 is the engine-verified winning move from Lichess #002uV."
+      "successExplanation": "Tactical precision! 1. exf5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_0054a",
@@ -7872,7 +7872,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qxe5",
         "coachExplanation": "Opponent plays Qxe5! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qxe5 is the engine-verified winning move from Lichess #0054a."
+      "successExplanation": "Tactical precision! 1. Qxe5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_0068B",
@@ -7896,11 +7896,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       ],
       "defaultRefutation": {
         "from": "c8",
-        "to": "d7",
-        "san": "Qxd7",
-        "coachExplanation": "Opponent plays Qxd7! Always look for forcing responses before deciding."
+        "to": "c3",
+        "san": "Qxc3",
+        "coachExplanation": "Opponent punishes with Qxc3! This captures the undefended n and wins material. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rxd7 is the engine-verified winning move from Lichess #0068B."
+      "successExplanation": "Tactical precision! 1. Rxd7 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_006RM",
@@ -7923,12 +7923,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "b6",
-        "to": "c5",
-        "san": "bxc5",
-        "coachExplanation": "Opponent plays bxc5! Always look for forcing responses before deciding."
+        "from": "c5",
+        "to": "f2",
+        "san": "Qxf2+",
+        "coachExplanation": "Opponent punishes with Qxf2+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxc5 is the engine-verified winning move from Lichess #006RM."
+      "successExplanation": "Tactical precision! 1. Qxc5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_006cZ",
@@ -7956,7 +7956,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Rxd3",
         "coachExplanation": "Opponent plays Rxd3! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rxd3 is the engine-verified winning move from Lichess #006cZ."
+      "successExplanation": "Tactical precision! 1. Rxd3 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_009FP",
@@ -7984,7 +7984,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qxg5",
         "coachExplanation": "Opponent plays Qxg5! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Bg5 is the engine-verified winning move from Lichess #009FP."
+      "successExplanation": "Tactical precision! 1. Bg5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_009aD",
@@ -8012,7 +8012,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Bxg4",
         "coachExplanation": "Opponent plays Bxg4! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! hxg4 is the engine-verified winning move from Lichess #009aD."
+      "successExplanation": "Tactical precision! 1. hxg4 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_009zS",
@@ -8035,12 +8035,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "e1",
-        "to": "e2",
-        "san": "Kxe2",
-        "coachExplanation": "Opponent plays Kxe2! Always look for forcing responses before deciding."
+        "from": "a3",
+        "to": "f8",
+        "san": "Qf8+",
+        "coachExplanation": "Opponent punishes with Qf8+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Bxe2 is the engine-verified winning move from Lichess #009zS."
+      "successExplanation": "Tactical precision! 1. Bxe2 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00AFG",
@@ -8068,7 +8068,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "gxh6",
         "coachExplanation": "Opponent plays gxh6! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nh6+ is the engine-verified winning move from Lichess #00AFG."
+      "successExplanation": "Tactical precision! 1. Nh6+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00AhO",
@@ -8096,7 +8096,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qa7",
         "coachExplanation": "Opponent plays Qa7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Bb7 is the engine-verified winning move from Lichess #00AhO."
+      "successExplanation": "Tactical precision! 1. Bb7 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00BM8",
@@ -8124,7 +8124,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qxa4",
         "coachExplanation": "Opponent plays Qxa4! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nb1 is the engine-verified winning move from Lichess #00BM8."
+      "successExplanation": "Tactical precision! 1. Nb1 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00Bp0",
@@ -8147,12 +8147,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "b7",
-        "to": "c6",
-        "san": "bxc6",
-        "coachExplanation": "Opponent plays bxc6! Always look for forcing responses before deciding."
+        "from": "e4",
+        "to": "g3",
+        "san": "Ng3+",
+        "coachExplanation": "Opponent punishes with Ng3+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Nxc6 is the engine-verified winning move from Lichess #00Bp0."
+      "successExplanation": "Tactical precision! 1. Nxc6 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00Bul",
@@ -8180,7 +8180,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Be6",
         "coachExplanation": "Opponent plays Be6! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nc6+ is the engine-verified winning move from Lichess #00Bul."
+      "successExplanation": "Tactical precision! 1. Nc6+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00Cs4",
@@ -8208,7 +8208,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qxa6",
         "coachExplanation": "Opponent plays Qxa6! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! bxa4 is the engine-verified winning move from Lichess #00Cs4."
+      "successExplanation": "Tactical precision! 1. bxa4 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00Cwz",
@@ -8236,7 +8236,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Rxb1",
         "coachExplanation": "Opponent plays Rxb1! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rb1+ is the engine-verified winning move from Lichess #00Cwz."
+      "successExplanation": "Tactical precision! 1. Rb1+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00DkJ",
@@ -8264,7 +8264,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Ke7",
         "coachExplanation": "Opponent plays Ke7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rd1+ is the engine-verified winning move from Lichess #00DkJ."
+      "successExplanation": "Tactical precision! 1. Rd1+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00G7g",
@@ -8292,7 +8292,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qxb2",
         "coachExplanation": "Opponent plays Qxb2! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Bb2 is the engine-verified winning move from Lichess #00G7g."
+      "successExplanation": "Tactical precision! 1. Bb2 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00GBV",
@@ -8316,11 +8316,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       ],
       "defaultRefutation": {
         "from": "d6",
-        "to": "e7",
-        "san": "Qxe7",
-        "coachExplanation": "Opponent plays Qxe7! Always look for forcing responses before deciding."
+        "to": "h2",
+        "san": "Qxh2+",
+        "coachExplanation": "Opponent punishes with Qxh2+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxe7 is the engine-verified winning move from Lichess #00GBV."
+      "successExplanation": "Tactical precision! 1. Qxe7 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00GVf",
@@ -8344,11 +8344,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       ],
       "defaultRefutation": {
         "from": "g7",
-        "to": "h8",
-        "san": "Qxh8",
-        "coachExplanation": "Opponent plays Qxh8! Always look for forcing responses before deciding."
+        "to": "b2",
+        "san": "Qb2+",
+        "coachExplanation": "Opponent punishes with Qb2+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rh8+ is the engine-verified winning move from Lichess #00GVf."
+      "successExplanation": "Tactical precision! 1. Rh8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00Gc5",
@@ -8371,12 +8371,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "f5",
-        "to": "e5",
-        "san": "Kxe5",
-        "coachExplanation": "Opponent plays Kxe5! Always look for forcing responses before deciding."
+        "from": "g4",
+        "to": "h4",
+        "san": "Rh4+",
+        "coachExplanation": "Opponent punishes with Rh4+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rxe5+ is the engine-verified winning move from Lichess #00Gc5."
+      "successExplanation": "Tactical precision! 1. Rxe5+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00K8j",
@@ -8404,7 +8404,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qxc7",
         "coachExplanation": "Opponent plays Qxc7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qxc7 is the engine-verified winning move from Lichess #00K8j."
+      "successExplanation": "Tactical precision! 1. Qxc7 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00KAq",
@@ -8432,7 +8432,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Rxd7+",
         "coachExplanation": "Opponent plays Rxd7+! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! fxg3 is the engine-verified winning move from Lichess #00KAq."
+      "successExplanation": "Tactical precision! 1. fxg3 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00KHR",
@@ -8460,7 +8460,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Ke4",
         "coachExplanation": "Opponent plays Ke4! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nh4+ is the engine-verified winning move from Lichess #00KHR."
+      "successExplanation": "Tactical precision! 1. Nh4+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     }
   ],
   "advanced_0": [
@@ -8490,7 +8490,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qb1+",
         "coachExplanation": "Opponent plays Qb1+! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rxe7 is the engine-verified winning move from Lichess #00008."
+      "successExplanation": "Tactical precision! 1. Rxe7 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_001aK",
@@ -8513,12 +8513,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "g3",
-        "to": "g2",
-        "san": "g2",
-        "coachExplanation": "Opponent plays g2! Always look for forcing responses before deciding."
+        "from": "e2",
+        "to": "f2",
+        "san": "Rf2#",
+        "coachExplanation": "Opponent punishes with Rf2#! This delivers immediate checkmate. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Kxe2 is the engine-verified winning move from Lichess #001aK."
+      "successExplanation": "Tactical precision! 1. Kxe2 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_0095W",
@@ -8546,7 +8546,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Rc7",
         "coachExplanation": "Opponent plays Rc7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! fxe5 is the engine-verified winning move from Lichess #0095W."
+      "successExplanation": "Tactical precision! 1. fxe5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00Cqg",
@@ -8569,12 +8569,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "d8",
-        "to": "d1",
-        "san": "Rdxd1+",
-        "coachExplanation": "Opponent plays Rdxd1+! Always look for forcing responses before deciding."
+        "from": "e6",
+        "to": "h3",
+        "san": "Qxh3+",
+        "coachExplanation": "Opponent punishes with Qxh3+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! dxe6 is the engine-verified winning move from Lichess #00Cqg."
+      "successExplanation": "Tactical precision! 1. dxe6 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00ZAn",
@@ -8602,7 +8602,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qh5+",
         "coachExplanation": "Opponent plays Qh5+! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! dxe5 is the engine-verified winning move from Lichess #00ZAn."
+      "successExplanation": "Tactical precision! 1. dxe5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00aZ3",
@@ -8630,7 +8630,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Rf4",
         "coachExplanation": "Opponent plays Rf4! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Bxd5 is the engine-verified winning move from Lichess #00aZ3."
+      "successExplanation": "Tactical precision! 1. Bxd5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00dTd",
@@ -8658,7 +8658,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kc6",
         "coachExplanation": "Opponent plays Kc6! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qxd8+ is the engine-verified winning move from Lichess #00dTd."
+      "successExplanation": "Tactical precision! 1. Qxd8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00hxr",
@@ -8686,7 +8686,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qd1",
         "coachExplanation": "Opponent plays Qd1! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qxh5 is the engine-verified winning move from Lichess #00hxr."
+      "successExplanation": "Tactical precision! 1. Qxh5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00lJm",
@@ -8714,7 +8714,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qd3+",
         "coachExplanation": "Opponent plays Qd3+! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rxf7 is the engine-verified winning move from Lichess #00lJm."
+      "successExplanation": "Tactical precision! 1. Rxf7 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00lL3",
@@ -8742,7 +8742,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qxb8+",
         "coachExplanation": "Opponent plays Qxb8+! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! gxf6 is the engine-verified winning move from Lichess #00lL3."
+      "successExplanation": "Tactical precision! 1. gxf6 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00xOm",
@@ -8766,11 +8766,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       ],
       "defaultRefutation": {
         "from": "f8",
-        "to": "f2",
-        "san": "Rf2+",
-        "coachExplanation": "Opponent plays Rf2+! Always look for forcing responses before deciding."
+        "to": "f1",
+        "san": "Rf1+",
+        "coachExplanation": "Opponent punishes with Rf1+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Kxb2 is the engine-verified winning move from Lichess #00xOm."
+      "successExplanation": "Tactical precision! 1. Kxb2 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00xyk",
@@ -8798,7 +8798,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Rde8",
         "coachExplanation": "Opponent plays Rde8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qxe5 is the engine-verified winning move from Lichess #00xyk."
+      "successExplanation": "Tactical precision! 1. Qxe5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_016yu",
@@ -8826,7 +8826,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qc4+",
         "coachExplanation": "Opponent plays Qc4+! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qxf4 is the engine-verified winning move from Lichess #016yu."
+      "successExplanation": "Tactical precision! 1. Qxf4 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_01E12",
@@ -8854,7 +8854,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Bxb2+",
         "coachExplanation": "Opponent plays Bxb2+! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qxe7 is the engine-verified winning move from Lichess #01E12."
+      "successExplanation": "Tactical precision! 1. Qxe7 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_01IKl",
@@ -8882,7 +8882,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Ra1",
         "coachExplanation": "Opponent plays Ra1! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rxc8 is the engine-verified winning move from Lichess #01IKl."
+      "successExplanation": "Tactical precision! 1. Rxc8 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_01M1X",
@@ -8910,7 +8910,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qd4+",
         "coachExplanation": "Opponent plays Qd4+! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qxf3 is the engine-verified winning move from Lichess #01M1X."
+      "successExplanation": "Tactical precision! 1. Qxf3 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_01Uzs",
@@ -8938,7 +8938,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qh4+",
         "coachExplanation": "Opponent plays Qh4+! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nxe4 is the engine-verified winning move from Lichess #01Uzs."
+      "successExplanation": "Tactical precision! 1. Nxe4 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_01fsb",
@@ -8966,7 +8966,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Nf6+",
         "coachExplanation": "Opponent plays Nf6+! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qxd7 is the engine-verified winning move from Lichess #01fsb."
+      "successExplanation": "Tactical precision! 1. Qxd7 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_021U1",
@@ -8989,12 +8989,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "f2",
-        "to": "f3",
-        "san": "Kf2",
-        "coachExplanation": "Opponent responds with Kf2! Inaccurate continuation."
+        "from": "f6",
+        "to": "g8",
+        "san": "Ng8#",
+        "coachExplanation": "Opponent punishes with Ng8#! This delivers immediate checkmate. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Bxd4# is the engine-verified winning move from Lichess #021U1."
+      "successExplanation": "Decisive execution! 1. Bxd4# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_02370",
@@ -9022,7 +9022,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qb8+",
         "coachExplanation": "Opponent plays Qb8+! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Bxf7 is the engine-verified winning move from Lichess #02370."
+      "successExplanation": "Tactical precision! 1. Bxf7 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_023RO",
@@ -9050,7 +9050,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Bxe4",
         "coachExplanation": "Opponent plays Bxe4! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! bxc6 is the engine-verified winning move from Lichess #023RO."
+      "successExplanation": "Tactical precision! 1. bxc6 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_024AF",
@@ -9078,7 +9078,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "hxg7+",
         "coachExplanation": "Opponent plays hxg7+! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Bxh4 is the engine-verified winning move from Lichess #024AF."
+      "successExplanation": "Tactical precision! 1. Bxh4 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_02Mow",
@@ -9106,7 +9106,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qg6",
         "coachExplanation": "Opponent plays Qg6! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! gxh3 is the engine-verified winning move from Lichess #02Mow."
+      "successExplanation": "Tactical precision! 1. gxh3 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_02N7B",
@@ -9134,7 +9134,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kc8",
         "coachExplanation": "Opponent plays Kc8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nxe6+ is the engine-verified winning move from Lichess #02N7B."
+      "successExplanation": "Tactical precision! 1. Nxe6+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_02NcP",
@@ -9162,7 +9162,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "h5",
         "coachExplanation": "Opponent plays h5! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qxd1 is the engine-verified winning move from Lichess #02NcP."
+      "successExplanation": "Tactical precision! 1. Qxd1 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     }
   ],
   "advanced_1": [
@@ -9192,7 +9192,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Ke1",
         "coachExplanation": "Opponent plays Ke1! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Kf3 is the engine-verified winning move from Lichess #000qP."
+      "successExplanation": "Tactical precision! 1. Kf3 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_0017R",
@@ -9215,12 +9215,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "b6",
-        "to": "c4",
-        "san": "Nxc4",
-        "coachExplanation": "Opponent plays Nxc4! Always look for forcing responses before deciding."
+        "from": "g7",
+        "to": "c3",
+        "san": "Bc3+",
+        "coachExplanation": "Opponent punishes with Bc3+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Bxc4 is the engine-verified winning move from Lichess #0017R."
+      "successExplanation": "Tactical precision! 1. Bxc4 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_001kG",
@@ -9248,7 +9248,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kg8",
         "coachExplanation": "Opponent plays Kg8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qh5+ is the engine-verified winning move from Lichess #001kG."
+      "successExplanation": "Tactical precision! 1. Qh5+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_003wQ",
@@ -9271,12 +9271,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "f4",
-        "to": "d6",
-        "san": "Bxd6",
-        "coachExplanation": "Opponent plays Bxd6! Always look for forcing responses before deciding."
+        "from": "d6",
+        "to": "f8",
+        "san": "Qxf8+",
+        "coachExplanation": "Opponent punishes with Qxf8+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxd6 is the engine-verified winning move from Lichess #003wQ."
+      "successExplanation": "Tactical precision! 1. Qxd6 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_0047P",
@@ -9304,7 +9304,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Ke2",
         "coachExplanation": "Opponent plays Ke2! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rb1+ is the engine-verified winning move from Lichess #0047P."
+      "successExplanation": "Tactical precision! 1. Rb1+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_005HG",
@@ -9327,12 +9327,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "b2",
-        "to": "e5",
-        "san": "Bxe5",
-        "coachExplanation": "Opponent plays Bxe5! Always look for forcing responses before deciding."
+        "from": "c2",
+        "to": "h7",
+        "san": "Qh7+",
+        "coachExplanation": "Opponent punishes with Qh7+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Bxe5 is the engine-verified winning move from Lichess #005HG."
+      "successExplanation": "Tactical precision! 1. Bxe5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_006om",
@@ -9360,7 +9360,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Rxa5",
         "coachExplanation": "Opponent plays Rxa5! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nc5 is the engine-verified winning move from Lichess #006om."
+      "successExplanation": "Tactical precision! 1. Nc5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_006pe",
@@ -9388,7 +9388,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kh7",
         "coachExplanation": "Opponent plays Kh7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nf5+ is the engine-verified winning move from Lichess #006pe."
+      "successExplanation": "Tactical precision! 1. Nf5+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00734",
@@ -9416,7 +9416,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "e6",
         "coachExplanation": "Opponent plays e6! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Bxf5 is the engine-verified winning move from Lichess #00734."
+      "successExplanation": "Tactical precision! 1. Bxf5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_008lc",
@@ -9439,12 +9439,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "h8",
-        "to": "g7",
-        "san": "Kxg7",
-        "coachExplanation": "Opponent plays Kxg7! Always look for forcing responses before deciding."
+        "from": "b7",
+        "to": "g2",
+        "san": "Bg2+",
+        "coachExplanation": "Opponent punishes with Bg2+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxg7+ is the engine-verified winning move from Lichess #008lc."
+      "successExplanation": "Tactical precision! 1. Qxg7+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00Feu",
@@ -9469,10 +9469,10 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       "defaultRefutation": {
         "from": "h4",
         "to": "g5",
-        "san": "Qxg5+",
-        "coachExplanation": "Opponent plays Qxg5+! Always look for forcing responses before deciding."
+        "san": "Qg5+",
+        "coachExplanation": "Opponent punishes with Qg5+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Bg5 is the engine-verified winning move from Lichess #00Feu."
+      "successExplanation": "Tactical precision! 1. Bg5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00GiQ",
@@ -9500,7 +9500,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kg7",
         "coachExplanation": "Opponent plays Kg7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Ng5+ is the engine-verified winning move from Lichess #00GiQ."
+      "successExplanation": "Tactical precision! 1. Ng5+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00H87",
@@ -9528,7 +9528,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kh7",
         "coachExplanation": "Opponent plays Kh7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qc8+ is the engine-verified winning move from Lichess #00H87."
+      "successExplanation": "Tactical precision! 1. Qc8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00Hpe",
@@ -9551,12 +9551,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "c8",
-        "to": "b8",
-        "san": "Rxb8",
-        "coachExplanation": "Opponent plays Rxb8! Always look for forcing responses before deciding."
+        "from": "b8",
+        "to": "b1",
+        "san": "Rxb1+",
+        "coachExplanation": "Opponent punishes with Rxb1+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rxb8 is the engine-verified winning move from Lichess #00Hpe."
+      "successExplanation": "Tactical precision! 1. Rxb8 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00JFF",
@@ -9584,7 +9584,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Bg7",
         "coachExplanation": "Opponent plays Bg7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qxg6+ is the engine-verified winning move from Lichess #00JFF."
+      "successExplanation": "Tactical precision! 1. Qxg6+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00KNK",
@@ -9612,7 +9612,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kf8",
         "coachExplanation": "Opponent plays Kf8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nf6+ is the engine-verified winning move from Lichess #00KNK."
+      "successExplanation": "Tactical precision! 1. Nf6+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00MQl",
@@ -9640,7 +9640,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Nxh4",
         "coachExplanation": "Opponent plays Nxh4! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Bxe3 is the engine-verified winning move from Lichess #00MQl."
+      "successExplanation": "Tactical precision! 1. Bxe3 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00MwU",
@@ -9663,12 +9663,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "d8",
-        "to": "f8",
-        "san": "Rxf8",
-        "coachExplanation": "Opponent plays Rxf8! Always look for forcing responses before deciding."
+        "from": "f8",
+        "to": "b4",
+        "san": "Bxb4",
+        "coachExplanation": "Opponent punishes with Bxb4! This captures the undefended p and wins material. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rxf8 is the engine-verified winning move from Lichess #00MwU."
+      "successExplanation": "Tactical precision! 1. Rxf8 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00NEO",
@@ -9696,7 +9696,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kg8",
         "coachExplanation": "Opponent plays Kg8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qxh6+ is the engine-verified winning move from Lichess #00NEO."
+      "successExplanation": "Tactical precision! 1. Qxh6+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00NHK",
@@ -9719,12 +9719,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "g8",
-        "to": "h8",
-        "san": "Kxh8",
-        "coachExplanation": "Opponent plays Kxh8! Always look for forcing responses before deciding."
+        "from": "f8",
+        "to": "f1",
+        "san": "Rf1+",
+        "coachExplanation": "Opponent punishes with Rf1+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rh8+ is the engine-verified winning move from Lichess #00NHK."
+      "successExplanation": "Tactical precision! 1. Rh8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00O9Z",
@@ -9752,7 +9752,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Rxf2",
         "coachExplanation": "Opponent plays Rxf2! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qxf2+ is the engine-verified winning move from Lichess #00O9Z."
+      "successExplanation": "Tactical precision! 1. Qxf2+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00OLF",
@@ -9775,12 +9775,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "c3",
-        "to": "c7",
-        "san": "Rxc7",
-        "coachExplanation": "Opponent plays Rxc7! Always look for forcing responses before deciding."
+        "from": "a6",
+        "to": "b6",
+        "san": "Qb6#",
+        "coachExplanation": "Opponent punishes with Qb6#! This delivers immediate checkmate. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rxc7 is the engine-verified winning move from Lichess #00OLF."
+      "successExplanation": "Tactical precision! 1. Rxc7 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00OYl",
@@ -9808,7 +9808,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qf1",
         "coachExplanation": "Opponent plays Qf1! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rxe5 is the engine-verified winning move from Lichess #00OYl."
+      "successExplanation": "Tactical precision! 1. Rxe5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00QN3",
@@ -9836,7 +9836,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qf3",
         "coachExplanation": "Opponent plays Qf3! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qe4+ is the engine-verified winning move from Lichess #00QN3."
+      "successExplanation": "Tactical precision! 1. Qe4+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00RtC",
@@ -9864,7 +9864,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kh1",
         "coachExplanation": "Opponent plays Kh1! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Ne2+ is the engine-verified winning move from Lichess #00RtC."
+      "successExplanation": "Tactical precision! 1. Ne2+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     }
   ],
   "advanced_2": [
@@ -9894,7 +9894,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qa1+",
         "coachExplanation": "Opponent plays Qa1+! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Bxc2 is the engine-verified winning move from Lichess #000Sa."
+      "successExplanation": "Tactical precision! 1. Bxc2 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_0018P",
@@ -9922,7 +9922,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kf5",
         "coachExplanation": "Opponent plays Kf5! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Re8+ is the engine-verified winning move from Lichess #0018P."
+      "successExplanation": "Tactical precision! 1. Re8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_001Oo",
@@ -9945,12 +9945,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "b5",
-        "to": "a4",
-        "san": "bxa4",
-        "coachExplanation": "Opponent plays bxa4! Always look for forcing responses before deciding."
+        "from": "g7",
+        "to": "d4",
+        "san": "Bxd4",
+        "coachExplanation": "Opponent punishes with Bxd4! This captures the undefended p and wins material. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxa4 is the engine-verified winning move from Lichess #001Oo."
+      "successExplanation": "Tactical precision! 1. Qxa4 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_002Ds",
@@ -9978,7 +9978,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Nd1+",
         "coachExplanation": "Opponent plays Nd1+! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! b5 is the engine-verified winning move from Lichess #002Ds."
+      "successExplanation": "Tactical precision! 1. b5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_002LF",
@@ -10006,7 +10006,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "f6",
         "coachExplanation": "Opponent plays f6! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qe5+ is the engine-verified winning move from Lichess #002LF."
+      "successExplanation": "Tactical precision! 1. Qe5+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_002Uy",
@@ -10029,12 +10029,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "b3",
-        "to": "c3",
-        "san": "Kxc3",
-        "coachExplanation": "Opponent plays Kxc3! Always look for forcing responses before deciding."
+        "from": "a4",
+        "to": "b5",
+        "san": "axb5",
+        "coachExplanation": "Opponent punishes with axb5! This captures the undefended p and wins material. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rxc3+ is the engine-verified winning move from Lichess #002Uy."
+      "successExplanation": "Tactical precision! 1. Rxc3+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_003IX",
@@ -10057,12 +10057,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "f5",
-        "to": "f4",
-        "san": "Kxf5",
-        "coachExplanation": "Opponent responds with Kxf5! Inaccurate continuation."
+        "from": "a6",
+        "to": "a7",
+        "san": "Ra7+",
+        "coachExplanation": "Opponent punishes with Ra7+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Ng3# is the engine-verified winning move from Lichess #003IX."
+      "successExplanation": "Decisive execution! 1. Ng3# forces an inescapable checkmate on the exposed king."
     },
     {
       "id": "lichess_003aS",
@@ -10090,7 +10090,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Rb6+",
         "coachExplanation": "Opponent plays Rb6+! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! b2 is the engine-verified winning move from Lichess #003aS."
+      "successExplanation": "Tactical precision! 1. b2 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_004Ax",
@@ -10118,7 +10118,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Rf6",
         "coachExplanation": "Opponent plays Rf6! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rxh6 is the engine-verified winning move from Lichess #004Ax."
+      "successExplanation": "Tactical precision! 1. Rxh6 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_004RF",
@@ -10141,12 +10141,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "g8",
-        "to": "g7",
-        "san": "Kxg7",
-        "coachExplanation": "Opponent plays Kxg7! Always look for forcing responses before deciding."
+        "from": "b5",
+        "to": "h5",
+        "san": "Qxh5",
+        "coachExplanation": "Opponent punishes with Qxh5! This captures the undefended q and wins material. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rxg7+ is the engine-verified winning move from Lichess #004RF."
+      "successExplanation": "Tactical precision! 1. Rxg7+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_004d8",
@@ -10174,7 +10174,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kf6",
         "coachExplanation": "Opponent plays Kf6! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Ra7+ is the engine-verified winning move from Lichess #004d8."
+      "successExplanation": "Tactical precision! 1. Ra7+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_005f3",
@@ -10197,12 +10197,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "f7",
-        "to": "g6",
-        "san": "fxg6",
-        "coachExplanation": "Opponent plays fxg6! Always look for forcing responses before deciding."
+        "from": "b5",
+        "to": "d3",
+        "san": "Qxd3+",
+        "coachExplanation": "Opponent punishes with Qxd3+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rxg6+ is the engine-verified winning move from Lichess #005f3."
+      "successExplanation": "Tactical precision! 1. Rxg6+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_005gP",
@@ -10230,7 +10230,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "g6",
         "coachExplanation": "Opponent plays g6! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Kxd5 is the engine-verified winning move from Lichess #005gP."
+      "successExplanation": "Tactical precision! 1. Kxd5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_0068D",
@@ -10258,7 +10258,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "f4",
         "coachExplanation": "Opponent plays f4! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rfh6 is the engine-verified winning move from Lichess #0068D."
+      "successExplanation": "Tactical precision! 1. Rfh6 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_006E1",
@@ -10286,7 +10286,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kf1",
         "coachExplanation": "Opponent plays Kf1! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Re8+ is the engine-verified winning move from Lichess #006E1."
+      "successExplanation": "Tactical precision! 1. Re8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00798",
@@ -10314,7 +10314,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kh6",
         "coachExplanation": "Opponent plays Kh6! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! gxh4+ is the engine-verified winning move from Lichess #00798."
+      "successExplanation": "Tactical precision! 1. gxh4+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_008Sk",
@@ -10337,12 +10337,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "g7",
-        "to": "g5",
-        "san": "g5+",
-        "coachExplanation": "Opponent plays g5+! Always look for forcing responses before deciding."
+        "from": "a2",
+        "to": "a3",
+        "san": "Ra3+",
+        "coachExplanation": "Opponent punishes with Ra3+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rxf2 is the engine-verified winning move from Lichess #008Sk."
+      "successExplanation": "Tactical precision! 1. Rxf2 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_008qL",
@@ -10370,7 +10370,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qxd8",
         "coachExplanation": "Opponent plays Qxd8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rd8 is the engine-verified winning move from Lichess #008qL."
+      "successExplanation": "Tactical precision! 1. Rd8 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_009hH",
@@ -10398,7 +10398,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Rxe7",
         "coachExplanation": "Opponent plays Rxe7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nf3 is the engine-verified winning move from Lichess #009hH."
+      "successExplanation": "Tactical precision! 1. Nf3 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_009zR",
@@ -10426,7 +10426,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kh1",
         "coachExplanation": "Opponent plays Kh1! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nf3+ is the engine-verified winning move from Lichess #009zR."
+      "successExplanation": "Tactical precision! 1. Nf3+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00A5m",
@@ -10454,7 +10454,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Bc7",
         "coachExplanation": "Opponent plays Bc7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Bf5 is the engine-verified winning move from Lichess #00A5m."
+      "successExplanation": "Tactical precision! 1. Bf5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00AEM",
@@ -10482,7 +10482,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qxe7",
         "coachExplanation": "Opponent plays Qxe7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Re7 is the engine-verified winning move from Lichess #00AEM."
+      "successExplanation": "Tactical precision! 1. Re7 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00Ac7",
@@ -10510,7 +10510,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Rd8",
         "coachExplanation": "Opponent plays Rd8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! a7 is the engine-verified winning move from Lichess #00Ac7."
+      "successExplanation": "Tactical precision! 1. a7 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00AcQ",
@@ -10538,7 +10538,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kf2",
         "coachExplanation": "Opponent plays Kf2! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rg6+ is the engine-verified winning move from Lichess #00AcQ."
+      "successExplanation": "Tactical precision! 1. Rg6+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00Bg0",
@@ -10561,12 +10561,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "f6",
-        "to": "f5",
-        "san": "Kxf5",
-        "coachExplanation": "Opponent plays Kxf5! Always look for forcing responses before deciding."
+        "from": "d6",
+        "to": "d7",
+        "san": "d7+",
+        "coachExplanation": "Opponent punishes with d7+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rxf5+ is the engine-verified winning move from Lichess #00Bg0."
+      "successExplanation": "Tactical precision! 1. Rxf5+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     }
   ],
   "advanced_3": [
@@ -10596,7 +10596,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "gxf3",
         "coachExplanation": "Opponent plays gxf3! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rxf3 is the engine-verified winning move from Lichess #000h0."
+      "successExplanation": "Tactical precision! 1. Rxf3 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00143",
@@ -10624,7 +10624,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "h6",
         "coachExplanation": "Opponent plays h6! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qh5 is the engine-verified winning move from Lichess #00143."
+      "successExplanation": "Tactical precision! 1. Qh5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_001XA",
@@ -10647,12 +10647,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "c7",
-        "to": "b7",
-        "san": "Qxb7",
-        "coachExplanation": "Opponent plays Qxb7! Always look for forcing responses before deciding."
+        "from": "b7",
+        "to": "g2",
+        "san": "Bxg2",
+        "coachExplanation": "Opponent punishes with Bxg2! This captures the undefended b and wins material. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Rxb7 is the engine-verified winning move from Lichess #001XA."
+      "successExplanation": "Tactical precision! 1. Rxb7 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_001h8",
@@ -10676,11 +10676,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       ],
       "defaultRefutation": {
         "from": "c7",
-        "to": "h7",
-        "san": "Rxh7",
-        "coachExplanation": "Opponent plays Rxh7! Always look for forcing responses before deciding."
+        "to": "c1",
+        "san": "Rxc1+",
+        "coachExplanation": "Opponent punishes with Rxc1+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Qxh7+ is the engine-verified winning move from Lichess #001h8."
+      "successExplanation": "Tactical precision! 1. Qxh7+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_001uD",
@@ -10708,7 +10708,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Nxd2",
         "coachExplanation": "Opponent plays Nxd2! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Nxd2 is the engine-verified winning move from Lichess #001uD."
+      "successExplanation": "Tactical precision! 1. Nxd2 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_001xO",
@@ -10736,7 +10736,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Bxc8",
         "coachExplanation": "Opponent plays Bxc8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! bxc5 is the engine-verified winning move from Lichess #001xO."
+      "successExplanation": "Tactical precision! 1. bxc5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_002KJ",
@@ -10759,12 +10759,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "c7",
-        "to": "e5",
-        "san": "Qxe5",
-        "coachExplanation": "Opponent plays Qxe5! Always look for forcing responses before deciding."
+        "from": "e5",
+        "to": "f3",
+        "san": "Nxf3+",
+        "coachExplanation": "Opponent punishes with Nxf3+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Nxe5 is the engine-verified winning move from Lichess #002KJ."
+      "successExplanation": "Tactical precision! 1. Nxe5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_002Ua",
@@ -10792,7 +10792,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qxf3",
         "coachExplanation": "Opponent plays Qxf3! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qf4 is the engine-verified winning move from Lichess #002Ua."
+      "successExplanation": "Tactical precision! 1. Qf4 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_004BW",
@@ -10816,11 +10816,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       ],
       "defaultRefutation": {
         "from": "g7",
-        "to": "g8",
-        "san": "Qxg8",
-        "coachExplanation": "Opponent plays Qxg8! Always look for forcing responses before deciding."
+        "to": "f8",
+        "san": "Qf8+",
+        "coachExplanation": "Opponent punishes with Qf8+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Ke7 is the engine-verified winning move from Lichess #004BW."
+      "successExplanation": "Tactical precision! 1. Ke7 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_004Ud",
@@ -10848,7 +10848,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Bd7",
         "coachExplanation": "Opponent plays Bd7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Bxb5+ is the engine-verified winning move from Lichess #004Ud."
+      "successExplanation": "Tactical precision! 1. Bxb5+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_0055Y",
@@ -10871,12 +10871,12 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         }
       ],
       "defaultRefutation": {
-        "from": "e5",
-        "to": "e3",
-        "san": "Qxe3+",
-        "coachExplanation": "Opponent plays Qxe3+! Always look for forcing responses before deciding."
+        "from": "e3",
+        "to": "d4",
+        "san": "Bxd4+",
+        "coachExplanation": "Opponent punishes with Bxd4+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! fxe3 is the engine-verified winning move from Lichess #0055Y."
+      "successExplanation": "Tactical precision! 1. fxe3 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_006fF",
@@ -10904,7 +10904,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kc7",
         "coachExplanation": "Opponent plays Kc7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qg4+ is the engine-verified winning move from Lichess #006fF."
+      "successExplanation": "Tactical precision! 1. Qg4+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_006i7",
@@ -10932,7 +10932,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Rxa8",
         "coachExplanation": "Opponent plays Rxa8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qd6 is the engine-verified winning move from Lichess #006i7."
+      "successExplanation": "Tactical precision! 1. Qd6 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_007ku",
@@ -10960,7 +10960,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kf6",
         "coachExplanation": "Opponent plays Kf6! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qh5+ is the engine-verified winning move from Lichess #007ku."
+      "successExplanation": "Tactical precision! 1. Qh5+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_008nF",
@@ -10984,11 +10984,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       ],
       "defaultRefutation": {
         "from": "e5",
-        "to": "e8",
-        "san": "Qxe8+",
-        "coachExplanation": "Opponent plays Qxe8+! Always look for forcing responses before deciding."
+        "to": "e6",
+        "san": "Qe6+",
+        "coachExplanation": "Opponent punishes with Qe6+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Re8 is the engine-verified winning move from Lichess #008nF."
+      "successExplanation": "Tactical precision! 1. Re8 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_009XT",
@@ -11016,7 +11016,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kh1",
         "coachExplanation": "Opponent plays Kh1! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Bxh2+ is the engine-verified winning move from Lichess #009XT."
+      "successExplanation": "Tactical precision! 1. Bxh2+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00A1H",
@@ -11044,7 +11044,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kg2",
         "coachExplanation": "Opponent plays Kg2! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qf4+ is the engine-verified winning move from Lichess #00A1H."
+      "successExplanation": "Tactical precision! 1. Qf4+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00Al5",
@@ -11072,7 +11072,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Bxc8",
         "coachExplanation": "Opponent plays Bxc8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rxc2 is the engine-verified winning move from Lichess #00Al5."
+      "successExplanation": "Tactical precision! 1. Rxc2 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00Ar2",
@@ -11096,11 +11096,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
       ],
       "defaultRefutation": {
         "from": "d5",
-        "to": "f4",
-        "san": "Nxf4",
-        "coachExplanation": "Opponent plays Nxf4! Always look for forcing responses before deciding."
+        "to": "f6",
+        "san": "Nf6+",
+        "coachExplanation": "Opponent punishes with Nf6+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
       },
-      "successExplanation": "Brilliant! Bxf4 is the engine-verified winning move from Lichess #00Ar2."
+      "successExplanation": "Tactical precision! 1. Bxf4 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00B7G",
@@ -11128,7 +11128,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Qxe3",
         "coachExplanation": "Opponent plays Qxe3! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qxe3 is the engine-verified winning move from Lichess #00B7G."
+      "successExplanation": "Tactical precision! 1. Qxe3 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00C3O",
@@ -11156,7 +11156,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "gxf3",
         "coachExplanation": "Opponent plays gxf3! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Bxf3 is the engine-verified winning move from Lichess #00C3O."
+      "successExplanation": "Tactical precision! 1. Bxf3 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00CXr",
@@ -11184,7 +11184,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Nxf3+",
         "coachExplanation": "Opponent plays Nxf3+! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Qd5 is the engine-verified winning move from Lichess #00CXr."
+      "successExplanation": "Tactical precision! 1. Qd5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00D77",
@@ -11212,7 +11212,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kh8",
         "coachExplanation": "Opponent plays Kh8! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Rxg7+ is the engine-verified winning move from Lichess #00D77."
+      "successExplanation": "Tactical precision! 1. Rxg7+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00DII",
@@ -11240,7 +11240,7 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Kf7",
         "coachExplanation": "Opponent plays Kf7! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! Re8+ is the engine-verified winning move from Lichess #00DII."
+      "successExplanation": "Tactical precision! 1. Re8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
     },
     {
       "id": "lichess_00DUp",
@@ -11268,12 +11268,11 @@ export const LICHESS_DIAGNOSTIC_CATEGORIES: Record<string, ChessPuzzle[]> = {
         "san": "Ke4",
         "coachExplanation": "Opponent plays Ke4! Always look for forcing responses before deciding."
       },
-      "successExplanation": "Brilliant! g5 is the engine-verified winning move from Lichess #00DUp."
+      "successExplanation": "Tactical precision! 1. g5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
     }
   ]
 };
 
-// 100 Continuous practice puzzles extracted from Lichess (25 per tier)
 export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
   {
     "id": "lichess_00eAX",
@@ -11301,7 +11300,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Re8",
       "coachExplanation": "Opponent plays Re8! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Rd8+ is the engine-verified winning move from Lichess #00eAX."
+    "successExplanation": "Tactical precision! 1. Rd8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00ghH",
@@ -11324,12 +11323,12 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       }
     ],
     "defaultRefutation": {
-      "from": "e1",
-      "to": "f1",
-      "san": "Rxf1",
-      "coachExplanation": "Opponent plays Rxf1! Always look for forcing responses before deciding."
+      "from": "b6",
+      "to": "e6",
+      "san": "Qxe6",
+      "coachExplanation": "Opponent punishes with Qxe6! This captures the undefended p and wins material. Always calculate forcing checks, captures, and threats before deciding."
     },
-    "successExplanation": "Brilliant! Rf1+ is the engine-verified winning move from Lichess #00ghH."
+    "successExplanation": "Tactical precision! 1. Rf1+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00jOm",
@@ -11357,7 +11356,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Rc1",
       "coachExplanation": "Opponent plays Rc1! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Rb1+ is the engine-verified winning move from Lichess #00jOm."
+    "successExplanation": "Tactical precision! 1. Rb1+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00kQE",
@@ -11385,7 +11384,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Rf8",
       "coachExplanation": "Opponent plays Rf8! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Rd8+ is the engine-verified winning move from Lichess #00kQE."
+    "successExplanation": "Tactical precision! 1. Rd8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00kRi",
@@ -11408,12 +11407,12 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       }
     ],
     "defaultRefutation": {
-      "from": "a4",
-      "to": "c6",
-      "san": "Qxc6+",
-      "coachExplanation": "Opponent plays Qxc6+! Always look for forcing responses before deciding."
+      "from": "c6",
+      "to": "e6",
+      "san": "Rxe6#",
+      "coachExplanation": "Opponent punishes with Rxe6#! This delivers immediate checkmate. Always calculate forcing checks, captures, and threats before deciding."
     },
-    "successExplanation": "Brilliant! Qxc6 is the engine-verified winning move from Lichess #00kRi."
+    "successExplanation": "Tactical precision! 1. Qxc6 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00mvr",
@@ -11441,7 +11440,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Ke6",
       "coachExplanation": "Opponent plays Ke6! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Bg5+ is the engine-verified winning move from Lichess #00mvr."
+    "successExplanation": "Tactical precision! 1. Bg5+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00nS6",
@@ -11464,12 +11463,12 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       }
     ],
     "defaultRefutation": {
-      "from": "a8",
-      "to": "e8",
-      "san": "Rxe8",
-      "coachExplanation": "Opponent plays Rxe8! Always look for forcing responses before deciding."
+      "from": "d5",
+      "to": "g2",
+      "san": "Qxg2+",
+      "coachExplanation": "Opponent punishes with Qxg2+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
     },
-    "successExplanation": "Brilliant! Qxe8+ is the engine-verified winning move from Lichess #00nS6."
+    "successExplanation": "Tactical precision! 1. Qxe8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00nl3",
@@ -11497,7 +11496,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Kb7",
       "coachExplanation": "Opponent plays Kb7! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Rc8+ is the engine-verified winning move from Lichess #00nl3."
+    "successExplanation": "Tactical precision! 1. Rc8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00q8C",
@@ -11525,7 +11524,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Kg1",
       "coachExplanation": "Opponent plays Kg1! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Qh3+ is the engine-verified winning move from Lichess #00q8C."
+    "successExplanation": "Tactical precision! 1. Qh3+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00qqD",
@@ -11553,7 +11552,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Kg8",
       "coachExplanation": "Opponent plays Kg8! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Ng5+ is the engine-verified winning move from Lichess #00qqD."
+    "successExplanation": "Tactical precision! 1. Ng5+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00rcR",
@@ -11581,7 +11580,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Kf1",
       "coachExplanation": "Opponent plays Kf1! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Ne2+ is the engine-verified winning move from Lichess #00rcR."
+    "successExplanation": "Tactical precision! 1. Ne2+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00s8j",
@@ -11609,7 +11608,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Rd1",
       "coachExplanation": "Opponent plays Rd1! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Rc1+ is the engine-verified winning move from Lichess #00s8j."
+    "successExplanation": "Tactical precision! 1. Rc1+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00uEf",
@@ -11637,7 +11636,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Rc8",
       "coachExplanation": "Opponent plays Rc8! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Rb8+ is the engine-verified winning move from Lichess #00uEf."
+    "successExplanation": "Tactical precision! 1. Rb8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00uHj",
@@ -11660,12 +11659,12 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       }
     ],
     "defaultRefutation": {
-      "from": "a8",
-      "to": "e8",
-      "san": "Rxe8",
-      "coachExplanation": "Opponent plays Rxe8! Always look for forcing responses before deciding."
+      "from": "h3",
+      "to": "g4",
+      "san": "Qg4+",
+      "coachExplanation": "Opponent punishes with Qg4+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
     },
-    "successExplanation": "Brilliant! Qe8+ is the engine-verified winning move from Lichess #00uHj."
+    "successExplanation": "Tactical precision! 1. Qe8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00wx5",
@@ -11693,7 +11692,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Re8",
       "coachExplanation": "Opponent plays Re8! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Rd8+ is the engine-verified winning move from Lichess #00wx5."
+    "successExplanation": "Tactical precision! 1. Rd8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00xnu",
@@ -11717,11 +11716,11 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
     ],
     "defaultRefutation": {
       "from": "c6",
-      "to": "a4",
-      "san": "Qxa4+",
-      "coachExplanation": "Opponent plays Qxa4+! Always look for forcing responses before deciding."
+      "to": "b7",
+      "san": "Qb7+",
+      "coachExplanation": "Opponent punishes with Qb7+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
     },
-    "successExplanation": "Brilliant! Qxa4 is the engine-verified winning move from Lichess #00xnu."
+    "successExplanation": "Tactical precision! 1. Qxa4 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00ynd",
@@ -11749,7 +11748,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Kg2",
       "coachExplanation": "Opponent plays Kg2! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Ng4+ is the engine-verified winning move from Lichess #00ynd."
+    "successExplanation": "Tactical precision! 1. Ng4+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00zVd",
@@ -11777,7 +11776,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Re1",
       "coachExplanation": "Opponent plays Re1! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Rd1+ is the engine-verified winning move from Lichess #00zVd."
+    "successExplanation": "Tactical precision! 1. Rd1+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_0109V",
@@ -11805,7 +11804,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Kf8",
       "coachExplanation": "Opponent plays Kf8! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Qxh7+ is the engine-verified winning move from Lichess #0109V."
+    "successExplanation": "Tactical precision! 1. Qxh7+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_011ON",
@@ -11833,7 +11832,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Kd3",
       "coachExplanation": "Opponent plays Kd3! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Nc3+ is the engine-verified winning move from Lichess #011ON."
+    "successExplanation": "Tactical precision! 1. Nc3+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_011Ob",
@@ -11861,7 +11860,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Kf6",
       "coachExplanation": "Opponent plays Kf6! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Ne5+ is the engine-verified winning move from Lichess #011Ob."
+    "successExplanation": "Tactical precision! 1. Ne5+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_01244",
@@ -11884,12 +11883,12 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       }
     ],
     "defaultRefutation": {
-      "from": "h1",
-      "to": "e1",
-      "san": "Rxe1",
-      "coachExplanation": "Opponent plays Rxe1! Always look for forcing responses before deciding."
+      "from": "c4",
+      "to": "f7",
+      "san": "Qxf7+",
+      "coachExplanation": "Opponent punishes with Qxf7+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
     },
-    "successExplanation": "Brilliant! Qe1+ is the engine-verified winning move from Lichess #01244."
+    "successExplanation": "Tactical precision! 1. Qe1+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_012tD",
@@ -11912,12 +11911,12 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       }
     ],
     "defaultRefutation": {
-      "from": "a1",
-      "to": "d1",
-      "san": "Rxd1",
-      "coachExplanation": "Opponent plays Rxd1! Always look for forcing responses before deciding."
+      "from": "b2",
+      "to": "f6",
+      "san": "Qxf6",
+      "coachExplanation": "Opponent punishes with Qxf6! This captures the undefended p and wins material. Always calculate forcing checks, captures, and threats before deciding."
     },
-    "successExplanation": "Brilliant! Rd1+ is the engine-verified winning move from Lichess #012tD."
+    "successExplanation": "Tactical precision! 1. Rd1+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_0135c",
@@ -11945,7 +11944,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Ke1",
       "coachExplanation": "Opponent plays Ke1! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Rxb2+ is the engine-verified winning move from Lichess #0135c."
+    "successExplanation": "Tactical precision! 1. Rxb2+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_01496",
@@ -11973,7 +11972,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Re8",
       "coachExplanation": "Opponent plays Re8! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Rh8+ is the engine-verified winning move from Lichess #01496."
+    "successExplanation": "Tactical precision! 1. Rh8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00L84",
@@ -12001,7 +12000,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Kg2",
       "coachExplanation": "Opponent plays Kg2! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Rc1+ is the engine-verified winning move from Lichess #00L84."
+    "successExplanation": "Tactical precision! 1. Rc1+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00LNB",
@@ -12024,12 +12023,12 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       }
     ],
     "defaultRefutation": {
-      "from": "b7",
-      "to": "a6",
-      "san": "bxa6",
-      "coachExplanation": "Opponent plays bxa6! Always look for forcing responses before deciding."
+      "from": "d3",
+      "to": "d1",
+      "san": "Rd1+",
+      "coachExplanation": "Opponent punishes with Rd1+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
     },
-    "successExplanation": "Brilliant! Rxa6+ is the engine-verified winning move from Lichess #00LNB."
+    "successExplanation": "Tactical precision! 1. Rxa6+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00M92",
@@ -12052,12 +12051,12 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       }
     ],
     "defaultRefutation": {
-      "from": "h7",
-      "to": "g6",
-      "san": "hxg6",
-      "coachExplanation": "Opponent plays hxg6! Always look for forcing responses before deciding."
+      "from": "e7",
+      "to": "e5",
+      "san": "Rxe5",
+      "coachExplanation": "Opponent punishes with Rxe5! This captures the undefended r and wins material. Always calculate forcing checks, captures, and threats before deciding."
     },
-    "successExplanation": "Brilliant! Ng6+ is the engine-verified winning move from Lichess #00M92."
+    "successExplanation": "Tactical precision! 1. Ng6+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00MGA",
@@ -12085,7 +12084,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Kf1",
       "coachExplanation": "Opponent plays Kf1! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Qh2+ is the engine-verified winning move from Lichess #00MGA."
+    "successExplanation": "Tactical precision! 1. Qh2+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00MWz",
@@ -12113,7 +12112,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Ne2",
       "coachExplanation": "Opponent plays Ne2! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! g5 is the engine-verified winning move from Lichess #00MWz."
+    "successExplanation": "Tactical precision! 1. g5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00Mgf",
@@ -12141,7 +12140,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Kh7",
       "coachExplanation": "Opponent plays Kh7! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! h5+ is the engine-verified winning move from Lichess #00Mgf."
+    "successExplanation": "Tactical precision! 1. h5+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00Nej",
@@ -12169,7 +12168,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Kh7",
       "coachExplanation": "Opponent plays Kh7! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Rd8+ is the engine-verified winning move from Lichess #00Nej."
+    "successExplanation": "Tactical precision! 1. Rd8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00O3h",
@@ -12197,7 +12196,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Ne4+",
       "coachExplanation": "Opponent plays Ne4+! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Kg5 is the engine-verified winning move from Lichess #00O3h."
+    "successExplanation": "Tactical precision! 1. Kg5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00OCQ",
@@ -12220,12 +12219,12 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       }
     ],
     "defaultRefutation": {
-      "from": "b2",
-      "to": "c3",
-      "san": "bxc3",
-      "coachExplanation": "Opponent plays bxc3! Always look for forcing responses before deciding."
+      "from": "h6",
+      "to": "g7",
+      "san": "Qg7+",
+      "coachExplanation": "Opponent punishes with Qg7+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
     },
-    "successExplanation": "Brilliant! Rxc3+ is the engine-verified winning move from Lichess #00OCQ."
+    "successExplanation": "Tactical precision! 1. Rxc3+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00OOp",
@@ -12253,7 +12252,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Rg3",
       "coachExplanation": "Opponent plays Rg3! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Qxg4+ is the engine-verified winning move from Lichess #00OOp."
+    "successExplanation": "Tactical precision! 1. Qxg4+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00Oqz",
@@ -12281,7 +12280,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Rxf6",
       "coachExplanation": "Opponent plays Rxf6! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Rxf6 is the engine-verified winning move from Lichess #00Oqz."
+    "successExplanation": "Tactical precision! 1. Rxf6 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00OxK",
@@ -12309,7 +12308,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Rxe4",
       "coachExplanation": "Opponent plays Rxe4! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Ne5 is the engine-verified winning move from Lichess #00OxK."
+    "successExplanation": "Tactical precision! 1. Ne5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00PGi",
@@ -12337,7 +12336,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Qxf7",
       "coachExplanation": "Opponent plays Qxf7! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Nf7+ is the engine-verified winning move from Lichess #00PGi."
+    "successExplanation": "Tactical precision! 1. Nf7+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00PZo",
@@ -12365,7 +12364,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Kf3",
       "coachExplanation": "Opponent plays Kf3! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Re8+ is the engine-verified winning move from Lichess #00PZo."
+    "successExplanation": "Tactical precision! 1. Re8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00Pc8",
@@ -12388,12 +12387,12 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       }
     ],
     "defaultRefutation": {
-      "from": "c8",
-      "to": "d7",
-      "san": "Bxd7",
-      "coachExplanation": "Opponent plays Bxd7! Always look for forcing responses before deciding."
+      "from": "f8",
+      "to": "f7",
+      "san": "Rxf7",
+      "coachExplanation": "Opponent punishes with Rxf7! This captures the undefended n and wins material. Always calculate forcing checks, captures, and threats before deciding."
     },
-    "successExplanation": "Brilliant! Nxd7 is the engine-verified winning move from Lichess #00Pc8."
+    "successExplanation": "Tactical precision! 1. Nxd7 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00PrK",
@@ -12421,7 +12420,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Kd5",
       "coachExplanation": "Opponent plays Kd5! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Rh6+ is the engine-verified winning move from Lichess #00PrK."
+    "successExplanation": "Tactical precision! 1. Rh6+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00Q4m",
@@ -12449,7 +12448,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Qxf3",
       "coachExplanation": "Opponent plays Qxf3! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Nf3+ is the engine-verified winning move from Lichess #00Q4m."
+    "successExplanation": "Tactical precision! 1. Nf3+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00QCD",
@@ -12477,7 +12476,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Bxd4",
       "coachExplanation": "Opponent plays Bxd4! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Bxb7 is the engine-verified winning move from Lichess #00QCD."
+    "successExplanation": "Tactical precision! 1. Bxb7 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00R2A",
@@ -12505,7 +12504,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Kd3",
       "coachExplanation": "Opponent plays Kd3! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Bb4+ is the engine-verified winning move from Lichess #00R2A."
+    "successExplanation": "Tactical precision! 1. Bb4+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00RYH",
@@ -12528,12 +12527,12 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       }
     ],
     "defaultRefutation": {
-      "from": "h8",
-      "to": "e8",
-      "san": "Rxe8",
-      "coachExplanation": "Opponent plays Rxe8! Always look for forcing responses before deciding."
+      "from": "a6",
+      "to": "a1",
+      "san": "Ra1#",
+      "coachExplanation": "Opponent punishes with Ra1#! This delivers immediate checkmate. Always calculate forcing checks, captures, and threats before deciding."
     },
-    "successExplanation": "Brilliant! Re8+ is the engine-verified winning move from Lichess #00RYH."
+    "successExplanation": "Tactical precision! 1. Re8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00Rcs",
@@ -12561,7 +12560,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Kf4",
       "coachExplanation": "Opponent plays Kf4! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Ng3+ is the engine-verified winning move from Lichess #00Rcs."
+    "successExplanation": "Tactical precision! 1. Ng3+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00RiT",
@@ -12589,7 +12588,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Rxe5",
       "coachExplanation": "Opponent plays Rxe5! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! g4 is the engine-verified winning move from Lichess #00RiT."
+    "successExplanation": "Tactical precision! 1. g4 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00Rk3",
@@ -12617,7 +12616,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Qe1",
       "coachExplanation": "Opponent plays Qe1! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Qa1+ is the engine-verified winning move from Lichess #00Rk3."
+    "successExplanation": "Tactical precision! 1. Qa1+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00Ru6",
@@ -12641,11 +12640,11 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
     ],
     "defaultRefutation": {
       "from": "d8",
-      "to": "f8",
-      "san": "Rxf8",
-      "coachExplanation": "Opponent plays Rxf8! Always look for forcing responses before deciding."
+      "to": "e8",
+      "san": "Rde8+",
+      "coachExplanation": "Opponent punishes with Rde8+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
     },
-    "successExplanation": "Brilliant! Qxf8+ is the engine-verified winning move from Lichess #00Ru6."
+    "successExplanation": "Tactical precision! 1. Qxf8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00SIE",
@@ -12673,7 +12672,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Kd7",
       "coachExplanation": "Opponent plays Kd7! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Qxb7+ is the engine-verified winning move from Lichess #00SIE."
+    "successExplanation": "Tactical precision! 1. Qxb7+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00KO5",
@@ -12701,7 +12700,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Qc2+",
       "coachExplanation": "Opponent plays Qc2+! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Rh1 is the engine-verified winning move from Lichess #00KO5."
+    "successExplanation": "Tactical precision! 1. Rh1 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00KSB",
@@ -12729,7 +12728,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Nd7",
       "coachExplanation": "Opponent plays Nd7! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! f4 is the engine-verified winning move from Lichess #00KSB."
+    "successExplanation": "Tactical precision! 1. f4 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00KYU",
@@ -12757,7 +12756,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Ke8",
       "coachExplanation": "Opponent plays Ke8! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Qd6+ is the engine-verified winning move from Lichess #00KYU."
+    "successExplanation": "Tactical precision! 1. Qd6+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00L4x",
@@ -12782,11 +12781,11 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
     ],
     "defaultRefutation": {
       "from": "b8",
-      "to": "e8",
-      "san": "Rxe8",
-      "coachExplanation": "Opponent plays Rxe8! Always look for forcing responses before deciding."
+      "to": "b1",
+      "san": "Rb1+",
+      "coachExplanation": "Opponent punishes with Rb1+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
     },
-    "successExplanation": "Brilliant! e8=Q+ is the engine-verified winning move from Lichess #00L4x."
+    "successExplanation": "Tactical precision! 1. e8=Q+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00LH7",
@@ -12814,7 +12813,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Qxf4+",
       "coachExplanation": "Opponent plays Qxf4+! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Rxe4 is the engine-verified winning move from Lichess #00LH7."
+    "successExplanation": "Tactical precision! 1. Rxe4 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00LOy",
@@ -12842,7 +12841,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Ra1",
       "coachExplanation": "Opponent plays Ra1! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! b4 is the engine-verified winning move from Lichess #00LOy."
+    "successExplanation": "Tactical precision! 1. b4 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00LUV",
@@ -12870,7 +12869,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Qxg2+",
       "coachExplanation": "Opponent plays Qxg2+! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Qg6 is the engine-verified winning move from Lichess #00LUV."
+    "successExplanation": "Tactical precision! 1. Qg6 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00MFe",
@@ -12898,7 +12897,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Qf8",
       "coachExplanation": "Opponent plays Qf8! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Qe8+ is the engine-verified winning move from Lichess #00MFe."
+    "successExplanation": "Tactical precision! 1. Qe8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00MIY",
@@ -12926,7 +12925,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Qd1",
       "coachExplanation": "Opponent plays Qd1! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Qc1+ is the engine-verified winning move from Lichess #00MIY."
+    "successExplanation": "Tactical precision! 1. Qc1+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00MeO",
@@ -12954,7 +12953,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Kd7",
       "coachExplanation": "Opponent plays Kd7! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Nd6+ is the engine-verified winning move from Lichess #00MeO."
+    "successExplanation": "Tactical precision! 1. Nd6+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00NUS",
@@ -12982,7 +12981,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Ka3",
       "coachExplanation": "Opponent plays Ka3! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Qc2+ is the engine-verified winning move from Lichess #00NUS."
+    "successExplanation": "Tactical precision! 1. Qc2+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00NUc",
@@ -13005,12 +13004,12 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       }
     ],
     "defaultRefutation": {
-      "from": "g2",
-      "to": "h3",
-      "san": "gxh3",
-      "coachExplanation": "Opponent plays gxh3! Always look for forcing responses before deciding."
+      "from": "c7",
+      "to": "c8",
+      "san": "c8=R+",
+      "coachExplanation": "Opponent punishes with c8=R+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
     },
-    "successExplanation": "Brilliant! Rxh3+ is the engine-verified winning move from Lichess #00NUc."
+    "successExplanation": "Tactical precision! 1. Rxh3+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00O37",
@@ -13033,12 +13032,12 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       }
     ],
     "defaultRefutation": {
-      "from": "b7",
-      "to": "a6",
-      "san": "bxa6",
-      "coachExplanation": "Opponent plays bxa6! Always look for forcing responses before deciding."
+      "from": "d5",
+      "to": "e4",
+      "san": "dxe4",
+      "coachExplanation": "Opponent punishes with dxe4! This captures the undefended p and wins material. Always calculate forcing checks, captures, and threats before deciding."
     },
-    "successExplanation": "Brilliant! Bxa6 is the engine-verified winning move from Lichess #00O37."
+    "successExplanation": "Tactical precision! 1. Bxa6 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00O8m",
@@ -13066,7 +13065,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Qe5",
       "coachExplanation": "Opponent plays Qe5! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! d5 is the engine-verified winning move from Lichess #00O8m."
+    "successExplanation": "Tactical precision! 1. d5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00Oim",
@@ -13089,12 +13088,12 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       }
     ],
     "defaultRefutation": {
-      "from": "f2",
-      "to": "e3",
-      "san": "fxe3",
-      "coachExplanation": "Opponent plays fxe3! Always look for forcing responses before deciding."
+      "from": "d5",
+      "to": "d6",
+      "san": "d6+",
+      "coachExplanation": "Opponent punishes with d6+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
     },
-    "successExplanation": "Brilliant! Qxe3 is the engine-verified winning move from Lichess #00Oim."
+    "successExplanation": "Tactical precision! 1. Qxe3 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00P6j",
@@ -13122,7 +13121,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Rf8",
       "coachExplanation": "Opponent plays Rf8! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Qe8+ is the engine-verified winning move from Lichess #00P6j."
+    "successExplanation": "Tactical precision! 1. Qe8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00PF3",
@@ -13150,7 +13149,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Nxd6+",
       "coachExplanation": "Opponent plays Nxd6+! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Ng4 is the engine-verified winning move from Lichess #00PF3."
+    "successExplanation": "Tactical precision! 1. Ng4 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00PHg",
@@ -13178,7 +13177,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Kxf4",
       "coachExplanation": "Opponent plays Kxf4! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Re8+ is the engine-verified winning move from Lichess #00PHg."
+    "successExplanation": "Tactical precision! 1. Re8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00PUc",
@@ -13201,12 +13200,12 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       }
     ],
     "defaultRefutation": {
-      "from": "d1",
-      "to": "d6",
-      "san": "Rxd6",
-      "coachExplanation": "Opponent plays Rxd6! Always look for forcing responses before deciding."
+      "from": "d6",
+      "to": "c7",
+      "san": "Bc7",
+      "coachExplanation": "Opponent punishes with Bc7! This activates pieces and consolidates the position. Always calculate forcing checks, captures, and threats before deciding."
     },
-    "successExplanation": "Brilliant! Rxd6 is the engine-verified winning move from Lichess #00PUc."
+    "successExplanation": "Tactical precision! 1. Rxd6 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00QCe",
@@ -13234,7 +13233,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Kb7",
       "coachExplanation": "Opponent plays Kb7! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Na6+ is the engine-verified winning move from Lichess #00QCe."
+    "successExplanation": "Tactical precision! 1. Na6+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00QVZ",
@@ -13262,7 +13261,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "h6",
       "coachExplanation": "Opponent plays h6! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Kf5 is the engine-verified winning move from Lichess #00QVZ."
+    "successExplanation": "Tactical precision! 1. Kf5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00QZ3",
@@ -13290,7 +13289,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Ke8",
       "coachExplanation": "Opponent plays Ke8! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Qf3+ is the engine-verified winning move from Lichess #00QZ3."
+    "successExplanation": "Tactical precision! 1. Qf3+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00QnO",
@@ -13318,7 +13317,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Kg1",
       "coachExplanation": "Opponent plays Kg1! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Qe4+ is the engine-verified winning move from Lichess #00QnO."
+    "successExplanation": "Tactical precision! 1. Qe4+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00R0l",
@@ -13346,7 +13345,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Bxh6",
       "coachExplanation": "Opponent plays Bxh6! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Bxh6 is the engine-verified winning move from Lichess #00R0l."
+    "successExplanation": "Tactical precision! 1. Bxh6 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00R4l",
@@ -13369,12 +13368,12 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       }
     ],
     "defaultRefutation": {
-      "from": "a1",
-      "to": "a7",
-      "san": "Rxa7",
-      "coachExplanation": "Opponent plays Rxa7! Always look for forcing responses before deciding."
+      "from": "a7",
+      "to": "f7",
+      "san": "Rxf7+",
+      "coachExplanation": "Opponent punishes with Rxf7+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
     },
-    "successExplanation": "Brilliant! Rxa7 is the engine-verified winning move from Lichess #00R4l."
+    "successExplanation": "Tactical precision! 1. Rxa7 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00DdW",
@@ -13402,7 +13401,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Qb3",
       "coachExplanation": "Opponent plays Qb3! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Rb1 is the engine-verified winning move from Lichess #00DdW."
+    "successExplanation": "Tactical precision! 1. Rb1 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00EDN",
@@ -13430,7 +13429,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Qxa6",
       "coachExplanation": "Opponent plays Qxa6! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Ba6 is the engine-verified winning move from Lichess #00EDN."
+    "successExplanation": "Tactical precision! 1. Ba6 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00EEp",
@@ -13454,11 +13453,11 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
     ],
     "defaultRefutation": {
       "from": "g8",
-      "to": "f8",
-      "san": "Qxf8",
-      "coachExplanation": "Opponent plays Qxf8! Always look for forcing responses before deciding."
+      "to": "g5",
+      "san": "Qg5+",
+      "coachExplanation": "Opponent punishes with Qg5+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
     },
-    "successExplanation": "Brilliant! Qf8+ is the engine-verified winning move from Lichess #00EEp."
+    "successExplanation": "Tactical precision! 1. Qf8+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00EgR",
@@ -13486,7 +13485,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Rxd7+",
       "coachExplanation": "Opponent plays Rxd7+! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Bxh1 is the engine-verified winning move from Lichess #00EgR."
+    "successExplanation": "Tactical precision! 1. Bxh1 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00Ezc",
@@ -13514,7 +13513,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "fxe4",
       "coachExplanation": "Opponent plays fxe4! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Nxe4 is the engine-verified winning move from Lichess #00Ezc."
+    "successExplanation": "Tactical precision! 1. Nxe4 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00F5e",
@@ -13542,7 +13541,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Qxd6",
       "coachExplanation": "Opponent plays Qxd6! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Bd6 is the engine-verified winning move from Lichess #00F5e."
+    "successExplanation": "Tactical precision! 1. Bd6 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00FF5",
@@ -13570,7 +13569,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Ke7",
       "coachExplanation": "Opponent plays Ke7! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Bxf7+ is the engine-verified winning move from Lichess #00FF5."
+    "successExplanation": "Tactical precision! 1. Bxf7+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00FND",
@@ -13598,7 +13597,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "h4",
       "coachExplanation": "Opponent plays h4! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Ke3 is the engine-verified winning move from Lichess #00FND."
+    "successExplanation": "Tactical precision! 1. Ke3 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00FPo",
@@ -13626,7 +13625,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "h2",
       "coachExplanation": "Opponent plays h2! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! a6 is the engine-verified winning move from Lichess #00FPo."
+    "successExplanation": "Tactical precision! 1. a6 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00G1l",
@@ -13654,7 +13653,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Rg1+",
       "coachExplanation": "Opponent plays Rg1+! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Kg5 is the engine-verified winning move from Lichess #00G1l."
+    "successExplanation": "Tactical precision! 1. Kg5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00GWg",
@@ -13682,7 +13681,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Rxc6",
       "coachExplanation": "Opponent plays Rxc6! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Rxb7 is the engine-verified winning move from Lichess #00GWg."
+    "successExplanation": "Tactical precision! 1. Rxb7 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00HGG",
@@ -13710,7 +13709,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Kg4",
       "coachExplanation": "Opponent plays Kg4! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! fxg5 is the engine-verified winning move from Lichess #00HGG."
+    "successExplanation": "Tactical precision! 1. fxg5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00HqY",
@@ -13738,7 +13737,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Kg5",
       "coachExplanation": "Opponent plays Kg5! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Kg2 is the engine-verified winning move from Lichess #00HqY."
+    "successExplanation": "Tactical precision! 1. Kg2 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00Huv",
@@ -13766,7 +13765,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Kg8",
       "coachExplanation": "Opponent plays Kg8! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Rxh6+ is the engine-verified winning move from Lichess #00Huv."
+    "successExplanation": "Tactical precision! 1. Rxh6+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00IDw",
@@ -13794,7 +13793,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Rc1",
       "coachExplanation": "Opponent plays Rc1! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Bh3 is the engine-verified winning move from Lichess #00IDw."
+    "successExplanation": "Tactical precision! 1. Bh3 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00IFk",
@@ -13822,7 +13821,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Kb6",
       "coachExplanation": "Opponent plays Kb6! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Bf4+ is the engine-verified winning move from Lichess #00IFk."
+    "successExplanation": "Tactical precision! 1. Bf4+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00IHi",
@@ -13845,12 +13844,12 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       }
     ],
     "defaultRefutation": {
-      "from": "f2",
-      "to": "e1",
-      "san": "Kxe1",
-      "coachExplanation": "Opponent plays Kxe1! Always look for forcing responses before deciding."
+      "from": "e1",
+      "to": "e7",
+      "san": "Re7+",
+      "coachExplanation": "Opponent punishes with Re7+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
     },
-    "successExplanation": "Brilliant! Rxe1 is the engine-verified winning move from Lichess #00IHi."
+    "successExplanation": "Tactical precision! 1. Rxe1 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00IMS",
@@ -13873,12 +13872,12 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       }
     ],
     "defaultRefutation": {
-      "from": "d3",
-      "to": "f5",
-      "san": "Bxf5",
-      "coachExplanation": "Opponent plays Bxf5! Always look for forcing responses before deciding."
+      "from": "g7",
+      "to": "g6",
+      "san": "Qxg6+",
+      "coachExplanation": "Opponent punishes with Qxg6+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
     },
-    "successExplanation": "Brilliant! exf5 is the engine-verified winning move from Lichess #00IMS."
+    "successExplanation": "Tactical precision! 1. exf5 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00IUW",
@@ -13901,12 +13900,12 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       }
     ],
     "defaultRefutation": {
-      "from": "h2",
-      "to": "g3",
-      "san": "hxg3",
-      "coachExplanation": "Opponent plays hxg3! Always look for forcing responses before deciding."
+      "from": "e3",
+      "to": "h6",
+      "san": "Qh6+",
+      "coachExplanation": "Opponent punishes with Qh6+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
     },
-    "successExplanation": "Brilliant! Qxg3+ is the engine-verified winning move from Lichess #00IUW."
+    "successExplanation": "Tactical precision! 1. Qxg3+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00IYg",
@@ -13934,7 +13933,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Kh6",
       "coachExplanation": "Opponent plays Kh6! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! h5+ is the engine-verified winning move from Lichess #00IYg."
+    "successExplanation": "Tactical precision! 1. h5+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00IiM",
@@ -13957,12 +13956,12 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       }
     ],
     "defaultRefutation": {
-      "from": "g1",
-      "to": "g7",
-      "san": "Rxg7+",
-      "coachExplanation": "Opponent plays Rxg7+! Always look for forcing responses before deciding."
+      "from": "f3",
+      "to": "d5",
+      "san": "Qxd5+",
+      "coachExplanation": "Opponent punishes with Qxd5+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
     },
-    "successExplanation": "Brilliant! gxf3 is the engine-verified winning move from Lichess #00IiM."
+    "successExplanation": "Tactical precision! 1. gxf3 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00J5r",
@@ -13985,12 +13984,12 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       }
     ],
     "defaultRefutation": {
-      "from": "e3",
-      "to": "h6",
-      "san": "Qxh6",
-      "coachExplanation": "Opponent plays Qxh6! Always look for forcing responses before deciding."
+      "from": "h6",
+      "to": "h8",
+      "san": "Rh8+",
+      "coachExplanation": "Opponent punishes with Rh8+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
     },
-    "successExplanation": "Brilliant! gxh6 is the engine-verified winning move from Lichess #00J5r."
+    "successExplanation": "Tactical precision! 1. gxh6 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00JYV",
@@ -14018,7 +14017,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Nxc3",
       "coachExplanation": "Opponent plays Nxc3! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Nxg6 is the engine-verified winning move from Lichess #00JYV."
+    "successExplanation": "Tactical precision! 1. Nxg6 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00JZk",
@@ -14042,11 +14041,11 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
     ],
     "defaultRefutation": {
       "from": "f7",
-      "to": "f1",
-      "san": "Qxf1+",
-      "coachExplanation": "Opponent plays Qxf1+! Always look for forcing responses before deciding."
+      "to": "f2",
+      "san": "Qf2+",
+      "coachExplanation": "Opponent punishes with Qf2+! This gives a disruptive check and seizes the initiative. Always calculate forcing checks, captures, and threats before deciding."
     },
-    "successExplanation": "Brilliant! Rf1 is the engine-verified winning move from Lichess #00JZk."
+    "successExplanation": "Tactical precision! 1. Rf1 delivers a forcing continuation that wins material and dismantles opponent counterplay."
   },
   {
     "id": "lichess_00JqT",
@@ -14074,7 +14073,7 @@ export const CONTINUOUS_PUZZLES: ChessPuzzle[] = [
       "san": "Rf1",
       "coachExplanation": "Opponent plays Rf1! Always look for forcing responses before deciding."
     },
-    "successExplanation": "Brilliant! Qb1+ is the engine-verified winning move from Lichess #00JqT."
+    "successExplanation": "Tactical precision! 1. Qb1+ delivers a forcing continuation that wins material and dismantles opponent counterplay."
   }
 ];
 
@@ -14094,49 +14093,3 @@ export const DIAGNOSTIC_PUZZLES: Record<string, ChessPuzzle> = {
   "intermediate_3a": LICHESS_DIAGNOSTIC_CATEGORIES["intermediate_2"][0],
   "advanced_4a": LICHESS_DIAGNOSTIC_CATEGORIES["advanced_3"][0],
 };
-
-/**
- * Curates 5 fresh Lichess puzzles based on the user's level and EXACT combination of answers.
- * With 25 puzzles per category and 4-question combinatorial offset, different answer combinations
- * yield completely distinct 5-puzzle sets.
- */
-export function getCuratedDiagnosisPlaylist(
-  calibratedRating: number,
-  answersOrLeak: number[] | number,
-  strategyIndex: number = 0
-): ChessPuzzle[] {
-  let tierKey = "beginner";
-  if (calibratedRating < 750) {
-    tierKey = "beginner";
-  } else if (calibratedRating < 1150) {
-    tierKey = "adv_beginner";
-  } else if (calibratedRating < 1550) {
-    tierKey = "intermediate";
-  } else {
-    tierKey = "advanced";
-  }
-
-  let leakIndex = 0;
-  let q0 = 0;
-  let q2 = 0;
-  let q3 = 0;
-
-  if (Array.isArray(answersOrLeak)) {
-    q0 = Math.min(Math.max(answersOrLeak[0] ?? 0, 0), 3);
-    leakIndex = Math.min(Math.max(answersOrLeak[1] ?? 0, 0), 3);
-    q2 = Math.min(Math.max(answersOrLeak[2] ?? 0, 0), 3);
-    q3 = Math.min(Math.max(answersOrLeak[3] ?? 0, 0), 3);
-  } else {
-    leakIndex = Math.min(Math.max(answersOrLeak, 0), 3);
-    q2 = Math.min(Math.max(strategyIndex, 0), 3);
-  }
-
-  const categoryKey = `${tierKey}_${leakIndex}`;
-  const pool = LICHESS_DIAGNOSTIC_CATEGORIES[categoryKey] || LICHESS_DIAGNOSTIC_CATEGORIES["beginner_0"];
-
-  // Compute combinatorial start offset (0 to 20) so changing any question yields a different slice
-  const maxStart = Math.max(pool.length - 5, 1);
-  const offset = (q0 * 5 + q2 * 2 + q3) % maxStart;
-
-  return pool.slice(offset, offset + 5);
-}

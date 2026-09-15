@@ -177,8 +177,8 @@ export const HISTORICAL_BENCHMARKS_STAGE_2: (ChessPuzzle & { numericRating: numb
       { from: "d1", to: "d5", san: "Qd5", explanation: "Qd5! Threatens mate on f7 and attacks the loose knight on e4." }
     ],
     defaultRefutation: {
-      from: "e4", to: "f6", san: "Nf6",
-      coachExplanation: "Black parries the mate, but White takes the knight on e4, winning material."
+      from: "d1", to: "e2", san: "Qe2",
+      coachExplanation: "1. Qe2 pins the knight, but misses the devastating 1. Qd5! which threatens mate on f7 and simultaneously attacks the loose e4 knight."
     },
     successExplanation: "Sharp eye! 1. Qd5 creates an inescapable dual threat: checkmate on f7 and the capture of the e4 knight."
   },
@@ -309,19 +309,19 @@ export const BENCHMARK_PUZZLE_POOL: (ChessPuzzle & { numericRating: number })[] 
     title: "Mating Net: Smothered Geometry",
     ratingBadge: "Benchmark ~1280",
     numericRating: 1280,
-    initialFen: "6k1/5Npp/8/8/8/8/8/1Q4K1 w - - 0 1",
+    initialFen: "6k1/5Npp/8/8/2B5/8/8/1Q4K1 w - - 0 1",
     playerColor: "white",
-    prompt: "White to move: Coordinate queen and knight to deliver an inescapable finish.",
+    prompt: "White to move: Coordinate queen, bishop, and knight to deliver an inescapable checkmate.",
     ruleTitle: "The Smothered Net Rule",
-    ruleBody: "When a king is surrounded by its own pieces, a knight check can be immediately fatal.",
+    ruleBody: "When a king is restricted by its own pieces and attacking minor pieces, back-rank queen infiltration can be instantly fatal.",
     solutionMoves: [
-      { from: "b1", to: "b8", san: "Qb8+", explanation: "Qb8#! King is trapped behind its own pawns." }
+      { from: "b1", to: "b8", san: "Qb8#", explanation: "Qb8#! King is trapped behind its own pawns with the f7-knight guarded by the bishop." }
     ],
     defaultRefutation: {
       from: "f7", to: "h6", san: "Nh6+",
-      coachExplanation: "Nh6+ gives Black a chance to move Kf8 or Kh8 without decisive consequence."
+      coachExplanation: "Nh6+ misses the immediate forced mate, allowing Black's king to flee to safety."
     },
-    successExplanation: "Decisive calculation! 1. Qb8# exploits the cornered king for an immediate victory."
+    successExplanation: "Decisive calculation! 1. Qb8# exploits the cornered king for an immediate checkmate."
   },
 
   // 6. Greek Gift Sacrifice (~1520 FIDE)
@@ -376,35 +376,7 @@ export const BENCHMARK_PUZZLE_POOL: (ChessPuzzle & { numericRating: number })[] 
     successExplanation: "Clean technique! 1. Rxb7 establishes an active rook on the 7th rank with a decisive advantage."
   },
 
-  // 8. Noah's Ark Trapped Bishop (~1120 FIDE)
-  {
-    id: "bench_noah_ark_trap",
-    lichessId: "noah_1120",
-    tier: "adv_beginner",
-    track: "tactical",
-    title: "Tactical Benchmark: Trapping the Piece",
-    ratingBadge: "Benchmark ~1120",
-    numericRating: 1120,
-    initialFen: "r1bqkb1r/1ppp1ppp/p1n5/4p3/B3P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 1 5",
-    playerColor: "black",
-    prompt: "Black to move: Push White's Spanish bishop into a restricted square.",
-    ruleTitle: "The Piece Mobility Rule",
-    ruleBody: "A piece without retreating squares is vulnerable to pawn chains.",
-    solutionMoves: [
-      { from: "b7", to: "b5", san: "b5", explanation: "b5! Kicks White's bishop to b3." },
-      { from: "c6", to: "a5", san: "Na5", explanation: "Na5! Traps the light-squared bishop." }
-    ],
-    opponentResponses: [
-      { from: "a4", to: "b3", san: "Bb3", explanation: "Bishop retreats to b3." }
-    ],
-    defaultRefutation: {
-      from: "d7", to: "d6", san: "d6",
-      coachExplanation: "Passive move allows White to castle comfortably without threat."
-    },
-    successExplanation: "High-level opening vision! 1... b5 2. Bb3 Na5 corners White's prized Spanish bishop."
-  },
-
-  // 9. Absolute Rank Skewer (~1620 FIDE)
+  // 8. Absolute Rank Skewer (~1620 FIDE)
   {
     id: "bench_rank_skewer",
     lichessId: "skewer_1620",
