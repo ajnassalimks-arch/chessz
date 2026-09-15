@@ -25,7 +25,12 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  const destinationUrl = new URL(returnUrl, baseUrl);
+  // Ensure returnUrl is strictly a relative path on this origin
+  let safeReturnUrl = '/';
+  if (returnUrl && returnUrl.startsWith('/') && !returnUrl.startsWith('//')) {
+    safeReturnUrl = returnUrl;
+  }
+  const destinationUrl = new URL(safeReturnUrl, baseUrl);
 
   if (errorParam) {
     destinationUrl.searchParams.set('auth_error', errorParam);

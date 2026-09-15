@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
           const response = NextResponse.json({ authenticated: true, user: freshUser });
           response.cookies.set('chessz_lichess_user', JSON.stringify(freshUser), {
             httpOnly: false,
+            secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
             path: '/',
             maxAge: 60 * 60 * 24 * 365,

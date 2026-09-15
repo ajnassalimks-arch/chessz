@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
 
     const headers: Record<string, string> = {
       Accept: 'application/x-ndjson',
+      'User-Agent': 'ChessZ-App/1.0 (contact: chesszapp@vercel.app)',
     };
 
     if (token) {
@@ -30,7 +31,10 @@ export async function GET(request: NextRequest) {
     if (!username && token) {
       try {
         const accRes = await fetch(`${LICHESS_HOST}/api/account`, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'User-Agent': 'ChessZ-App/1.0 (contact: chesszapp@vercel.app)',
+          },
           cache: 'no-store',
         });
         if (accRes.ok) {

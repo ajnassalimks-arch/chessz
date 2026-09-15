@@ -56,6 +56,7 @@ export interface LichessSession {
 
 export const LICHESS_CLIENT_ID = 'chesszapp';
 export const LICHESS_HOST = 'https://lichess.org';
+export const LICHESS_USER_AGENT = 'ChessZ-App/1.0 (contact: chesszapp@vercel.app)';
 
 /**
  * Base64-URL encode a buffer per RFC 7636
@@ -103,6 +104,7 @@ export async function exchangeLichessToken(
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
+      'User-Agent': LICHESS_USER_AGENT,
     },
     body: params.toString(),
   });
@@ -118,6 +120,7 @@ export async function fetchLichessAccount(accessToken: string): Promise<LichessU
     const response = await fetch(`${LICHESS_HOST}/api/account`, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
+        'User-Agent': LICHESS_USER_AGENT,
       },
       cache: 'no-store',
     });
@@ -142,6 +145,7 @@ export async function fetchLichessPublicUser(username: string): Promise<LichessU
     const response = await fetch(`${LICHESS_HOST}/api/user/${encodeURIComponent(username.trim())}`, {
       headers: {
         Accept: 'application/json',
+        'User-Agent': LICHESS_USER_AGENT,
       },
       cache: 'no-store',
     });
@@ -150,7 +154,8 @@ export async function fetchLichessPublicUser(username: string): Promise<LichessU
       return null;
     }
 
-    return await response.json();
+    const data: LichessUser = await response.json();
+    return data;
   } catch (err) {
     console.error('Error fetching public Lichess user:', err);
     return null;
@@ -166,6 +171,7 @@ export async function revokeLichessToken(accessToken: string): Promise<boolean> 
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${accessToken}`,
+        'User-Agent': LICHESS_USER_AGENT,
       },
     });
     return response.ok;
