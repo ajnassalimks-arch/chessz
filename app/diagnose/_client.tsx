@@ -54,11 +54,13 @@ import {
   Activity,
   Clock,
   Brain,
+  Share2,
 } from "lucide-react";
 import { track } from "@vercel/analytics";
 import { useLichess } from "@/lib/useLichess";
 import { LichessModal, LichessIcon } from "@/components/LichessModal";
 import { ChessZMark } from "@/components/ChessZLogo";
+import { SocialShareModal } from "@/components/SocialShareModal";
 
 export default function DiagnosePage() {
   const router = useRouter();
@@ -171,6 +173,7 @@ export default function DiagnosePage() {
   const [displayElo, setDisplayElo] = useState<number>(1250);
   const [isFinalScreen, setIsFinalScreen] = useState<boolean>(false);
   const [showEloEstimate, setShowEloEstimate] = useState<boolean>(false);
+  const [showShareModal, setShowShareModal] = useState<boolean>(false);
 
   // Active Puzzle & Multi-Step Solution State
   const diagnosticQuintetRef = useRef<(ChessPuzzle & { numericRating: number })[] | null>(null);
@@ -1231,6 +1234,22 @@ export default function DiagnosePage() {
         diagnosedElo={currentRating}
       />
 
+      {/* Social Share Card Generator Modal */}
+      <SocialShareModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        diagnosedElo={currentRating}
+        levelName={currentLevelInfo.levelName}
+        patternName={detectedPattern.patternName}
+        insight={detectedPattern.insight}
+        strength={detectedPattern.strength}
+        weakness={detectedPattern.weakness}
+        attemptsCount={attempts.length}
+        correctCount={attempts.filter((a) => a.firstTryCorrect || a.status === "best").length}
+        noveltyVerified={noveltyVerified}
+        isCrucibleActive={isCrucibleActive}
+      />
+
       {/* Grandmaster Crucible Modal (Trial 6 Bonus Challenge) */}
       {showCrucibleModal && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
@@ -1736,8 +1755,8 @@ export default function DiagnosePage() {
                 {currentLevelInfo.levelName}
               </h1>
 
-              {/* Optional Show Estimated Elo Toggle */}
-              <div className="mt-2 flex items-center justify-center gap-2">
+              {/* Optional Show Estimated Elo Toggle & Share Card Button */}
+              <div className="mt-2 flex items-center justify-center gap-2.5">
                 {showEloEstimate ? (
                   <span id="diagnosed-elo-badge" className="text-xs font-mono font-bold px-3 py-1 rounded-full theme-pill animate-in fade-in duration-150">
                     Estimated Elo: ~{currentRating}
@@ -1753,6 +1772,15 @@ export default function DiagnosePage() {
                     Show estimated Elo
                   </button>
                 )}
+
+                <button
+                  onClick={() => setShowShareModal(true)}
+                  className="flex items-center gap-1.5 text-[11px] font-mono font-bold px-3 py-1 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 hover:bg-amber-500/25 transition cursor-pointer shadow-xs active:scale-95"
+                  title="Generate shareable diagnostic card"
+                >
+                  <Share2 className="w-3 h-3" />
+                  <span>Share Card</span>
+                </button>
               </div>
 
               {/* Calculation & Master Badges */}
@@ -1960,14 +1988,24 @@ export default function DiagnosePage() {
               Based on how you think, here’s the best place for you to start training.
             </p>
 
-            {/* Primary CTA: 1-Click Start Personalized Training */}
-            <button
-              onClick={handleStartPersonalizedTraining}
-              className="w-full py-3.5 px-6 rounded-2xl theme-accent-btn font-bold text-sm tracking-wide flex items-center justify-center gap-2 shadow-lg transition cursor-pointer"
-            >
-              <span>Start My Personalized Training</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
+            {/* Action CTAs: 1-Click Start Personalized Training & Share Card */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+              <button
+                onClick={handleStartPersonalizedTraining}
+                className="w-full py-3.5 px-6 rounded-2xl theme-accent-btn font-bold text-sm tracking-wide flex items-center justify-center gap-2 shadow-lg transition cursor-pointer"
+              >
+                <span>Start Training</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+
+              <button
+                onClick={() => setShowShareModal(true)}
+                className="w-full py-3.5 px-6 rounded-2xl theme-surface border border-amber-500/40 hover:border-amber-500 hover:bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-sm tracking-wide flex items-center justify-center gap-2 shadow-md transition cursor-pointer"
+              >
+                <Share2 className="w-4 h-4" />
+                <span>Share My Diagnosis</span>
+              </button>
+            </div>
           </div>
         </section>
       )}
