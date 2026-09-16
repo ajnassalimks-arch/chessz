@@ -244,6 +244,7 @@ export default function DiagnosePage() {
 
   // Interaction & Commitment state
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
+  const [legalMoves, setLegalMoves] = useState<{ to: string; captured?: boolean }[]>([]);
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
   const [hintSquare, setHintSquare] = useState<string | null>(null);
   const [annotatedSquares, setAnnotatedSquares] = useState<
@@ -305,6 +306,7 @@ export default function DiagnosePage() {
       setSolutionStepIndex(0);
       setBoardKey((prev) => prev + 1);
       setSelectedSquare(null);
+      setLegalMoves([]);
       setLastMove(null);
       setHintSquare(null);
       setAnnotatedSquares({});
@@ -423,38 +425,36 @@ export default function DiagnosePage() {
     if (selectedSquare) {
       if (selectedSquare === square) {
         setSelectedSquare(null);
+        setLegalMoves([]);
         return;
       }
 
       // Check if moving to this square
-      const testGame = new Chess(game.fen());
-      let isValidMove = false;
-      try {
-        const res = testGame.move({ from: selectedSquare, to: square, promotion: "q" });
-        if (res) isValidMove = true;
-      } catch {
-        isValidMove = false;
-      }
-
-      if (isValidMove) {
+      const isLegalTarget = legalMoves.some((m) => m.to === square);
+      if (isLegalTarget) {
         if (Object.keys(annotatedSquares).length > 0) {
           setAnnotatedSquares({});
         }
-        handleMoveAttempt(selectedSquare, square);
+        const fromSquare = selectedSquare;
         setSelectedSquare(null);
+        setLegalMoves([]);
+        handleMoveAttempt(fromSquare, square);
         return;
       }
 
-      // If clicking another friendly piece
+      // If clicking another friendly piece -> switch selection to that piece
       const pieceOnSquare = game.get(square as any);
       if (pieceOnSquare && pieceOnSquare.color === game.turn()) {
         setSelectedSquare(square);
+        const moves = game.moves({ square: square as any, verbose: true });
+        setLegalMoves(moves.map((m) => ({ to: m.to, captured: !!m.captured })));
         sounds.playMove();
         return;
       }
 
       // If clicking empty square or invalid enemy square, clear selection & clear annotations
       setSelectedSquare(null);
+      setLegalMoves([]);
       if (Object.keys(annotatedSquares).length > 0) {
         setAnnotatedSquares({});
       }
@@ -465,9 +465,12 @@ export default function DiagnosePage() {
     const piece = game.get(square as any);
     if (piece && piece.color === game.turn()) {
       setSelectedSquare(square);
+      const moves = game.moves({ square: square as any, verbose: true });
+      setLegalMoves(moves.map((m) => ({ to: m.to, captured: !!m.captured })));
       sounds.playMove();
     } else {
       setSelectedSquare(null);
+      setLegalMoves([]);
       if (Object.keys(annotatedSquares).length > 0) {
         setAnnotatedSquares({});
       }
@@ -495,21 +498,27 @@ export default function DiagnosePage() {
 
     if (!moveResult) return false;
 
+    setSelectedSquare(null);
+    setLegalMoves([]);
+
     if (Object.keys(annotatedSquares).length > 0) {
       setAnnotatedSquares({});
     }
 
     // PUZZLES 1 & 2: Historical Benchmark Pure Assessment Mode (Silent Record, Bespoke Candidate Move Feedback)
     if (puzzleIndex === 0 || puzzleIndex === 1) {
-      if (moveResult.captured) {
-        sounds.playCapture();
-      } else {
-        sounds.playMove();
-      }
       const nextGame = new Chess(game.fen());
       nextGame.move({ from, to, promotion: expectedPromotion });
       setGame(nextGame);
       setLastMove({ from, to });
+
+      if (nextGame.inCheck()) {
+        sounds.playCheck();
+      } else if (moveResult.captured) {
+        sounds.playCapture();
+      } else {
+        sounds.playMove();
+      }
 
       const currentStep = activePuzzle.solutionMoves[solutionStepIndex] || activePuzzle.solutionMoves[0];
       const isCurrentStepBest = currentStep && currentStep.from === from && currentStep.to === to;
@@ -551,7 +560,8 @@ export default function DiagnosePage() {
                   to: oppResponse.to,
                   promotion: oppResponse.promotion || "q",
                 });
-                if (oppMoveRes?.captured) sounds.playCapture();
+                if (oppGame.inCheck()) sounds.playCheck();
+                else if (oppMoveRes?.captured) sounds.playCapture();
                 else sounds.playMove();
                 setGame(oppGame);
                 setLastMove({ from: oppResponse.from, to: oppResponse.to });
@@ -572,8 +582,9 @@ export default function DiagnosePage() {
                 try {
                   const g = new Chess(prev.fen());
                   const res = g.move({ from: rm.from, to: rm.to });
-                  if (res?.captured) sounds.playCapture();
-                  else sounds.playMove();
+                  if (g.inCheck()) sounds.playCheck();
+                  else if (res?.captured) sounds.playCapture();
+                  else sounds.playRefutation();
                   setLastMove({ from: rm.from, to: rm.to });
                   return g;
                 } catch {
@@ -608,6 +619,11 @@ export default function DiagnosePage() {
         setAttempts(nextAttempts);
         setCurrentRating(newElo);
         setPuzzleStatus("success");
+        if (evalResult.status === "best") {
+          sounds.playVictory();
+        } else {
+          sounds.playBlunder();
+        }
         if (diagnosticQuintetRef.current) {
           persistDiagnosticSession(diagnosticQuintetRef.current, puzzleIndex, nextAttempts, newElo);
         }
@@ -628,7 +644,8 @@ export default function DiagnosePage() {
                     to: oppResponse.to,
                     promotion: oppResponse.promotion || "q",
                   });
-                  if (oppMoveRes?.captured) sounds.playCapture();
+                  if (oppGame.inCheck()) sounds.playCheck();
+                  else if (oppMoveRes?.captured) sounds.playCapture();
                   else sounds.playMove();
                   setGame(oppGame);
                   setLastMove({ from: oppResponse.from, to: oppResponse.to });
@@ -667,6 +684,7 @@ export default function DiagnosePage() {
           setAttempts(nextAttempts);
           setCurrentRating(newElo);
           setPuzzleStatus("success");
+          sounds.playVictory();
           if (diagnosticQuintetRef.current) {
             persistDiagnosticSession(diagnosticQuintetRef.current, puzzleIndex, nextAttempts, newElo);
           }
@@ -676,6 +694,7 @@ export default function DiagnosePage() {
           const elapsed = Date.now() - puzzleStartTimeRef.current;
           const finalScore = 0.65;
           const newElo = calculateNewElo5(currentRating, activePuzzle.numericRating, finalScore, puzzleIndex, null);
+          sounds.playBlunder();
           const record: PuzzleAttemptRecord = {
             puzzleId: activePuzzle.id,
             puzzleTitle: activePuzzle.title,
@@ -768,11 +787,19 @@ export default function DiagnosePage() {
 
     const elapsed = Date.now() - puzzleStartTimeRef.current;
 
-    // Pure Assessment: Silent Record, No In-Test Reveals
-    if (moveRes?.captured) {
+    // Pure Assessment: Play sound based on move outcome
+    if (newGame.inCheck()) {
+      sounds.playCheck();
+    } else if (moveRes?.captured) {
       sounds.playCapture();
     } else {
       sounds.playMove();
+    }
+
+    if (isBestMove) {
+      sounds.playVictory();
+    } else {
+      sounds.playBlunder();
     }
     setPuzzleStatus("success");
 
@@ -814,8 +841,9 @@ export default function DiagnosePage() {
                 try {
                   const g = new Chess(prev.fen());
                   const m = g.move({ from: oppFrom, to: oppTo, promotion: oppProm || "q" });
-                  if (m?.captured) sounds.playCapture();
-                  else sounds.playMove();
+                  if (g.inCheck()) sounds.playCheck();
+                  else if (m?.captured) sounds.playCapture();
+                  else sounds.playRefutation();
                   setLastMove({ from: oppFrom, to: oppTo });
                   return g;
                 } catch {
@@ -1131,7 +1159,24 @@ export default function DiagnosePage() {
       };
     }
 
-    // 5. Dynamic King-in-Check crimson radial glow
+    // 5. Legal moves dots and capture rings (calm dots & precision rings)
+    legalMoves.forEach((move) => {
+      if (move.captured) {
+        styles[move.to] = {
+          background:
+            "radial-gradient(circle, transparent 52%, var(--accent-primary, #426199) 54%, var(--accent-primary, #426199) 68%, transparent 70%)",
+          borderRadius: "50%",
+        };
+      } else {
+        styles[move.to] = {
+          background:
+            "radial-gradient(circle, var(--board-legal-dot, rgba(66, 97, 153, 0.42)) 22%, transparent 24%)",
+          borderRadius: "50%",
+        };
+      }
+    });
+
+    // 6. Dynamic King-in-Check crimson radial glow
     if (game && game.inCheck()) {
       const turn = game.turn();
       for (let r = 0; r < 8; r++) {

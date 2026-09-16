@@ -568,8 +568,14 @@ export default function Home() {
     }
     if (!moveResult) return false;
 
+    setSelectedSquare(null);
+    setLegalMoves([]);
+    setHintSquare(null);
+
     // Play sound based on move type
-    if (moveResult.captured) {
+    if (testChess.inCheck()) {
+      sounds.playCheck();
+    } else if (moveResult.captured) {
       sounds.playCapture();
     } else {
       sounds.playMove();
@@ -639,7 +645,9 @@ export default function Home() {
           refutationApplied = true;
           setGame(refutingChess);
           setLastMove({ from: ref.from, to: ref.to });
-          if (refResult.captured) {
+          if (refutingChess.inCheck()) {
+            sounds.playCheck();
+          } else if (refResult.captured) {
             sounds.playCapture();
           } else {
             sounds.playRefutation();
@@ -710,7 +718,11 @@ export default function Home() {
         if (Object.keys(annotatedSquares).length > 0) {
           setAnnotatedSquares({});
         }
-        handleMoveAttempt(selectedSquare, square);
+        const fromSquare = selectedSquare;
+        setSelectedSquare(null);
+        setLegalMoves([]);
+        setHintSquare(null);
+        handleMoveAttempt(fromSquare, square);
         return;
       }
 
