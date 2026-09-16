@@ -101,6 +101,14 @@ export class BrowserStockfishEngine implements ChessEngine {
       if (!ok) throw new Error('Failed to initialize Stockfish worker');
     }
 
+    // If an evaluation is already pending, resolve it immediately so callers do not hang
+    if (this.pendingResolver) {
+      try {
+        this.pendingResolver({ cp: 0, depth: 0, nodes: 0 });
+      } catch {}
+      this.pendingResolver = null;
+    }
+
     return new Promise((resolve) => {
       this.currentEval = { nodes: 0, depth: 0 };
       this.pendingResolver = resolve;

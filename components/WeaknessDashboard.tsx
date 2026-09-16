@@ -589,13 +589,32 @@ export function WeaknessDashboard({
           )}
 
           {!isLoading && blunders.length === 0 && !error && !!(user?.username || (typeof window !== 'undefined' && localStorage.getItem('chessz_last_username'))) && (
-            <div className="p-8 rounded-2xl theme-surface-subtle border text-center space-y-2">
-              <Award className="w-10 h-10 text-emerald-400 mx-auto" />
-              <div className="text-sm font-bold theme-text-primary">No Unfixed Mistakes Found!</div>
-              <p className="text-xs theme-text-secondary max-w-sm mx-auto">
-                Play some games on Lichess or request computer analysis on your recent games, then click Rescan.
-              </p>
-            </div>
+            summaryData && summaryData.totalGamesScanned > 0 && summaryData.analyzedGamesCount === 0 ? (
+              <div className="p-8 rounded-2xl theme-surface-subtle border text-center space-y-3">
+                <AlertTriangle className="w-10 h-10 text-amber-400 mx-auto" />
+                <div className="text-sm font-bold theme-text-primary">
+                  {summaryData.totalGamesScanned} Games Found, But No Computer Analysis Yet
+                </div>
+                <p className="text-xs theme-text-secondary max-w-md mx-auto leading-relaxed">
+                  Lichess only exports blunder data after games have computer analysis. Open any recent game on Lichess, click <strong>&ldquo;Analysis board&rdquo;</strong> &rarr; <strong>&ldquo;Request computer analysis&rdquo;</strong>, then click Rescan!
+                </p>
+                <button
+                  onClick={() => fetchBlunders()}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-black text-xs font-bold transition cursor-pointer"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>Rescan Games</span>
+                </button>
+              </div>
+            ) : (
+              <div className="p-8 rounded-2xl theme-surface-subtle border text-center space-y-2">
+                <Award className="w-10 h-10 text-emerald-400 mx-auto" />
+                <div className="text-sm font-bold theme-text-primary">No Unfixed Mistakes Found!</div>
+                <p className="text-xs theme-text-secondary max-w-sm mx-auto">
+                  All analyzed games were blunder-free or you haven&apos;t played recently. Play more games on Lichess and click Rescan anytime.
+                </p>
+              </div>
+            )
           )}
 
           {!isLoading && blunders.length > 0 && (

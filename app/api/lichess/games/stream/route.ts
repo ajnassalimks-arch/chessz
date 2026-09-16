@@ -11,15 +11,18 @@ export async function GET(request: NextRequest) {
   const max = searchParams.get('max') || '50';
   const since = searchParams.get('since');
 
-  if (!username) {
-    return new Response(JSON.stringify({ error: 'Username required' }), {
+  if (!username || !/^[a-zA-Z0-9_-]{2,30}$/.test(username)) {
+    return new Response(JSON.stringify({ error: 'Valid Lichess username required' }), {
       status: 400,
       headers: { 'Content-Type': 'application/json' },
     });
   }
 
+  const parsedMax = parseInt(searchParams.get('max') || '50', 10);
+  const clampedMax = String(Math.min(Math.max(Number.isFinite(parsedMax) ? parsedMax : 50, 1), 100));
+
   const queryParams = new URLSearchParams({
-    max,
+    max: clampedMax,
     rated: 'true',
     evals: 'true',
     clocks: 'true',
@@ -37,6 +40,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const lichessRes = await fetch(lichessUrl, {
+      signal: AbortSignal.timeout(15000),
       headers: {
         Accept: 'application/x-ndjson',
         'User-Agent': 'ChessZ-App/1.0 (contact: chesszapp@vercel.app)',
@@ -67,9 +71,17 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (err: any) {
-    return new Response(JSON.stringify({ error: err.message || 'Stream failed' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    const isTimeout = err?.name === 'TimeoutError' || err?.name === 'AbortError';
+    return new Response(
+      JSON.stringify({
+        error: isTimeout
+          ? 'Lichess request timed out. Please try again with fewer games or wait a moment.'
+          : err.message || 'Stream failed',
+      }),
+      {
+        status: isTimeout ? 504 : 500,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
   }
 }

@@ -43,8 +43,12 @@ export async function saveGameStatsBatch(
       return { savedToSupabase: false, count: games.length };
     }
 
-    // Upsert Lichess Account row
-    const newestGameAt = Math.max(...games.map((g) => g.playedAt));
+    // Upsert Lichess Account row (safely compute newest timestamp)
+    const validTimestamps = games
+      .map((g) => Number(g.playedAt))
+      .filter((t) => Number.isFinite(t) && t > 0);
+    const newestGameAt = validTimestamps.length > 0 ? Math.max(...validTimestamps) : Date.now();
+
     await supabase.from('lichess_accounts').upsert({
       user_id: userId,
       lichess_username: username.toLowerCase(),
@@ -53,10 +57,15 @@ export async function saveGameStatsBatch(
     });
 
     // Batch upsert game_stats rows
-    const gameRows = games.map((g) => ({
-      game_id: g.gameId,
-      user_id: userId,
-      played_at: new Date(g.playedAt).toISOString(),
+    const gameRows = games.map((g) => {
+      const validPlayedAt = Number.isFinite(Number(g.playedAt)) && Number(g.playedAt) > 0
+        ? new Date(Number(g.playedAt)).toISOString()
+        : new Date().toISOString();
+
+      return {
+        game_id: g.gameId,
+        user_id: userId,
+        played_at: validPlayedAt,
       color: g.color,
       result: g.result,
       speed: g.speed,
@@ -83,7 +92,8 @@ export async function saveGameStatsBatch(
       missed_punishments: g.missedPunishments,
       eval_source: g.evalSource,
       engine_nodes: g.engineNodes || null,
-    }));
+    };
+  });
 
     const { error: gameError } = await supabase.from('game_stats').upsert(gameRows, {
       onConflict: 'game_id',
