@@ -235,6 +235,28 @@ export async function GET(request: NextRequest) {
           const moveNum = Math.floor(i / 2) + 1;
           const turnPrefix = userColor === 'white' ? `${moveNum}.` : `${moveNum}...`;
 
+          // Extract opponent's real counter-punch from the game if available
+          let oppFrom = '';
+          let oppTo = '';
+          let oppSan = '';
+          let oppProm: string | undefined = undefined;
+          const nextOpponentMove = moves[i + 1];
+          if (nextOpponentMove) {
+            try {
+              const testSim = new Chess(fenBefore);
+              const playedRes = testSim.move(playedSan);
+              if (playedRes) {
+                const oppRes = testSim.move(nextOpponentMove);
+                if (oppRes) {
+                  oppFrom = oppRes.from;
+                  oppTo = oppRes.to;
+                  oppSan = oppRes.san;
+                  oppProm = oppRes.promotion;
+                }
+              }
+            } catch {}
+          }
+
           const swingText = evalSwingPawns && evalSwingPawns > 0 ? ` (dropped ~${evalSwingPawns} pawns)` : '';
 
           const blunderPuzzle = {
@@ -276,10 +298,13 @@ export async function GET(request: NextRequest) {
               },
             ],
             defaultRefutation: {
-              from: bestFrom,
-              to: bestTo,
-              san: playedSan,
-              coachExplanation: `In the game you played ${turnPrefix} ${playedSan}, which allowed your opponent counterplay. Look for ${bestSan}!`,
+              from: oppFrom,
+              to: oppTo,
+              san: oppSan || playedSan,
+              promotion: oppProm,
+              coachExplanation: oppSan
+                ? `In your game, playing ${turnPrefix} ${playedSan} was punished by @${opponentName}'s ${oppSan}! Find the winning counter: ${bestSan}.`
+                : `In your game you played ${turnPrefix} ${playedSan}, which conceded the advantage. Look for ${bestSan}!`,
             },
             successExplanation: `Masterful correction! In your real game you played ${turnPrefix} ${playedSan}, but ${bestSan} is the exact winning move Stockfish recommended!`,
           };
