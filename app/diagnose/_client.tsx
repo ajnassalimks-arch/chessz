@@ -146,11 +146,11 @@ export default function DiagnosePage() {
       const totalBezelMargin = currentBezel * 2;
 
       if (width < 768) {
-        if (width < 440) {
-          setBoardWidth(Math.floor(width - 24 - totalBezelMargin));
-        } else {
-          setBoardWidth(360);
-        }
+        const availableHeight = height - 240 - totalBezelMargin;
+        const availableWidth = width - (width < 440 ? 20 : 32) - totalBezelMargin;
+        const maxMobileSize = width < 440 ? 330 : 360;
+        const calculatedSize = Math.floor(Math.min(availableWidth, availableHeight, maxMobileSize));
+        setBoardWidth(Math.max(260, calculatedSize));
       } else {
         const maxVertical = Math.max(280, height - 160 - totalBezelMargin);
         const maxHorizontal = Math.max(280, width - 460 - totalBezelMargin);
@@ -1205,7 +1205,10 @@ export default function DiagnosePage() {
   const currentLevelInfo = mapEloToLevel(currentRating);
 
   return (
-    <main className="min-h-screen flex flex-col p-3 sm:p-4 md:px-6 md:py-3 font-sans transition-colors duration-200">
+    <main
+      className="min-h-screen flex flex-col p-2.5 sm:p-4 md:px-6 md:py-3 font-sans transition-colors duration-200"
+      style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom, 0.75rem))" }}
+    >
       {/* Settings Modal Component */}
       <SettingsModal
         isOpen={showSettingsModal}
@@ -1499,12 +1502,12 @@ export default function DiagnosePage() {
 
           {/* Right Column: Dynamic Diagnosis Console */}
           <div
-            className="flex flex-col justify-between w-full max-w-sm md:w-80 lg:w-96 shrink-0 theme-surface rounded-2xl p-4 shadow-xl border overflow-y-auto min-h-[140px]"
+            className="flex flex-col justify-between w-full max-w-sm md:w-80 lg:w-96 shrink-0 theme-surface rounded-2xl p-3 sm:p-4 shadow-xl border overflow-y-auto min-h-[120px]"
             style={{ height: isMobileView ? "auto" : boardWidth + bezelSize * 2 }}
           >
             {/* Top: Progress and Step Indicator */}
             <div>
-              <div className="flex items-center justify-between pb-2 mb-3 border-b border-[var(--border-subtle)]">
+              <div className="flex items-center justify-between pb-1.5 sm:pb-2 mb-2 sm:mb-3 border-b border-[var(--border-subtle)]">
                 <div className="flex items-center gap-1.5 text-xs font-mono font-bold theme-pill px-2.5 py-1 rounded-lg">
                   <Target className="w-3.5 h-3.5 text-[var(--accent-primary)]" />
                   <span>Puzzle {puzzleIndex + 1} of {isCrucibleActive ? 6 : 5}</span>
@@ -1523,7 +1526,7 @@ export default function DiagnosePage() {
               </div>
 
               {/* Progress Segment Bar */}
-              <div className={`grid ${isCrucibleActive ? "grid-cols-6" : "grid-cols-5"} gap-1.5 w-full mb-3`}>
+              <div className={`grid ${isCrucibleActive ? "grid-cols-6" : "grid-cols-5"} gap-1.5 w-full mb-2 sm:mb-3`}>
                 {Array.from({ length: isCrucibleActive ? 6 : 5 }).map((_, idx) => (
                   <div
                     key={idx}
@@ -1539,8 +1542,8 @@ export default function DiagnosePage() {
               </div>
 
               {/* Coach Objective & Instructions */}
-              <div className="theme-surface-subtle p-3 rounded-xl border mb-3">
-                <div className="text-[11px] font-bold text-[var(--accent-primary)] uppercase tracking-wider mb-1 flex items-center gap-1.5">
+              <div className="theme-surface-subtle p-2.5 sm:p-3 rounded-xl border mb-2.5 sm:mb-3">
+                <div className="text-[10px] sm:text-[11px] font-bold text-[var(--accent-primary)] uppercase tracking-wider mb-1 flex items-center gap-1.5">
                   <Zap className="w-3.5 h-3.5" />
                   <span>Tactical Objective</span>
                 </div>
@@ -1560,7 +1563,7 @@ export default function DiagnosePage() {
 
               {/* Move Submitted Quiet Banner (No In-Test Spoilers) */}
               {puzzleStatus === "success" && (
-                <div className="theme-surface border border-[var(--border-focus)] p-3 rounded-xl shadow-xs mb-3 flex items-center justify-between animate-card-entrance">
+                <div className="theme-surface border border-[var(--border-focus)] p-2.5 sm:p-3 rounded-xl shadow-xs mb-2.5 sm:mb-3 flex items-center justify-between animate-card-entrance">
                   <div className="flex items-center gap-2 text-xs font-semibold theme-text-primary">
                     <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                     <span>Move recorded for diagnosis</span>
@@ -1577,7 +1580,7 @@ export default function DiagnosePage() {
               {puzzleStatus === "success" && (
                 <button
                   onClick={handleProceedNext}
-                  className="group relative w-full py-2.5 px-4 rounded-xl theme-accent-btn font-bold text-xs sm:text-sm tracking-wide flex items-center justify-center gap-2 shadow-sm transition-all duration-200 active:scale-[0.98] cursor-pointer animate-next-btn btn-shimmer-effect hover:-translate-y-0.5 hover:shadow-md"
+                  className="group relative w-full py-3 px-4 rounded-xl theme-accent-btn font-bold text-xs sm:text-sm tracking-wide flex items-center justify-center gap-2 shadow-sm transition-all duration-200 active:scale-[0.98] cursor-pointer animate-next-btn btn-shimmer-effect hover:-translate-y-0.5 hover:shadow-md"
                 >
                   <span className="relative z-10">
                     {puzzleIndex === (isCrucibleActive ? 5 : 4) ? "View Final Diagnosis" : "Next Puzzle"}
@@ -1587,7 +1590,7 @@ export default function DiagnosePage() {
               )}
 
               {puzzleStatus === "solving" && !showCommitmentModal && (
-                <div className="text-center py-2 text-[11px] font-mono theme-text-muted">
+                <div className="text-center py-1.5 text-[11px] font-mono theme-text-muted">
                   Drag or tap pieces to calculate
                 </div>
               )}
@@ -1732,183 +1735,246 @@ export default function DiagnosePage() {
           </div>
         </section>
       ) : (
-        /* Screen 2: The Final Level Diagnosis Dossier */
-        <section className="flex-1 flex flex-col items-center justify-center max-w-md md:max-w-lg mx-auto w-full py-4 min-h-0 animate-card-entrance">
-          <div className="w-full max-h-[88vh] overflow-y-auto custom-scrollbar theme-surface rounded-3xl p-5 sm:p-6 shadow-2xl border relative">
-            {/* Top Badge */}
-            <div className="flex items-center justify-between gap-2 mb-3 pb-3 border-b border-[var(--border-subtle)]">
-              <div className="flex items-center gap-1.5 text-xs font-mono font-bold uppercase tracking-wider text-[var(--accent-primary)]">
-                <Sparkles className="w-4 h-4 text-amber-500" />
-                <span>Level Diagnosis Complete</span>
+        /* Screen 2: The Final Level Diagnosis Bento Dossier */
+        <section className="flex-1 flex flex-col items-center justify-center max-w-md md:max-w-3xl lg:max-w-4xl mx-auto w-full py-2 sm:py-4 min-h-0 animate-card-entrance">
+          <div className="w-full max-h-[88vh] overflow-y-auto custom-scrollbar theme-surface rounded-3xl p-4 sm:p-7 shadow-2xl border relative space-y-4 sm:space-y-6">
+            {/* Top Bento Header Strip */}
+            <div className="flex items-center justify-between pb-3 border-b border-[var(--border-subtle)] gap-2">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-500 flex items-center justify-center font-bold border border-amber-500/30 shrink-0">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="text-[10px] sm:text-xs font-mono font-bold uppercase tracking-wider text-[var(--accent-primary)] block">
+                    Calibration Dossier
+                  </span>
+                  <h2 className="text-xs sm:text-sm font-extrabold theme-text-primary font-display">
+                    FIDE Pedagogical Assessment Complete
+                  </h2>
+                </div>
               </div>
-              <span className="text-[10px] font-mono theme-text-muted px-2 py-0.5 rounded-full theme-surface-subtle border">
-                {isCrucibleActive ? "6-Puzzle Master Test" : "5-Puzzle Skill Test"}
+              <span className="text-[10px] font-mono theme-text-muted px-2.5 py-1 rounded-full theme-surface-subtle border shrink-0">
+                {isCrucibleActive ? "6-Puzzle Master Benchmark" : "5-Puzzle Diagnostic Benchmark"}
               </span>
             </div>
 
-            {/* Large Level Name (Locked) */}
-            <div className="text-center my-3">
-              <span className="text-xs uppercase tracking-widest font-mono font-semibold theme-text-muted">
-                Your Diagnosed Level
-              </span>
-              <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight theme-text-primary mt-1">
-                {currentLevelInfo.levelName}
-              </h1>
-
-              {/* Optional Show Estimated Elo Toggle & Share Card Button */}
-              <div className="mt-2 flex items-center justify-center gap-2.5">
-                {showEloEstimate ? (
-                  <span id="diagnosed-elo-badge" className="text-xs font-mono font-bold px-3 py-1 rounded-full theme-pill animate-in fade-in duration-150">
-                    Estimated Elo: ~{currentRating}
+            {/* Bento Grid Row: Hero Tile + Archetype Tile */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-3.5 sm:gap-4">
+              {/* Tile 1: Hero Level & Elo Spotlight */}
+              <div className="md:col-span-6 lg:col-span-5 theme-surface-subtle rounded-3xl p-5 sm:p-6 border border-[var(--border-focus)]/50 shadow-sm flex flex-col justify-between relative overflow-hidden group">
+                <div>
+                  <span className="text-[11px] uppercase tracking-widest font-mono font-semibold theme-text-muted block mb-1">
+                    Diagnosed Level
                   </span>
-                ) : (
-                  <button
-                    onClick={() => {
-                      setShowEloEstimate(true);
-                      track("elo_revealed");
-                    }}
-                    className="text-[11px] font-mono theme-text-muted hover:theme-text-primary underline underline-offset-2 transition-colors cursor-pointer"
-                  >
-                    Show estimated Elo
-                  </button>
-                )}
+                  <h1 className="text-2xl sm:text-3xl font-black tracking-tight theme-text-primary font-display">
+                    {currentLevelInfo.levelName}
+                  </h1>
 
-                <button
-                  onClick={() => setShowShareModal(true)}
-                  className="flex items-center gap-1.5 text-[11px] font-mono font-bold px-3 py-1 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 hover:bg-amber-500/25 transition cursor-pointer shadow-xs active:scale-95"
-                  title="Generate shareable diagnostic card"
-                >
-                  <Share2 className="w-3 h-3" />
-                  <span>Share Card</span>
-                </button>
-              </div>
+                  <div className="mt-4 p-4 rounded-2xl bg-[var(--surface-muted)] border border-[var(--border-subtle)] flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] font-mono uppercase tracking-wider theme-text-muted block">
+                        Calculated Rating
+                      </span>
+                      <span className="text-3xl sm:text-4xl font-black font-mono text-[var(--accent-primary)] tracking-tight">
+                        ~{currentRating}
+                      </span>
+                      <span className="text-xs font-mono theme-text-muted ml-1.5">Elo</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[10px] font-mono uppercase tracking-wider theme-text-muted block">
+                        Accuracy
+                      </span>
+                      <span className="text-lg font-bold font-mono text-emerald-500">
+                        {attempts.filter((a) => a.status === "best").length} / {attempts.length}
+                      </span>
+                      <span className="text-[10px] theme-text-muted block">Clean Moves</span>
+                    </div>
+                  </div>
 
-              {/* Calculation & Master Badges */}
-              {(noveltyVerified || isCrucibleActive) && (
-                <div className="mt-2.5 flex flex-wrap items-center justify-center gap-2">
-                  {noveltyVerified && (
-                    <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
-                      <span>✓</span> Calculation Verified (Not Memorized)
-                    </span>
-                  )}
-                  {isCrucibleActive && (
-                    <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30 flex items-center gap-1">
-                      <span>👑</span> Master Challenge Tested
-                    </span>
+                  {/* Calculation & Master Badges */}
+                  {(noveltyVerified || isCrucibleActive) && (
+                    <div className="mt-3.5 flex flex-wrap gap-2">
+                      {noveltyVerified && (
+                        <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
+                          <CheckCircle2 className="w-3 h-3" />
+                          <span>Calculation Verified</span>
+                        </span>
+                      )}
+                      {isCrucibleActive && (
+                        <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-xl bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30 flex items-center gap-1.5">
+                          <span>👑</span>
+                          <span>Master Challenge Tested</span>
+                        </span>
+                      )}
+                    </div>
                   )}
                 </div>
-              )}
-            </div>
 
-            {/* Behavioral Insight Callout */}
-            <div className="theme-surface-subtle border border-[var(--border-focus)] rounded-2xl p-4 my-3">
-              <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[var(--accent-primary)] mb-1">
-                <Award className="w-4 h-4" />
-                <span>Playing Style: {detectedPattern.patternName}</span>
-              </div>
-              <p className="text-xs sm:text-sm theme-text-primary italic mt-1 leading-relaxed">
-                "{detectedPattern.insight}"
-              </p>
-            </div>
-
-            {/* Dual Core Strength / Target Weakness Cards */}
-            <div className="grid grid-cols-2 gap-2.5 my-3">
-              <div className="p-3 rounded-2xl theme-surface border">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block mb-1">
-                  Core Strength
-                </span>
-                <span className="text-xs font-semibold theme-text-primary leading-tight block">
-                  {detectedPattern.strength}
-                </span>
+                {/* 1-Click Share Card Trigger */}
+                <div className="mt-4 pt-3.5 border-t border-[var(--border-subtle)] flex items-center justify-between gap-2">
+                  <span className="text-[11px] theme-text-muted font-mono">
+                    Share with your coach or club
+                  </span>
+                  <button
+                    onClick={() => setShowShareModal(true)}
+                    className="flex items-center gap-1.5 text-xs font-mono font-bold px-3 py-1.5 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 hover:bg-amber-500/25 transition cursor-pointer shrink-0 active:scale-95 shadow-xs"
+                    title="Generate shareable diagnostic card"
+                  >
+                    <Share2 className="w-3.5 h-3.5" />
+                    <span>Share Card</span>
+                  </button>
+                </div>
               </div>
 
-              <div className="p-3 rounded-2xl theme-surface border">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-500 block mb-1">
-                  Area to Improve
-                </span>
-                <span className="text-xs font-semibold theme-text-primary leading-tight block">
-                  {detectedPattern.weakness}
-                </span>
+              {/* Right Side Bento Column: Archetype + Live Platform Calibration */}
+              <div className="md:col-span-6 lg:col-span-7 flex flex-col gap-3.5 sm:gap-4">
+                {/* Tile 2: Playing Style & Psychological Archetype */}
+                <div className="theme-surface-subtle rounded-3xl p-5 sm:p-6 border border-[var(--border-subtle)] shadow-sm flex-1 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[var(--accent-primary)]">
+                        <Award className="w-4 h-4" />
+                        <span>Cognitive Archetype</span>
+                      </div>
+                      <span className="text-xs font-extrabold font-display theme-text-primary px-2.5 py-0.5 rounded-full bg-[var(--surface-muted)] border">
+                        {detectedPattern.patternName}
+                      </span>
+                    </div>
+                    <p className="text-xs sm:text-sm theme-text-primary italic leading-relaxed my-2">
+                      &ldquo;{detectedPattern.insight}&rdquo;
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2.5 mt-3 pt-3 border-t border-[var(--border-subtle)]">
+                    <div className="p-2.5 rounded-2xl theme-surface border border-[var(--border-subtle)]">
+                      <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-500 block mb-0.5">
+                        Core Strength
+                      </span>
+                      <span className="text-xs font-semibold theme-text-primary block leading-tight">
+                        {detectedPattern.strength}
+                      </span>
+                    </div>
+                    <div className="p-2.5 rounded-2xl theme-surface border border-[var(--border-subtle)]">
+                      <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-500 block mb-0.5">
+                        Target Leak
+                      </span>
+                      <span className="text-xs font-semibold theme-text-primary block leading-tight">
+                        {detectedPattern.weakness}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tile 3: Cross-Platform Calibration Tile */}
+                <div className="theme-surface-subtle rounded-3xl p-4 sm:p-5 border border-[var(--border-subtle)] shadow-sm">
+                  <div className="flex items-center justify-between gap-2 mb-2.5">
+                    <div className="flex items-center gap-2">
+                      <LichessIcon className="w-4 h-4 text-amber-400" />
+                      <span className="text-xs font-bold font-mono tracking-tight theme-text-primary">
+                        Platform Calibration
+                      </span>
+                    </div>
+                    {lichessUser ? (
+                      <button
+                        onClick={() => setShowLichessModal(true)}
+                        className="text-[11px] font-mono text-[var(--accent-primary)] hover:underline cursor-pointer"
+                      >
+                        @{lichessUser.username} &rarr;
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => setShowLichessModal(true)}
+                        className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-400 border border-amber-500/30 hover:bg-amber-500/25 transition cursor-pointer"
+                      >
+                        Verify with Lichess
+                      </button>
+                    )}
+                  </div>
+
+                  {lichessUser ? (
+                    <div className="grid grid-cols-3 gap-2 text-center text-xs font-mono">
+                      <div className="p-2 rounded-xl bg-[var(--surface-muted)] border border-[var(--border-subtle)]">
+                        <span className="text-[10px] theme-text-muted block">Diagnosed</span>
+                        <span className="font-extrabold text-sm theme-text-primary">~{currentRating}</span>
+                      </div>
+                      <div className="p-2 rounded-xl bg-[var(--surface-muted)] border border-[var(--border-subtle)]">
+                        <span className="text-[10px] theme-text-muted block">Lichess Rapid</span>
+                        <span className="font-extrabold text-sm theme-text-primary">
+                          {lichessUser.perfs?.rapid?.rating || lichessUser.perfs?.blitz?.rating || "—"}
+                        </span>
+                      </div>
+                      <div className="p-2 rounded-xl bg-[var(--surface-muted)] border border-[var(--border-subtle)]">
+                        <span className="text-[10px] theme-text-muted block">Variance</span>
+                        <span className="font-extrabold text-sm text-emerald-400">
+                          {(() => {
+                            const targetRating = lichessUser.perfs?.rapid?.rating || lichessUser.perfs?.blitz?.rating;
+                            if (!targetRating) return "Synced";
+                            const diff = currentRating - targetRating;
+                            return `${diff > 0 ? "+" : ""}${diff} Elo`;
+                          })()}
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-[11px] theme-text-secondary leading-relaxed">
+                      ChessZ calibrates with official FIDE and Lichess benchmarks so you get realistic tournament Elo, not inflated puzzle rating.
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* Lichess Benchmark & Cross-Platform Comparison Card */}
-            <div className="p-3.5 rounded-2xl theme-surface border border-[var(--border-subtle)] my-3">
-              <div className="flex items-center justify-between gap-2 mb-2">
+            {/* Tile 4: Benchmark Solutions & Tactical Timeline */}
+            <div className="theme-surface-subtle rounded-3xl p-4 sm:p-6 border border-[var(--border-subtle)] shadow-sm">
+              <div className="flex items-center justify-between mb-3.5">
                 <div className="flex items-center gap-2">
-                  <LichessIcon className="w-4 h-4 text-amber-400" />
-                  <span className="text-xs font-bold font-mono tracking-tight theme-text-primary">
-                    Lichess Rating Comparison
+                  <Target className="w-4 h-4 text-[var(--accent-primary)]" />
+                  <span className="text-xs sm:text-sm font-bold theme-text-primary font-display">
+                    Benchmark Breakdown & Solutions
                   </span>
                 </div>
-                {lichessUser ? (
-                  <button
-                    onClick={() => setShowLichessModal(true)}
-                    className="text-[11px] font-mono text-[var(--accent-primary)] hover:underline cursor-pointer"
-                  >
-                    View Lichess Profile →
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => setShowLichessModal(true)}
-                    className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-400 border border-amber-500/30 hover:bg-amber-500/25 transition cursor-pointer"
-                  >
-                    Connect Lichess
-                  </button>
-                )}
-              </div>
-
-              {lichessUser ? (
-                <div className="grid grid-cols-3 gap-2 text-center text-xs font-mono">
-                  <div className="p-2 rounded-xl bg-[var(--surface-muted)] border border-[var(--border-subtle)]">
-                    <span className="text-[10px] theme-text-muted block">Diagnosed Elo</span>
-                    <span className="font-extrabold text-sm theme-text-primary">~{currentRating}</span>
-                  </div>
-                  <div className="p-2 rounded-xl bg-[var(--surface-muted)] border border-[var(--border-subtle)]">
-                    <span className="text-[10px] theme-text-muted block">Lichess Rapid</span>
-                    <span className="font-extrabold text-sm theme-text-primary">
-                      {lichessUser.perfs?.rapid?.rating || lichessUser.perfs?.blitz?.rating || "—"}
-                    </span>
-                  </div>
-                  <div className="p-2 rounded-xl bg-[var(--surface-muted)] border border-[var(--border-subtle)]">
-                    <span className="text-[10px] theme-text-muted block">Variance</span>
-                    <span className="font-extrabold text-sm text-emerald-400">
-                      {(() => {
-                        const targetRating = lichessUser.perfs?.rapid?.rating || lichessUser.perfs?.blitz?.rating;
-                        if (!targetRating) return "Synced";
-                        const diff = currentRating - targetRating;
-                        return `${diff > 0 ? "+" : ""}${diff} Elo`;
-                      })()}
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <p className="text-xs theme-text-secondary leading-relaxed">
-                  Compare your ChessZ diagnosed rating (~{currentRating} Elo) directly with your live Lichess account and verify calibration accuracy.
-                </p>
-              )}
-            </div>
-
-            {/* Benchmark Test Review & Master Solutions */}
-            <div className="my-4">
-              <div className="flex items-center justify-between mb-2.5">
-                <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider theme-text-primary">
-                  <Target className="w-4 h-4 text-[var(--accent-primary)]" />
-                  <span>Benchmark Review & Solutions</span>
-                </div>
-                <span className="text-[10px] font-mono theme-text-muted">
-                  {attempts.length} Puzzles Analyzed
+                <span className="text-[10px] font-mono theme-text-muted px-2.5 py-0.5 rounded-full bg-[var(--surface-muted)] border">
+                  {attempts.length} Positions Analyzed
                 </span>
               </div>
 
-              <div className="space-y-2.5">
+              {/* Quick Visual Timeline Ribbon */}
+              <div className="grid grid-cols-5 sm:grid-cols-6 gap-1.5 sm:gap-2 mb-4">
+                {attempts.map((att, i) => {
+                  const isBest = att.status === "best";
+                  const isInaccurate = att.status === "inaccurate";
+                  return (
+                    <div
+                      key={i}
+                      className={`p-2 rounded-xl border text-center transition ${
+                        isBest
+                          ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500"
+                          : isInaccurate
+                          ? "bg-amber-500/10 border-amber-500/30 text-amber-500"
+                          : "bg-rose-500/10 border-rose-500/30 text-rose-500"
+                      }`}
+                    >
+                      <span className="text-[9px] font-mono block opacity-75">P{i + 1}</span>
+                      <span className="text-xs font-bold font-mono block">
+                        {isBest ? "✓" : isInaccurate ? "!" : "✗"}
+                      </span>
+                      <span className="text-[9px] font-mono block opacity-75 mt-0.5">
+                        {att.timeMs ? `${(att.timeMs / 1000).toFixed(1)}s` : "—"}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Detailed Cards List */}
+              <div className="space-y-3">
                 {attempts.map((att, idx) => {
                   const isBest = att.status === "best";
                   const isInaccurate = att.status === "inaccurate";
                   return (
                     <div
                       key={idx}
-                      className="p-3.5 rounded-2xl theme-surface border border-[var(--border-subtle)] hover:border-[var(--border-focus)] transition shadow-xs"
+                      className="p-3.5 sm:p-4 rounded-2xl theme-surface border border-[var(--border-subtle)] hover:border-[var(--border-focus)] transition shadow-xs"
                     >
                       <div className="flex items-start justify-between gap-2 mb-2">
                         <div>
@@ -1917,7 +1983,7 @@ export default function DiagnosePage() {
                           </div>
                           <div className="text-xs font-bold theme-text-primary mt-0.5">
                             Your Move:{" "}
-                            <span className="font-mono">
+                            <span className="font-mono font-extrabold text-[var(--accent-primary)]">
                               {att.userMoveSan || att.moveSan || "—"}
                             </span>
                             {att.commitment && (
@@ -1947,13 +2013,20 @@ export default function DiagnosePage() {
                       </div>
 
                       {/* Master Solution */}
-                      <div className="text-[11px] theme-text-secondary mb-2 bg-[var(--bg-card-subtle)] p-2 rounded-xl border border-[var(--border-subtle)] font-mono">
-                        <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                          Master Solution:{" "}
-                        </span>
-                        <span className="theme-text-primary">
-                          {att.bestMoveSan || "—"}
-                        </span>
+                      <div className="text-[11px] theme-text-secondary mb-2 bg-[var(--surface-muted)] p-2.5 rounded-xl border border-[var(--border-subtle)] font-mono flex items-center justify-between">
+                        <div>
+                          <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                            Master Continuation:{" "}
+                          </span>
+                          <span className="theme-text-primary font-bold">
+                            {att.bestMoveSan || "—"}
+                          </span>
+                        </div>
+                        {att.timeMs && (
+                          <span className="text-[10px] text-neutral-400 font-mono">
+                            {(att.timeMs / 1000).toFixed(1)}s elapsed
+                          </span>
+                        )}
                       </div>
 
                       {/* Coach Explanation */}
@@ -1965,8 +2038,8 @@ export default function DiagnosePage() {
 
                       {/* Pedagogical Takeaway Box */}
                       {att.ruleTitle && att.ruleBody && (
-                        <div className="text-[11px] theme-surface-subtle p-2 rounded-xl border border-[var(--border-focus)]/40 flex items-start gap-1.5">
-                          <span className="text-amber-500 font-bold">💡</span>
+                        <div className="text-[11px] theme-surface-subtle p-2.5 rounded-xl border border-[var(--border-focus)]/40 flex items-start gap-2">
+                          <span className="text-amber-500 font-bold shrink-0">💡</span>
                           <div>
                             <span className="font-bold theme-text-primary">
                               {att.ruleTitle}:{" "}
@@ -1983,24 +2056,19 @@ export default function DiagnosePage() {
               </div>
             </div>
 
-            {/* Bottom Callout */}
-            <p className="text-xs text-center theme-text-secondary mt-2 mb-4">
-              Based on how you think, here’s the best place for you to start training.
-            </p>
-
-            {/* Action CTAs: 1-Click Start Personalized Training & Share Card */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+            {/* Bottom Launchpad CTAs */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
               <button
                 onClick={handleStartPersonalizedTraining}
-                className="w-full py-3.5 px-6 rounded-2xl theme-accent-btn font-bold text-sm tracking-wide flex items-center justify-center gap-2 shadow-lg transition cursor-pointer"
+                className="w-full py-4 px-6 rounded-2xl theme-accent-btn font-bold text-sm tracking-wide flex items-center justify-center gap-2.5 shadow-lg transition cursor-pointer active:scale-[0.98] hover:shadow-xl group"
               >
-                <span>Start Training</span>
-                <ArrowRight className="w-4 h-4" />
+                <span>Start Personalized Training</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
 
               <button
                 onClick={() => setShowShareModal(true)}
-                className="w-full py-3.5 px-6 rounded-2xl theme-surface border border-amber-500/40 hover:border-amber-500 hover:bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-sm tracking-wide flex items-center justify-center gap-2 shadow-md transition cursor-pointer"
+                className="w-full py-4 px-6 rounded-2xl theme-surface border border-amber-500/40 hover:border-amber-500 hover:bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-sm tracking-wide flex items-center justify-center gap-2.5 shadow-md transition cursor-pointer active:scale-[0.98]"
               >
                 <Share2 className="w-4 h-4" />
                 <span>Share My Diagnosis</span>

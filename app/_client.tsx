@@ -401,12 +401,11 @@ export default function Home() {
       const totalBezelMargin = currentBezel * 2;
 
       if (width < 768) {
-        if (width < 440) {
-          // Keep playable board + outer bezel within mobile screen
-          setBoardWidth(Math.floor(width - 24 - totalBezelMargin));
-        } else {
-          setBoardWidth(360);
-        }
+        const availableHeight = height - 250 - totalBezelMargin;
+        const availableWidth = width - (width < 440 ? 20 : 32) - totalBezelMargin;
+        const maxMobileSize = width < 440 ? 330 : 360;
+        const calculatedSize = Math.floor(Math.min(availableWidth, availableHeight, maxMobileSize));
+        setBoardWidth(Math.max(260, calculatedSize));
       } else {
         // Desktop: board sized dynamically to fit viewport height with zero overflow
         const maxVertical = Math.max(300, height - 130 - totalBezelMargin);
