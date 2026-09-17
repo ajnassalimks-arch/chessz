@@ -1163,11 +1163,11 @@ export default function Home() {
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-[42px] font-extrabold tracking-tight theme-text-primary leading-[1.15] mb-2.5 font-display">
               Stop Throwing Won Games. <br className="hidden sm:inline" />
               <span className="bg-gradient-to-r from-[var(--accent-primary)] via-[var(--accent-primary)] to-sky-500 dark:to-sky-400 bg-clip-text text-transparent">
-                Find Your Real Chess Leaks.
+                Spot Your Tactical Blindspots.
               </span>
             </h1>
             <p className="theme-text-secondary text-xs sm:text-sm max-w-xl mx-auto leading-relaxed">
-              Grinding random puzzles won&apos;t stop you from hanging pieces at move 15. ChessZ tests how you actually think under pressure—your speed, confidence, and blindspots—then gives you drills to level up fast.
+              Grinding random puzzles won&apos;t stop you from hanging pieces at move 15. ChessZ tests how you calculate under pressure—your speed, hesitation, and tactical habits—then gives you drills to stop gifting free Elo.
             </p>
           </div>
 
@@ -1185,10 +1185,10 @@ export default function Home() {
                 </div>
 
                 <h3 className="text-base sm:text-lg font-extrabold theme-text-primary tracking-tight mb-1">
-                  Find Your Real Elo
+                  Find Your Tactical Baseline
                 </h3>
                 <p className="text-xs theme-text-secondary leading-relaxed mb-3">
-                  Play 5 quick benchmark positions. We test your speed, confidence, and tactical vision to uncover your true rating—from rookie to chess demon.
+                  Play 5 benchmark positions. We measure your speed, calculation discipline, and tactical vision to map your true playing tier.
                 </p>
 
                 {/* Telemetry Micro-Pills (High-Contrast Jewel Tones) */}
