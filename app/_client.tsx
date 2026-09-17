@@ -1305,7 +1305,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Compact Direct Practice Bar (Replaces the 4 Giant Cluttered Boxes) */}
+          {/* Direct Practice Lobby Selector (Clean & Uncluttered) */}
           <div className="w-full max-w-3xl mb-5">
             <div className="flex items-center gap-3 my-2 text-zinc-400">
               <div className="flex-1 h-px bg-[var(--border-subtle)]" />
@@ -1315,51 +1315,38 @@ export default function Home() {
               <div className="flex-1 h-px bg-[var(--border-subtle)]" />
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {LEVEL_OPTIONS.map((lvl) => (
-                <button
-                  key={lvl.id}
-                  onClick={() => handleDirectTierSelect(lvl)}
-                  className="flex items-center gap-2 p-2.5 rounded-xl theme-surface theme-surface-hover border border-[var(--border-subtle)] hover:border-[var(--border-focus)] hover:-translate-y-0.5 hover:shadow-md transition-all duration-150 group cursor-pointer text-left shadow-2xs active:scale-95"
-                >
-                  <span className="text-base select-none shrink-0 group-hover:scale-110 transition-transform">{lvl.pieceSymbol}</span>
-                  <div className="overflow-hidden">
-                    <span className="text-xs font-bold theme-text-primary block truncate">{lvl.title}</span>
-                    <span className="text-[10px] font-mono theme-text-muted block truncate">
-                      {lvl.chessComRange}
-                    </span>
-                  </div>
-                </button>
-              ))}
-            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+              {LEVEL_OPTIONS.map((lvl) => {
+                const tierAccent =
+                  lvl.id === "beginner"
+                    ? "hover:border-emerald-500/50 hover:bg-emerald-500/5"
+                    : lvl.id === "adv_beginner"
+                    ? "hover:border-sky-500/50 hover:bg-sky-500/5"
+                    : lvl.id === "intermediate"
+                    ? "hover:border-amber-500/50 hover:bg-amber-500/5"
+                    : "hover:border-purple-500/50 hover:bg-purple-500/5";
 
-            <button
-              onClick={() => {
-                if (!lichessUser && !(typeof window !== 'undefined' && localStorage.getItem('chessz_last_username'))) {
-                  setShowLichessModal(true);
-                } else {
-                  setShowWeaknessDashboard(true);
-                }
-              }}
-              className="w-full mt-2 flex items-center justify-between p-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/15 border border-rose-500/30 text-rose-300 hover:border-rose-500/50 hover:-translate-y-0.5 hover:shadow-md transition-all duration-150 group cursor-pointer text-left shadow-2xs active:scale-95"
-            >
-              <div className="flex items-center gap-2.5 overflow-hidden">
-                <span className="text-base select-none shrink-0 group-hover:scale-110 transition-transform">♟️</span>
-                <div>
-                  <span className="text-xs font-bold text-rose-300 block">
-                    {lichessUser ? "Train My Real Game Blunders" : "Drill Your Real Lost Games (My Blunders)"}
-                  </span>
-                  <span className="text-[10px] font-mono text-rose-400/80 block">
-                    {lichessUser
-                      ? `Curated from @${lichessUser.username}&apos;s games with engine refutations`
-                      : "Enter your Lichess ID to turn your actual blunders into custom drills"}
-                  </span>
-                </div>
-              </div>
-              <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded bg-rose-500/20 text-rose-300 border border-rose-500/40 shrink-0">
-                {lichessUser ? "Open Studio ➔" : "Connect Lichess ID ➔"}
-              </span>
-            </button>
+                return (
+                  <button
+                    key={lvl.id}
+                    onClick={() => handleDirectTierSelect(lvl)}
+                    className={`flex items-center gap-2.5 p-3 rounded-2xl theme-surface border border-[var(--border-subtle)] ${tierAccent} hover:-translate-y-0.5 hover:shadow-md transition-all duration-150 group cursor-pointer text-left shadow-2xs active:scale-95`}
+                  >
+                    <span className="text-xl select-none shrink-0 group-hover:scale-110 transition-transform">
+                      {lvl.pieceSymbol}
+                    </span>
+                    <div className="overflow-hidden">
+                      <span className="text-xs font-bold theme-text-primary block truncate group-hover:text-[var(--accent-primary)] transition-colors">
+                        {lvl.title}
+                      </span>
+                      <span className="text-[10px] font-mono theme-text-muted block truncate">
+                        {lvl.chessComRange}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* "Why ChessZ?" — The 3 Pillars Section */}
