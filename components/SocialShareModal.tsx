@@ -157,7 +157,7 @@ export function SocialShareModal({
 
     ctx.fillStyle = '#E2E8F0';
     ctx.font = 'bold 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    ctx.fillText('FIDE CONVERGENCE MODEL', 922, 92);
+    ctx.fillText('TOURNAMENT ELO MODEL', 922, 92);
     ctx.restore();
 
     // 5. Card Frame: Left Side (Rating & Level)
@@ -182,7 +182,7 @@ export function SocialShareModal({
 
     ctx.fillStyle = '#E2E8F0';
     ctx.font = 'bold 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    ctx.fillText('ESTIMATED FIDE ELO', 104, 305);
+    ctx.fillText('ESTIMATED TOURNAMENT ELO', 104, 305);
 
     // Level Title Banner
     ctx.fillStyle = 'rgba(244, 241, 234, 0.08)';
@@ -321,7 +321,7 @@ export function SocialShareModal({
     // 7. Outer Bottom Footer
     ctx.fillStyle = '#475569';
     ctx.font = '500 12px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-    ctx.fillText('ChessZ • FIDE Pedagogical Benchmark • Open-Source & Client-Side', 72, 636);
+    ctx.fillText('ChessZ • Tournament Benchmark Engine • 100% Free & Open-Source', 72, 636);
 
     // Convert to Image Data URL for high-res preview
     const dataUrl = canvas.toDataURL('image/png');

@@ -1621,7 +1621,7 @@ export default function DiagnosePage() {
               <h2 className="text-xl sm:text-2xl font-extrabold theme-text-primary tracking-tight">
                 {analyzingPhase === 0 && "Deconstructing Move Velocity..."}
                 {analyzingPhase === 1 && "Evaluating Conviction & Risk..."}
-                {analyzingPhase === 2 && "Converging FIDE Rating Model..."}
+                {analyzingPhase === 2 && "Calibrating Tournament Elo Model..."}
               </h2>
               <p className="text-xs theme-text-secondary mt-1">
                 Analyzing your calculation footprint and decision timing across all {attempts.length} benchmark positions.
@@ -1749,7 +1749,7 @@ export default function DiagnosePage() {
                     Calibration Dossier
                   </span>
                   <h2 className="text-xs sm:text-sm font-extrabold theme-text-primary font-display">
-                    FIDE Pedagogical Assessment Complete
+                    Tactical Diagnostic Assessment Complete
                   </h2>
                 </div>
               </div>
@@ -1917,7 +1917,7 @@ export default function DiagnosePage() {
                     </div>
                   ) : (
                     <p className="text-[11px] theme-text-secondary leading-relaxed">
-                      ChessZ calibrates with official FIDE and Lichess benchmarks so you get realistic tournament Elo, not inflated puzzle rating.
+                      ChessZ calibrates against realistic tournament and Lichess benchmarks so you get true playing strength, not inflated puzzle ratings.
                     </p>
                   )}
                 </div>

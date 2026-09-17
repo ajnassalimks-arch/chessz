@@ -1200,7 +1200,7 @@ export default function Home() {
                     🎯 Bluff or Sure?
                   </span>
                   <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/25 font-semibold">
-                    👑 Boss Level (2150+)
+                    👑 Adaptive Scale (600–2150+)
                   </span>
                 </div>
 
