@@ -1149,20 +1149,25 @@ export default function Home() {
       {!selectedLevel ? (
         <section className="flex-1 flex flex-col items-center justify-start max-w-md md:max-w-4xl mx-auto w-full pt-1 pb-6 md:pb-8">
           {/* Eyebrow Pill */}
-          <div className="inline-flex items-center gap-2 text-[11px] font-mono tracking-wide theme-pill px-3.5 py-1 rounded-full mb-3 shadow-xs">
+          <div className="inline-flex items-center gap-2 text-[11px] font-mono tracking-wide px-3.5 py-1 rounded-full mb-3 shadow-xs bg-[var(--surface-muted)]/80 backdrop-blur-sm border border-[var(--border-subtle)]">
             <Sparkles className="w-3.5 h-3.5 text-[var(--accent-primary)] animate-pulse" />
-            <span>✨ The vibe check for your chess rating</span>
+            <span className="theme-text-primary font-medium">✨ The vibe check for your chess rating</span>
           </div>
 
-          {/* Grandmaster Authority Headline */}
+          {/* Grandmaster Authority Headline with Atmospheric Lighting */}
           <div className="relative text-center mb-6 max-w-2xl mx-auto">
-            <div className="absolute -top-8 left-1/2 -translate-x-1/2 w-96 h-32 bg-[var(--accent-primary)]/10 rounded-full blur-3xl pointer-events-none -z-10" />
+            {/* Multi-Depth Ambient Glow */}
+            <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-80 sm:w-[480px] h-44 bg-[var(--accent-primary)]/15 rounded-full blur-3xl pointer-events-none -z-10" />
+            <div className="absolute top-8 left-1/3 -translate-x-1/2 w-48 h-28 bg-amber-500/10 dark:bg-amber-400/5 rounded-full blur-2xl pointer-events-none -z-10" />
+
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-[42px] font-extrabold tracking-tight theme-text-primary leading-[1.15] mb-2.5 font-display">
               Stop Throwing Won Games. <br className="hidden sm:inline" />
-              <span className="text-[var(--accent-primary)]">Find Your Real Chess Leaks.</span>
+              <span className="bg-gradient-to-r from-[var(--accent-primary)] via-[var(--accent-primary)] to-sky-500 dark:to-sky-400 bg-clip-text text-transparent">
+                Find Your Real Chess Leaks.
+              </span>
             </h1>
             <p className="theme-text-secondary text-xs sm:text-sm max-w-xl mx-auto leading-relaxed">
-              Grinding random puzzles won't stop you from hanging pieces at move 15. ChessZ tests how you actually think under pressure—your speed, confidence, and blindspots—then gives you drills to level up fast.
+              Grinding random puzzles won&apos;t stop you from hanging pieces at move 15. ChessZ tests how you actually think under pressure—your speed, confidence, and blindspots—then gives you drills to level up fast.
             </p>
           </div>
 
@@ -1172,7 +1177,7 @@ export default function Home() {
             <div className="relative rounded-2xl p-4 sm:p-5 theme-surface theme-surface-hover shadow-md border border-[var(--border-subtle)] hover:border-[var(--border-focus)] hover:-translate-y-1 hover:shadow-xl transition-all duration-200 flex flex-col justify-between group">
               <div>
                 <div className="flex items-center justify-between gap-2 mb-2">
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full theme-pill text-[10px] font-mono font-bold uppercase tracking-wider">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] border border-[var(--accent-primary)]/20 text-[10px] font-mono font-bold uppercase tracking-wider">
                     <Sparkles className="w-3 h-3 text-[var(--accent-primary)]" />
                     <span>5-Move Vibe Check</span>
                   </div>
@@ -1186,22 +1191,22 @@ export default function Home() {
                   Play 5 quick benchmark positions. We test your speed, confidence, and tactical vision to uncover your true rating—from rookie to chess demon.
                 </p>
 
-                {/* Telemetry Micro-Pills */}
+                {/* Telemetry Micro-Pills (High-Contrast Jewel Tones) */}
                 <div className="flex flex-wrap items-center gap-1.5 mb-3">
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-md theme-surface-subtle border text-sky-400 font-semibold">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-500/25 font-semibold">
                     ⚡ Speed Test
                   </span>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-md theme-surface-subtle border text-amber-400 font-semibold">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/25 font-semibold">
                     🎯 Bluff or Sure?
                   </span>
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-md theme-surface-subtle border text-purple-400 font-semibold">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/25 font-semibold">
                     👑 Boss Level (2150+)
                   </span>
                 </div>
 
                 {savedDiagnosisProfile && (
                   <div className="mb-3 p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-[11px] font-mono flex items-center justify-between">
-                    <span className="font-bold text-emerald-400">
+                    <span className="font-bold text-emerald-600 dark:text-emerald-400">
                       ✓ Diagnosed: {savedDiagnosisProfile.finalLevel} (~{savedDiagnosisProfile.finalElo} Elo)
                     </span>
                     <span className="text-[10px] theme-text-muted">
@@ -1239,11 +1244,11 @@ export default function Home() {
             <div className="relative rounded-2xl p-4 sm:p-5 theme-surface theme-surface-hover shadow-md border border-[var(--border-subtle)] hover:border-[var(--border-focus)] hover:-translate-y-1 hover:shadow-xl transition-all duration-200 flex flex-col justify-between group">
               <div>
                 <div className="flex items-center justify-between gap-2 mb-2">
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30 text-[10px] font-mono font-bold uppercase tracking-wider">
-                    <LichessIcon className="w-3 h-3 text-amber-400" />
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 text-[10px] font-mono font-bold uppercase tracking-wider">
+                    <LichessIcon className="w-3 h-3 text-amber-600 dark:text-amber-400" />
                     <span>Lichess Sync</span>
                   </div>
-                  <span className="text-[10px] font-mono text-emerald-400 font-semibold">1-Click Sync</span>
+                  <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold">1-Click Sync</span>
                 </div>
 
                 <h3 className="text-base sm:text-lg font-extrabold theme-text-primary tracking-tight mb-1">
@@ -1256,19 +1261,19 @@ export default function Home() {
                 {lichessUser ? (
                   <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 mb-3 flex items-center justify-between text-xs font-mono">
                     <div className="flex items-center gap-2">
-                      <LichessIcon className="w-4 h-4 text-amber-400" />
+                      <LichessIcon className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                       <span className="font-bold theme-text-primary">@{lichessUser.username}</span>
                     </div>
-                    <span className="text-[11px] px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 font-bold">
+                    <span className="text-[11px] px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-800 dark:text-amber-200 font-bold">
                       Rapid: {lichessUser.perfs?.rapid?.rating || lichessUser.perfs?.blitz?.rating || "Synced"}
                     </span>
                   </div>
                 ) : (
                   <div className="flex flex-wrap items-center gap-1.5 mb-3">
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-md theme-surface-subtle border theme-text-muted">
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-md theme-surface-subtle border border-[var(--border-subtle)] theme-text-secondary font-medium">
                       ✓ Syncs Your Live Rating
                     </span>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-md theme-surface-subtle border theme-text-muted">
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-md theme-surface-subtle border border-[var(--border-subtle)] theme-text-secondary font-medium">
                       ✓ Practice Real Games You Lost
                     </span>
                   </div>
@@ -1280,7 +1285,7 @@ export default function Home() {
                   <>
                     <button
                       onClick={() => setShowWeaknessDashboard(true)}
-                      className="w-full sm:w-1/2 py-2.5 px-3 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 border border-rose-500/30 font-bold text-xs tracking-wide transition cursor-pointer flex items-center justify-center gap-1.5 active:scale-95"
+                      className="w-full sm:w-1/2 py-2.5 px-3 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-600 dark:text-rose-400 border border-rose-500/30 font-bold text-xs tracking-wide transition cursor-pointer flex items-center justify-center gap-1.5 active:scale-95"
                     >
                       <Target className="w-3.5 h-3.5" />
                       <span>Practice My Blunders</span>
@@ -1295,9 +1300,9 @@ export default function Home() {
                 ) : (
                   <button
                     onClick={() => setShowLichessModal(true)}
-                    className="w-full py-2.5 px-4 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/35 font-bold text-xs tracking-wide flex items-center justify-center gap-1.5 shadow-md hover:shadow-lg transition cursor-pointer active:scale-[0.98]"
+                    className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white font-bold text-xs tracking-wide flex items-center justify-center gap-1.5 shadow-md hover:shadow-lg active:scale-[0.98] transition cursor-pointer"
                   >
-                    <LichessIcon className="w-3.5 h-3.5 text-amber-400" />
+                    <LichessIcon className="w-3.5 h-3.5 text-amber-100" />
                     <span>Connect Lichess Account</span>
                   </button>
                 )}
@@ -1305,7 +1310,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Direct Practice Lobby Selector (Clean & Uncluttered) */}
+          {/* Direct Practice Lobby Selector (Prestige Rank Accents) */}
           <div className="w-full max-w-3xl mb-5">
             <div className="flex items-center gap-3 my-2 text-zinc-400">
               <div className="flex-1 h-px bg-[var(--border-subtle)]" />
@@ -1317,29 +1322,48 @@ export default function Home() {
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               {LEVEL_OPTIONS.map((lvl) => {
-                const tierAccent =
+                const tierStyles =
                   lvl.id === "beginner"
-                    ? "hover:border-emerald-500/50 hover:bg-emerald-500/5"
+                    ? {
+                        hoverBorder: "hover:border-emerald-500/50 hover:bg-emerald-500/5",
+                        iconBg: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
+                        dot: "bg-emerald-500",
+                      }
                     : lvl.id === "adv_beginner"
-                    ? "hover:border-sky-500/50 hover:bg-sky-500/5"
+                    ? {
+                        hoverBorder: "hover:border-sky-500/50 hover:bg-sky-500/5",
+                        iconBg: "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20",
+                        dot: "bg-sky-500",
+                      }
                     : lvl.id === "intermediate"
-                    ? "hover:border-amber-500/50 hover:bg-amber-500/5"
-                    : "hover:border-purple-500/50 hover:bg-purple-500/5";
+                    ? {
+                        hoverBorder: "hover:border-amber-500/50 hover:bg-amber-500/5",
+                        iconBg: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+                        dot: "bg-amber-500",
+                      }
+                    : {
+                        hoverBorder: "hover:border-purple-500/50 hover:bg-purple-500/5",
+                        iconBg: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20",
+                        dot: "bg-purple-500",
+                      };
 
                 return (
                   <button
                     key={lvl.id}
                     onClick={() => handleDirectTierSelect(lvl)}
-                    className={`flex items-center gap-2.5 p-3 rounded-2xl theme-surface border border-[var(--border-subtle)] ${tierAccent} hover:-translate-y-0.5 hover:shadow-md transition-all duration-150 group cursor-pointer text-left shadow-2xs active:scale-95`}
+                    className={`flex items-center gap-2 p-2 sm:p-2.5 rounded-2xl theme-surface border border-[var(--border-subtle)] ${tierStyles.hoverBorder} hover:-translate-y-0.5 hover:shadow-md transition-all duration-150 group cursor-pointer text-left shadow-2xs active:scale-95`}
                   >
-                    <span className="text-xl select-none shrink-0 group-hover:scale-110 transition-transform">
+                    <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl ${tierStyles.iconBg} border flex items-center justify-center text-base sm:text-lg select-none shrink-0 group-hover:scale-105 transition-transform`}>
                       {lvl.pieceSymbol}
-                    </span>
-                    <div className="overflow-hidden">
-                      <span className="text-xs font-bold theme-text-primary block truncate group-hover:text-[var(--accent-primary)] transition-colors">
-                        {lvl.title}
-                      </span>
-                      <span className="text-[10px] font-mono theme-text-muted block truncate">
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1">
+                        <span className={`w-1.5 h-1.5 rounded-full ${tierStyles.dot} shrink-0`} />
+                        <span className="text-[11px] sm:text-xs font-bold theme-text-primary block truncate group-hover:text-[var(--accent-primary)] transition-colors">
+                          {lvl.title}
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-mono theme-text-muted block truncate pl-2.5">
                         {lvl.chessComRange}
                       </span>
                     </div>
@@ -1359,14 +1383,14 @@ export default function Home() {
                 Endless random puzzles are an L.
               </h2>
               <p className="text-xs theme-text-secondary max-w-md mx-auto mt-1 leading-relaxed">
-                Memorizing 12-move queen sacrifices won't help when you hang rooks in rapid. Here's how ChessZ actually helps you climb:
+                Memorizing 12-move queen sacrifices won&apos;t help when you hang rooks in rapid. Here&apos;s how ChessZ actually helps you climb:
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               {/* Pillar 1 */}
               <div className="p-3.5 rounded-2xl theme-surface-subtle border border-[var(--border-subtle)] hover:-translate-y-1 hover:shadow-md transition-all duration-200">
-                <div className="w-8 h-8 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center mb-2.5">
+                <div className="w-8 h-8 rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 flex items-center justify-center mb-2.5">
                   <Zap className="w-4 h-4" />
                 </div>
                 <h3 className="text-xs font-bold theme-text-primary uppercase tracking-wide mb-1 font-display">
@@ -1379,39 +1403,39 @@ export default function Home() {
 
               {/* Pillar 2 */}
               <div className="p-3.5 rounded-2xl theme-surface-subtle border border-[var(--border-subtle)] hover:-translate-y-1 hover:shadow-md transition-all duration-200">
-                <div className="w-8 h-8 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center mb-2.5">
+                <div className="w-8 h-8 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 flex items-center justify-center mb-2.5">
                   <Swords className="w-4 h-4" />
                 </div>
                 <h3 className="text-xs font-bold theme-text-primary uppercase tracking-wide mb-1 font-display">
                   2. Computer Claps Back
                 </h3>
                 <p className="text-[11px] theme-text-secondary leading-relaxed">
-                  Ever wonder "why can't I just play this?" The engine immediately plays the winning counter-punch right on your board.
+                  Ever wonder &quot;why can&apos;t I just play this?&quot; The engine immediately plays the winning counter-punch right on your board.
                 </p>
               </div>
 
               {/* Pillar 3 */}
               <div className="p-3.5 rounded-2xl theme-surface-subtle border border-[var(--border-subtle)] hover:-translate-y-1 hover:shadow-md transition-all duration-200">
-                <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-2.5">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center mb-2.5">
                   <Award className="w-4 h-4" />
                 </div>
                 <h3 className="text-xs font-bold theme-text-primary uppercase tracking-wide mb-1 font-display">
                   3. Cheat Codes That Stick
                 </h3>
                 <p className="text-[11px] theme-text-secondary leading-relaxed">
-                  No boring 500-page opening manuals. Just sticky rules like *The 2-Second Bodyguard Rule* to stop gifting free elo.
+                  No boring 500-page opening manuals. Just sticky rules like <em>The 2-Second Bodyguard Rule</em> to stop gifting free elo.
                 </p>
               </div>
             </div>
           </div>
 
           {/* Clear Human-Friendly Trust Markers */}
-          <div className="mt-2 flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-[11px] theme-text-secondary theme-surface px-4 py-1.5 rounded-full border shadow-2xs font-mono">
-            <span className="font-semibold text-emerald-400">✓ 100% Free Forever</span>
+          <div className="mt-2 flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-[11px] theme-text-secondary bg-[var(--surface-muted)]/80 backdrop-blur-sm px-4 py-1.5 rounded-full border border-[var(--border-subtle)] shadow-2xs font-mono">
+            <span className="font-semibold text-emerald-600 dark:text-emerald-400">✓ 100% Free Forever</span>
             <span className="hidden sm:inline theme-text-muted">•</span>
             <span className="font-semibold text-[var(--accent-primary)]">✓ Built-In Engine</span>
             <span className="hidden sm:inline theme-text-muted">•</span>
-            <span className="font-semibold text-amber-400">✓ Lichess Connected</span>
+            <span className="font-semibold text-amber-600 dark:text-amber-400">✓ Lichess Connected</span>
             <span className="hidden sm:inline theme-text-muted">•</span>
             <span className="theme-text-muted">No Ads • Zero Paywalls</span>
           </div>
