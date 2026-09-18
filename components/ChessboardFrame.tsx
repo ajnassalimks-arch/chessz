@@ -36,6 +36,7 @@ export const ChessboardFrame: React.FC<ChessboardFrameProps> = ({
       style={{
         width: totalSize,
         height: totalSize,
+        maxWidth: "100%",
         backgroundColor: "var(--board-bezel-bg, #121722)",
         borderColor: "var(--board-bezel-border, rgba(255,255,255,0.1))",
         boxShadow: "0 20px 40px -10px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.15)",

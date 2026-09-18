@@ -72,7 +72,9 @@ function TermsContent() {
   const [activeCandidate, setActiveCandidate] = useState<CandidateMove | null>(null);
   const [currentStepIndex, setCurrentStepIndex] = useState<number>(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState<boolean>(false);
-  const [boardWidth, setBoardWidth] = useState<number>(440);
+  const boardContainerRef = useRef<HTMLDivElement>(null);
+  const [boardWidth, setBoardWidth] = useState<number>(380);
+  const [bezelSize, setBezelSize] = useState<number>(18);
 
   // Settings & Theme state
   const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
@@ -112,24 +114,46 @@ function TermsContent() {
     setIsAutoPlaying(false);
   }, [currentTerm]);
 
-  // Responsive board sizing
+  // Responsive container-aware board sizing
   useEffect(() => {
-    const handleResize = () => {
-      const screenWidth = window.innerWidth;
-      if (screenWidth < 640) {
-        // Mobile screen
-        setBoardWidth(Math.min(screenWidth - 48, 360));
-      } else if (screenWidth < 1024) {
-        // Tablet screen
-        setBoardWidth(400);
-      } else {
-        // Desktop
-        setBoardWidth(450);
-      }
+    const el = boardContainerRef.current;
+    if (!el) return;
+
+    const updateDimensions = () => {
+      const containerWidth = el.clientWidth;
+      if (!containerWidth) return;
+
+      const bezel = containerWidth < 380 ? 14 : containerWidth < 520 ? 16 : 18;
+      setBezelSize(bezel);
+
+      // Card has padding (p-2 sm:p-3 = 16px to 24px) plus bezel (2 * bezel) + border clearance
+      const padding = containerWidth < 640 ? 16 : 24;
+      const totalMargin = padding + bezel * 2 + 8;
+      const availableSize = Math.floor(containerWidth - totalMargin);
+
+      // Clamp board size between 220px and 450px
+      const clamped = Math.max(220, Math.min(availableSize, 450));
+      setBoardWidth(clamped);
     };
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+
+    updateDimensions();
+
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver(() => {
+        updateDimensions();
+      });
+      resizeObserver.observe(el);
+    }
+
+    window.addEventListener("resize", updateDimensions);
+
+    return () => {
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
+      window.removeEventListener("resize", updateDimensions);
+    };
   }, []);
 
   // Auto-play stepper effect
@@ -366,10 +390,10 @@ function TermsContent() {
         </div>
       </header>
 
-      {/* Main Container: 2-Column Responsive Layout */}
-      <div className="w-full max-w-6xl mx-auto flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
-        {/* Left Column: Terms Catalog & Filters (lg:col-span-4) */}
-        <aside className="lg:col-span-4 w-full flex flex-col gap-3 rounded-3xl theme-surface border border-[var(--border-subtle)] p-3 sm:p-4 shadow-sm">
+      {/* Main Container: Responsive Layout with Fixed-Width Catalog Sidebar */}
+      <div className="w-full max-w-[1400px] mx-auto flex-1 flex flex-col lg:flex-row gap-4 items-start">
+        {/* Left Column: Terms Catalog & Filters */}
+        <aside className="w-full lg:w-72 xl:w-80 shrink-0 flex flex-col gap-3 rounded-3xl theme-surface border border-[var(--border-subtle)] p-3 sm:p-4 shadow-sm">
           {/* Section Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -494,8 +518,8 @@ function TermsContent() {
           </div>
         </aside>
 
-        {/* Right Column: Interactive Board & Coach Brainstorm Deck (lg:col-span-8) */}
-        <div className="lg:col-span-8 w-full flex flex-col gap-3">
+        {/* Right Column: Interactive Board & Coach Brainstorm Deck */}
+        <div className="flex-1 w-full min-w-0 flex flex-col gap-3">
           {/* Term Header & Real Historical Match Attribution */}
           <div className="p-3.5 sm:p-4 rounded-3xl theme-surface border border-[var(--border-subtle)] shadow-xs">
             <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
@@ -548,13 +572,16 @@ function TermsContent() {
           </div>
 
           {/* Interactive Arena: Board on Left/Top, Coach Brainstorm on Right/Bottom */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start">
-            {/* Chessboard (md:col-span-6 or md:col-span-7) */}
-            <div className="md:col-span-6 flex flex-col items-center justify-center p-2 sm:p-3 rounded-3xl theme-surface border border-[var(--border-subtle)] shadow-xs">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+            {/* Chessboard */}
+            <div
+              ref={boardContainerRef}
+              className="lg:col-span-6 xl:col-span-7 w-full overflow-hidden flex flex-col items-center justify-center p-2 sm:p-3 rounded-3xl theme-surface border border-[var(--border-subtle)] shadow-xs"
+            >
               <ChessboardFrame
                 boardOrientation={boardOrientation}
                 boardSize={boardWidth}
-                bezelSize={20}
+                bezelSize={bezelSize}
               >
                 <Chessboard
                   options={{
@@ -597,8 +624,8 @@ function TermsContent() {
               </div>
             </div>
 
-            {/* Coach Brainstorm & Analysis Deck (md:col-span-6) */}
-            <div className="md:col-span-6 flex flex-col gap-2.5">
+            {/* Coach Brainstorm & Analysis Deck */}
+            <div className="lg:col-span-6 xl:col-span-5 w-full min-w-0 flex flex-col gap-2.5">
               {/* Deck Tabs */}
               <div className="flex items-center p-1 rounded-2xl bg-[var(--surface-muted)] border border-[var(--border-subtle)] text-xs font-mono">
                 <button
