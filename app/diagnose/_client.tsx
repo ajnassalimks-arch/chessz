@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Chess } from "chess.js";
 import { Chessboard, defaultArrowOptions } from "react-chessboard";
 import { ChessboardFrame } from "@/components/ChessboardFrame";
-import { AnnotationPalette, AnnotationColor, ANNOTATION_COLORS } from "@/components/AnnotationPalette";
+import { AnnotationColor, ANNOTATION_COLORS } from "@/components/AnnotationPalette";
 import { sounds } from "@/lib/sounds";
 import { THEME_BOARD_COLORS } from "@/components/themeTokens";
 import { useTheme } from "@/components/ThemeProvider";
@@ -1380,17 +1380,6 @@ export default function DiagnosePage() {
               </div>
             )}
 
-            {/* Square marking, reachable by tap as well as by modifier. */}
-            {puzzleStatus === "solving" && game && (
-              <div className="w-full mt-2 flex justify-center overflow-x-auto">
-                <AnnotationPalette
-                  active={activeAnnotationColor}
-                  onSelect={setActiveAnnotationColor}
-                  onClear={() => setAnnotatedSquares({})}
-                  hasMarks={Object.keys(annotatedSquares).length > 0}
-                />
-              </div>
-            )}
           </div>
 
           {/* Right Column: Dynamic Diagnosis Console */}

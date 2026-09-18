@@ -19,6 +19,7 @@ import { CriticalMoment } from '@/lib/chessMetrics/types';
 import { useWeaknessScan } from '@/lib/useWeaknessScan';
 import { isMobileOrLowEndDevice, MOBILE_GAME_BATCH_CAP } from '@/lib/engine/browserStockfish';
 import { TransparentProgressBar } from '@/components/TransparentProgressBar';
+import { MiniBoard } from '@/components/MiniBoard';
 
 /**
  * Clocks parsed from PGN can carry tenths (e.g. [%clk 0:02:45.3] -> 165.3),
@@ -109,11 +110,15 @@ function WeaknessStudioContent() {
     };
   }, [aggregate]);
 
+  // Moments cached before FEN retention may not carry the position; recover it
+  // from the parent game's move list when that happens. Shared by the row
+  // thumbnails and by the "Fix it" handoff below.
+  const resolveFen = (moment: CriticalMoment): string | undefined =>
+    moment.fen || games.find((g) => g.gameId === moment.gameId)?.moves?.find((pm) => pm.ply === moment.ply)?.fen;
+
   const handleTrainInArena = (moment: CriticalMoment) => {
     const parentGame = games.find((g) => g.gameId === moment.gameId);
-    const moveInGame = parentGame?.moves?.find((pm) => pm.ply === moment.ply);
-    // Moments cached before FEN retention may not carry the position.
-    const startingFen = moment.fen || moveInGame?.fen;
+    const startingFen = resolveFen(moment);
 
     let setupMoves = moment.setupMoves || [];
     if (setupMoves.length === 0 && parentGame?.moves) {
@@ -401,6 +406,18 @@ function WeaknessStudioContent() {
                     <span className="text-lg font-black theme-text-muted font-mono w-7 shrink-0 tabular-nums">
                       {idx + 1}
                     </span>
+
+                    {(() => {
+                      const fen = resolveFen(m);
+                      return fen ? (
+                        <MiniBoard
+                          id={`queue_${m.gameId}_${m.ply}`}
+                          fen={fen}
+                          orientation={m.color}
+                          size={56}
+                        />
+                      ) : null;
+                    })()}
 
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
