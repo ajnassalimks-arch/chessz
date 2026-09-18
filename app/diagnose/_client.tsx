@@ -843,9 +843,11 @@ export default function DiagnosePage() {
     if (!game) return;
     try {
       const g = new Chess(activePuzzle.initialFen);
+      // No boardKey bump: this is a real position change (back to the start),
+      // and remounting the board would throw away the position it should be
+      // animating from -- same bug fixed in the Arena's lead-up stepper.
       setGame(g);
       setSolutionStepIndex(0);
-      setBoardKey((prev) => prev + 1);
       setLastMove(null);
       setPuzzleStatus("solving");
       setHintSquare(null);
@@ -880,8 +882,9 @@ export default function DiagnosePage() {
           solGame.move({ from: opp.from, to: opp.to, promotion: opp.promotion || "q" });
         }
       }
+      // No boardKey bump: same as handleTryAgain, remounting would prevent the
+      // glide from the current position to the solution's end position.
       setGame(solGame);
-      setBoardKey((prev) => prev + 1);
       const lastStep = activePuzzle.solutionMoves[activePuzzle.solutionMoves.length - 1];
       if (lastStep) setLastMove({ from: lastStep.from, to: lastStep.to });
       setPuzzleStatus("success");
