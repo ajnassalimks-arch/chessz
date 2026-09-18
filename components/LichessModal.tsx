@@ -183,7 +183,7 @@ export function LichessModal({
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-[var(--border-subtle)] shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-linear-to-br from-amber-500/20 to-orange-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400">
+            <div className="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-500/40 flex items-center justify-center text-amber-800 dark:text-amber-400">
               <LichessIcon className="w-5 h-5" />
             </div>
             <div>
@@ -282,7 +282,7 @@ export function LichessModal({
 
                   {/* Blitz */}
                   <div className="p-3 rounded-xl theme-surface border border-[var(--border-subtle)] flex flex-col items-center justify-center text-center">
-                    <div className="flex items-center gap-1 text-xs font-medium text-amber-400 mb-1">
+                    <div className="flex items-center gap-1 text-xs font-semibold text-amber-800 dark:text-amber-400 mb-1">
                       <Zap className="w-3.5 h-3.5" />
                       <span>Blitz</span>
                     </div>
@@ -347,7 +347,7 @@ export function LichessModal({
                     </div>
                     <div className="p-2 rounded-lg theme-surface border border-[var(--border-subtle)]">
                       <div className="text-[10px] font-mono theme-text-secondary">Variance Delta</div>
-                      <div className={`text-base font-bold font-mono ${Math.abs(ratingDelta!) <= 60 ? 'text-emerald-400' : 'text-amber-400'}`}>
+                      <div className={`text-base font-bold font-mono ${Math.abs(ratingDelta!) <= 60 ? 'text-emerald-400' : 'text-amber-800 dark:text-amber-400'}`}>
                         {ratingDelta! > 0 ? `+${ratingDelta}` : ratingDelta} Elo
                       </div>
                     </div>
@@ -468,9 +468,9 @@ export function LichessModal({
 
               {/* Re-authenticate with OAuth prompt if only public preview */}
               {!isAuthenticated && (
-                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-between">
+                <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-500/35 flex items-center justify-between">
                   <div className="text-xs theme-text-secondary">
-                    <span className="font-semibold text-amber-400 block">Upgrade to Official OAuth</span>
+                    <span className="font-bold text-amber-950 dark:text-amber-300 block mb-0.5">Upgrade to Official OAuth</span>
                     Connect via 1-Click Lichess authorization to verify ownership.
                   </div>
                   <button

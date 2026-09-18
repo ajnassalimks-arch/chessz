@@ -1186,20 +1186,20 @@ export default function Home() {
           {/* Lichess Account / Sync Button */}
           <button
             onClick={() => setShowLichessModal(true)}
-            className={`flex items-center gap-1.5 text-[11px] font-mono font-semibold px-2.5 py-1.5 rounded-xl cursor-pointer transition border ${
+            className={`flex items-center gap-2 text-[11px] font-mono font-semibold px-3 py-1.5 rounded-xl cursor-pointer transition-all border ${
               lichessUser
-                ? "bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/15"
+                ? "bg-amber-100/90 dark:bg-amber-950/40 border-amber-300/90 dark:border-amber-500/40 text-amber-950 dark:text-amber-200 hover:bg-amber-200/80 dark:hover:bg-amber-900/50 shadow-2xs"
                 : "theme-surface theme-surface-hover"
             }`}
             title={lichessUser ? `Lichess: @${lichessUser.username}` : "Connect Lichess Account"}
             aria-label="Lichess account connection"
           >
-            <LichessIcon className="w-3.5 h-3.5 text-amber-400" />
-            <span className="hidden sm:inline">
+            <LichessIcon className="w-3.5 h-3.5 text-amber-800 dark:text-amber-400" />
+            <span className="hidden sm:inline font-bold">
               {lichessUser ? lichessUser.username : "Connect Lichess"}
             </span>
             {lichessUser?.perfs?.rapid?.rating && (
-              <span className="hidden md:inline px-1 py-0.2 rounded bg-amber-500/20 text-[10px] text-amber-300 font-bold">
+              <span className="hidden md:inline px-1.5 py-0.5 rounded-md bg-amber-200/90 dark:bg-amber-500/30 text-[10px] text-amber-950 dark:text-amber-100 font-extrabold border border-amber-300 dark:border-amber-500/40">
                 {lichessUser.perfs.rapid.rating}
               </span>
             )}
@@ -1265,7 +1265,7 @@ export default function Home() {
 
       {/* Screen 1: Redesigned High-Authority Landing Screen */}
       {!selectedLevel ? (
-        <section className="flex-1 flex flex-col items-center justify-start max-w-md md:max-w-4xl mx-auto w-full pt-1 pb-6 md:pb-8">
+        <section className="flex-1 flex flex-col items-center justify-start max-w-md md:max-w-4xl mx-auto w-full pt-3 sm:pt-6 md:pt-8 pb-8 md:pb-12">
           {/* Eyebrow Pill */}
           <div className="inline-flex items-center gap-2 text-[11px] font-mono tracking-wide px-3.5 py-1 rounded-full mb-3 shadow-xs bg-[var(--surface-muted)]/80 backdrop-blur-sm border border-[var(--border-subtle)]">
             <Sparkles className="w-3.5 h-3.5 text-[var(--accent-primary)] animate-pulse" />
@@ -1273,7 +1273,7 @@ export default function Home() {
           </div>
 
           {/* Grandmaster Authority Headline with Atmospheric Lighting */}
-          <div className="relative text-center mb-6 max-w-2xl mx-auto">
+          <div className="relative text-center mb-6 sm:mb-8 max-w-2xl mx-auto">
             {/* Multi-Depth Ambient Glow */}
             <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-80 sm:w-[480px] h-44 bg-[var(--accent-primary)]/15 rounded-full blur-3xl pointer-events-none -z-10" />
             <div className="absolute top-8 left-1/3 -translate-x-1/2 w-48 h-28 bg-amber-500/10 dark:bg-amber-400/5 rounded-full blur-2xl pointer-events-none -z-10" />
@@ -1290,11 +1290,11 @@ export default function Home() {
           </div>
 
           {/* Dual Bento Action Cards */}
-          <div className="w-full max-w-3xl grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+          <div className="w-full max-w-3xl grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 mb-5">
             {/* Card 1: 5-to-6 Trial Level Diagnostic */}
-            <div className="relative rounded-2xl p-4 sm:p-5 theme-surface theme-surface-hover shadow-md border border-[var(--border-subtle)] hover:border-[var(--border-focus)] hover:-translate-y-1 hover:shadow-xl transition-all duration-200 flex flex-col justify-between group">
+            <div className="relative rounded-2xl p-5 sm:p-6 theme-surface theme-surface-hover shadow-md border border-[var(--border-subtle)] hover:border-[var(--border-focus)] hover:-translate-y-1 hover:shadow-xl transition-all duration-200 flex flex-col justify-between group">
               <div>
-                <div className="flex items-center justify-between gap-2 mb-2">
+                <div className="flex items-center justify-between gap-2 mb-3">
                   <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] border border-[var(--accent-primary)]/20 text-[10px] font-mono font-bold uppercase tracking-wider">
                     <Sparkles className="w-3 h-3 text-[var(--accent-primary)]" />
                     <span>5-Move Vibe Check</span>
@@ -1302,15 +1302,15 @@ export default function Home() {
                   <span className="text-[10px] font-mono theme-text-muted">~2.5 Mins</span>
                 </div>
 
-                <h3 className="text-base sm:text-lg font-extrabold theme-text-primary tracking-tight mb-1">
+                <h3 className="text-base sm:text-lg font-extrabold theme-text-primary tracking-tight mb-1.5 font-display">
                   Find Your Tactical Baseline
                 </h3>
-                <p className="text-xs theme-text-secondary leading-relaxed mb-3">
+                <p className="text-xs theme-text-secondary leading-relaxed mb-3.5">
                   Play 5 benchmark positions. We measure your speed, calculation discipline, and tactical vision to map your true playing tier.
                 </p>
 
                 {/* Telemetry Micro-Pills (High-Contrast Jewel Tones) */}
-                <div className="flex flex-wrap items-center gap-1.5 mb-3">
+                <div className="flex flex-wrap items-center gap-1.5 mb-3.5">
                   <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-500/25 font-semibold">
                     ⚡ Speed Test
                   </span>
@@ -1323,7 +1323,7 @@ export default function Home() {
                 </div>
 
                 {savedDiagnosisProfile && (
-                  <div className="mb-3 p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-[11px] font-mono flex items-center justify-between">
+                  <div className="mb-4 p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-[11px] font-mono flex items-center justify-between">
                     <span className="font-bold text-emerald-600 dark:text-emerald-400">
                       ✓ Diagnosed: {savedDiagnosisProfile.finalLevel} (~{savedDiagnosisProfile.finalElo} Elo)
                     </span>
@@ -1359,40 +1359,55 @@ export default function Home() {
             </div>
 
             {/* Card 2: Lichess Account & Blunder Studio */}
-            <div className="relative rounded-2xl p-4 sm:p-5 theme-surface theme-surface-hover shadow-md border border-[var(--border-subtle)] hover:border-[var(--border-focus)] hover:-translate-y-1 hover:shadow-xl transition-all duration-200 flex flex-col justify-between group">
+            <div className="relative rounded-2xl p-5 sm:p-6 theme-surface theme-surface-hover shadow-md border border-[var(--border-subtle)] hover:border-[var(--border-focus)] hover:-translate-y-1 hover:shadow-xl transition-all duration-200 flex flex-col justify-between group">
               <div>
-                <div className="flex items-center justify-between gap-2 mb-2">
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 text-[10px] font-mono font-bold uppercase tracking-wider">
-                    <LichessIcon className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950/50 text-amber-900 dark:text-amber-200 border border-amber-300 dark:border-amber-500/40 text-[10px] font-mono font-bold uppercase tracking-wider">
+                    <LichessIcon className="w-3.5 h-3.5 text-amber-800 dark:text-amber-400" />
                     <span>Lichess Sync</span>
                   </div>
                   <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold">1-Click Sync</span>
                 </div>
 
-                <h3 className="text-base sm:text-lg font-extrabold theme-text-primary tracking-tight mb-1">
+                <h3 className="text-base sm:text-lg font-extrabold theme-text-primary tracking-tight mb-1.5 font-display">
                   Turn Your Blunders Into XP
                 </h3>
-                <p className="text-xs theme-text-secondary leading-relaxed mb-3">
+                <p className="text-xs theme-text-secondary leading-relaxed mb-3.5">
                   Connect Lichess to automatically scan the real games where you threw, and turn your exact mistakes into custom practice puzzles.
                 </p>
 
+                {/* Telemetry Micro-Pills */}
+                <div className="flex flex-wrap items-center gap-1.5 mb-3.5">
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-900 dark:text-amber-200 border border-amber-500/25 font-semibold">
+                    ♟️ 50-Game Scanner
+                  </span>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-700 dark:text-rose-300 border border-rose-500/25 font-semibold">
+                    💥 Blunder Extraction
+                  </span>
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25 font-semibold">
+                    🔄 Live Rating Sync
+                  </span>
+                </div>
+
                 {lichessUser ? (
-                  <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 mb-3 flex items-center justify-between text-xs font-mono">
-                    <div className="flex items-center gap-2">
-                      <LichessIcon className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                      <span className="font-bold theme-text-primary">@{lichessUser.username}</span>
+                  <div className="p-3 rounded-xl bg-amber-100/70 dark:bg-amber-950/40 border border-amber-300/90 dark:border-amber-500/35 mb-4 flex items-center justify-between text-xs font-mono shadow-2xs">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-6 h-6 rounded-lg bg-amber-200/90 dark:bg-amber-900/60 border border-amber-300 dark:border-amber-500/40 flex items-center justify-center shrink-0">
+                        <LichessIcon className="w-3.5 h-3.5 text-amber-900 dark:text-amber-300" />
+                      </div>
+                      <span className="font-extrabold text-neutral-900 dark:text-neutral-100">@{lichessUser.username}</span>
                     </div>
-                    <span className="text-[11px] px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-800 dark:text-amber-200 font-bold">
+                    <span className="text-[11px] px-2.5 py-1 rounded-md bg-amber-200/90 dark:bg-amber-500/30 text-amber-950 dark:text-amber-100 font-extrabold border border-amber-300 dark:border-amber-500/40">
                       Rapid: {lichessUser.perfs?.rapid?.rating || lichessUser.perfs?.blitz?.rating || "Synced"}
                     </span>
                   </div>
                 ) : (
-                  <div className="flex flex-wrap items-center gap-1.5 mb-3">
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-md theme-surface-subtle border border-[var(--border-subtle)] theme-text-secondary font-medium">
-                      ✓ Syncs Your Live Rating
+                  <div className="mb-4 p-2.5 rounded-xl bg-[var(--surface-muted)] border border-[var(--border-subtle)] text-[11px] font-mono flex items-center justify-between">
+                    <span className="font-medium theme-text-secondary">
+                      Scan your latest 50 rated games
                     </span>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-md theme-surface-subtle border border-[var(--border-subtle)] theme-text-secondary font-medium">
-                      ✓ Practice Real Games You Lost
+                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">
+                      Ready to Sync
                     </span>
                   </div>
                 )}
@@ -1403,7 +1418,7 @@ export default function Home() {
                   <>
                     <button
                       onClick={() => setShowWeaknessDashboard(true)}
-                      className="w-full sm:w-1/2 py-2.5 px-3 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-600 dark:text-rose-400 border border-rose-500/30 font-bold text-xs tracking-wide transition cursor-pointer flex items-center justify-center gap-1.5 active:scale-95"
+                      className="w-full sm:w-1/2 py-2.5 px-3 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-700 dark:text-rose-300 border border-rose-500/30 font-bold text-xs tracking-wide transition cursor-pointer flex items-center justify-center gap-1.5 active:scale-95"
                     >
                       <Target className="w-3.5 h-3.5" />
                       <span>Practice My Blunders</span>

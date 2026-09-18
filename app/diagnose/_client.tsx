@@ -1389,20 +1389,20 @@ export default function DiagnosePage() {
           {/* Lichess Account / Sync Button */}
           <button
             onClick={() => setShowLichessModal(true)}
-            className={`flex items-center gap-1.5 text-[11px] font-mono font-semibold px-2.5 py-1.5 rounded-xl cursor-pointer transition border ${
+            className={`flex items-center gap-2 text-[11px] font-mono font-semibold px-3 py-1.5 rounded-xl cursor-pointer transition-all border ${
               lichessUser
-                ? "bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/15"
+                ? "bg-amber-100/90 dark:bg-amber-950/40 border-amber-300/90 dark:border-amber-500/40 text-amber-950 dark:text-amber-200 hover:bg-amber-200/80 dark:hover:bg-amber-900/50 shadow-2xs"
                 : "theme-surface hover:theme-surface-subtle"
             }`}
             title={lichessUser ? `Lichess: @${lichessUser.username}` : "Connect Lichess Account"}
             aria-label="Lichess account connection"
           >
-            <LichessIcon className="w-3.5 h-3.5 text-amber-400" />
-            <span className="hidden sm:inline">
+            <LichessIcon className="w-3.5 h-3.5 text-amber-800 dark:text-amber-400" />
+            <span className="hidden sm:inline font-bold">
               {lichessUser ? lichessUser.username : "Connect Lichess"}
             </span>
             {lichessUser?.perfs?.rapid?.rating && (
-              <span className="hidden md:inline px-1 py-0.2 rounded bg-amber-500/20 text-[10px] text-amber-300 font-bold">
+              <span className="hidden md:inline px-1.5 py-0.5 rounded-md bg-amber-200/90 dark:bg-amber-500/30 text-[10px] text-amber-950 dark:text-amber-100 font-extrabold border border-amber-300 dark:border-amber-500/40">
                 {lichessUser.perfs.rapid.rating}
               </span>
             )}
@@ -1921,7 +1921,7 @@ export default function DiagnosePage() {
                 <div className="theme-surface-subtle rounded-3xl p-4 sm:p-5 border border-[var(--border-subtle)] shadow-sm">
                   <div className="flex items-center justify-between gap-2 mb-2.5">
                     <div className="flex items-center gap-2">
-                      <LichessIcon className="w-4 h-4 text-amber-400" />
+                      <LichessIcon className="w-4 h-4 text-amber-800 dark:text-amber-400" />
                       <span className="text-xs font-bold font-mono tracking-tight theme-text-primary">
                         Platform Calibration
                       </span>
@@ -1936,7 +1936,7 @@ export default function DiagnosePage() {
                     ) : (
                       <button
                         onClick={() => setShowLichessModal(true)}
-                        className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-400 border border-amber-500/30 hover:bg-amber-500/25 transition cursor-pointer"
+                        className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-lg bg-amber-100 dark:bg-amber-950/40 text-amber-950 dark:text-amber-200 border border-amber-300 dark:border-amber-500/30 hover:bg-amber-200 dark:hover:bg-amber-900/50 transition cursor-pointer"
                       >
                         Verify with Lichess
                       </button>

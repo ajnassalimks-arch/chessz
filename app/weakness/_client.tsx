@@ -340,7 +340,7 @@ function WeaknessDashboardContent() {
               placeholder="Lichess username..."
               className="w-36 sm:w-48 pl-8 pr-3 py-1.5 rounded-xl theme-surface border text-xs font-mono theme-text-primary focus:outline-none focus:border-[var(--accent-primary)] transition"
             />
-            <LichessIcon className="w-3.5 h-3.5 text-amber-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <LichessIcon className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
 
           <button
@@ -359,7 +359,7 @@ function WeaknessDashboardContent() {
         {/* Quick Demo Accounts Banner if no games */}
         {games.length === 0 && !isLoading && !error && (
           <div className="p-8 rounded-3xl theme-surface border text-center space-y-4 max-w-xl mx-auto my-12 shadow-xl">
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto shadow-md shadow-amber-500/10">
+            <div className="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-500/40 text-amber-800 dark:text-amber-400 flex items-center justify-center mx-auto shadow-md shadow-amber-500/10">
               <LichessIcon className="w-6 h-6" />
             </div>
             <div className="space-y-1">
@@ -423,14 +423,14 @@ function WeaknessDashboardContent() {
             {unanalyzedCount > 0 && (
               <div className="p-4 rounded-3xl bg-linear-to-r from-amber-500/15 via-rose-500/10 to-transparent border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+                  <div className="w-9 h-9 rounded-2xl bg-amber-100 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-500/40 text-amber-800 dark:text-amber-400 flex items-center justify-center shrink-0">
                     <Cpu className="w-5 h-5" />
                   </div>
                   <div>
                     <div className="text-xs font-bold theme-text-primary flex items-center gap-2">
                       <span>{unanalyzedCount} Games Missing Stockfish Evaluation</span>
                       {isMobile && (
-                        <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 font-bold">
+                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-200/90 dark:bg-amber-500/30 text-amber-950 dark:text-amber-100 font-extrabold border border-amber-300 dark:border-amber-500/40">
                           Mobile: capped at 20
                         </span>
                       )}
@@ -903,7 +903,7 @@ function WeaknessDashboardContent() {
                             rel="noopener noreferrer"
                             className="flex items-center gap-1.5 text-[11px] font-mono text-zinc-400 hover:text-white px-2 py-1 rounded-lg border theme-surface-subtle transition cursor-pointer"
                           >
-                            <LichessIcon className="w-3 h-3 text-amber-400" />
+                            <LichessIcon className="w-3 h-3 text-amber-700 dark:text-amber-400" />
                             <span>Lichess</span>
                             <ExternalLink className="w-3 h-3" />
                           </a>
