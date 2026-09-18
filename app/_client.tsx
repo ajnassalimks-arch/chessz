@@ -614,8 +614,10 @@ export default function Home() {
     // position, so jumping to "Solve" must land on initialFen, not on that fen.
     const targetFen = isLastStep ? currentPuzzle.initialFen : currentPuzzle.setupMoves[targetIndex].fen;
     const newChess = new Chess(targetFen);
+    // No boardKey bump: remounting the board defeats react-chessboard's own
+    // position-diff animation, so stepping through the lead-up used to snap
+    // instead of glide. Keeping the same instance lets it animate the move.
     setGame(newChess);
-    setBoardKey((prev) => prev + 1);
 
     if (isLastStep) {
       setStatus(`${newChess.turn() === "w" ? "White" : "Black"} to move`);
@@ -627,7 +629,6 @@ export default function Home() {
 
   const clearAllAnnotations = () => {
     setAnnotatedSquares({});
-    setBoardKey((prev) => prev + 1);
   };
 
   // Shared move executor for Drag-and-Drop and Tap-to-Move
