@@ -66,6 +66,7 @@ export const CHESS_STUDY_TERMS: ChessStudyTerm[] = [
     id: "beg_hanging_piece",
     termName: "The 2-Second Bodyguard Rule",
     aliases: [
+      "Tactical Awareness",
       "The 2-Second Bodyguard Rule",
       "1-Move Hanging Pieces",
       "Hanging Piece",
@@ -205,6 +206,8 @@ export const CHESS_STUDY_TERMS: ChessStudyTerm[] = [
     id: "adv_knight_forks",
     termName: "The Fork Radar & Double Attacks",
     aliases: [
+      "The Geometric Radar Rule",
+      "Double Attack & Decoy Mastery",
       "The Fork Radar",
       "Knight Forks & Double Attacks",
       "Royal Fork",
@@ -486,6 +489,8 @@ export const CHESS_STUDY_TERMS: ChessStudyTerm[] = [
     id: "adv_zwischenzug",
     termName: "Zwischenzug (In-Between Move)",
     aliases: [
+      "Master Calculation",
+      "Prophylactic Calculation & Zwischenzug",
       "Zwischenzug",
       "In-Between Move",
       "Check Before You Trade",
@@ -552,6 +557,8 @@ export const CHESS_STUDY_TERMS: ChessStudyTerm[] = [
     id: "inter_overloaded_guards",
     termName: "Remove the Defender (Overloaded Guard)",
     aliases: [
+      "Multi-Piece Coordination",
+      "Tactical Overload & Deflection Rule",
       "Remove the Defender",
       "Overloaded Guard",
       "Deflection",
@@ -618,6 +625,8 @@ export const CHESS_STUDY_TERMS: ChessStudyTerm[] = [
     id: "inter_greek_gift",
     termName: "The Greek Gift Sacrifice (Bxh7+)",
     aliases: [
+      "Calculating Combinations",
+      "Dynamic Imbalance & King Hunt",
       "The Greek Gift Sacrifice",
       "Greek Gift",
       "Bxh7+ Sacrifice",
@@ -696,6 +705,7 @@ export const CHESS_STUDY_TERMS: ChessStudyTerm[] = [
     id: "smothered_mate",
     termName: "The Smothered Mate (Philidor's Legacy)",
     aliases: [
+      "Complex Tactical Combinations & Clearance",
       "The Smothered Mate",
       "Smothered Checkmate",
       "Philidor's Legacy",
@@ -1262,6 +1272,9 @@ export const CHESS_STUDY_TERMS: ChessStudyTerm[] = [
     id: "inter_technical_endgame",
     termName: "Tarrasch's Active Rook Principle",
     aliases: [
+      "Steinitz's Worst-Placed Piece Principle",
+      "Lucena & Philidor Conversion Principles",
+      "Master Level Conversion & Dominance",
       "Tarrasch's Active Rook Principle",
       "Active Rook",
       "Rooks Behind Passed Pawns",
@@ -1393,6 +1406,8 @@ export const CHESS_STUDY_TERMS: ChessStudyTerm[] = [
     id: "adv_pawn_races",
     termName: "King Leads the Way (Opposition & Shouldering)",
     aliases: [
+      "King Activity & Passed Pawn Priority",
+      "Triangulation & Opposition Mastery",
       "King Leads the Way",
       "Opposition",
       "King Escorts",

@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Chess } from 'chess.js';
 import { CHESS_STUDY_TERMS, getTermDefinition } from '../lib/studyTerms';
+import { CONTINUOUS_PUZZLES, LICHESS_DIAGNOSTIC_CATEGORIES } from '../lib/puzzles';
 
 test('Study Terms Integrity — Real Historical Positions & Engine Validation', async (t) => {
   assert.ok(CHESS_STUDY_TERMS.length >= 15, 'Should have at least 15 verified study terms');
@@ -133,5 +134,32 @@ test('Study Terms Integrity — Real Historical Positions & Engine Validation', 
     const bySub = getTermDefinition('Greek Gift');
     assert.ok(bySub, 'Should resolve by substring');
     assert.equal(bySub.id, 'inter_greek_gift');
+  });
+});
+
+test('Puzzle Rule Titles Resolve To Study Terms', async (t) => {
+  await t.test('every puzzle ruleTitle resolves to a study term', () => {
+    // TermHoverCard renders each puzzle's ruleTitle and falls back to plain text
+    // when nothing resolves, so an unmapped title fails silently in the UI. This
+    // caught 450 of 500 puzzles pointing at terms that did not exist.
+    const allPuzzles = [
+      ...CONTINUOUS_PUZZLES,
+      ...Object.values(LICHESS_DIAGNOSTIC_CATEGORIES).flat(),
+    ];
+    assert.ok(allPuzzles.length > 0, 'expected puzzles to be loaded');
+
+    const unresolved = new Map();
+    for (const puzzle of allPuzzles) {
+      assert.ok(puzzle.ruleTitle, `puzzle ${puzzle.id} has no ruleTitle`);
+      if (!getTermDefinition(puzzle.ruleTitle)) {
+        unresolved.set(puzzle.ruleTitle, (unresolved.get(puzzle.ruleTitle) || 0) + 1);
+      }
+    }
+
+    assert.deepStrictEqual(
+      [...unresolved.entries()].sort((a, b) => b[1] - a[1]),
+      [],
+      'these puzzle ruleTitles resolve to no study term'
+    );
   });
 });

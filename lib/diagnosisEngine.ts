@@ -963,7 +963,12 @@ export function getPuzzleCategoryRule(puzzle: ChessPuzzle): {
 }
 
 /**
- * 5-to-6 Trial Elo Rating Calculation with progressive K-factor & conviction tuning
+ * Ceiling on how far one puzzle may move the rating estimate.
+ */
+export const MAX_TRIAL_SWING = 120;
+
+/**
+ * 5-Trial Elo estimate with a progressive K-factor and conviction tuning.
  */
 export function calculateNewElo5(
   userRating: number,
@@ -975,28 +980,37 @@ export function calculateNewElo5(
   isBookMemory: boolean = false
 ): number {
   if (isBlunderOnTrap) {
-    // Falling for an elementary opening trap routes to the Beginner bracket (<900)
-    return Math.min(880, Math.round(userRating - 370));
+    // Falling for an elementary opening trap is strong evidence, so it moves the
+    // estimate by more than a normal miss -- but it is still one move, and it
+    // used to drop anyone straight to 880 regardless of the other four trials.
+    return Math.max(600, Math.round(userRating - MAX_TRIAL_SWING * 1.5));
   }
 
-  // Progressive K-factor: front-loaded for fast placement, back-loaded for ceiling reach
+  // Progressive K-factor: front-loaded for fast placement.
   let K = 160;
   if (trialIndex === 0) K = isBookMemory ? 80 : 160; // Dampen 1-move book memory leap
   else if (trialIndex === 1) K = 130;
   else if (trialIndex === 2) K = 120;
   else if (trialIndex === 3) K = 150;
-  else if (trialIndex === 4) K = 200;
-  else K = 260; // Grandmaster Crucible (Trial 6) allows breaking the 2000 ceiling!
+  else K = 200;
 
-  // Conviction multipliers for Trials 2-6
+  // Conviction nudges the step, it does not multiply it away. The old "sure"
+  // multiplier of 2.2 on a K of 200 let a single puzzle move the estimate by
+  // more than 400 points, which is wider than the tiers the number selects.
   if (conviction === "sure") {
-    K = Math.round(K * (userRating >= 1450 ? 2.2 : 1.6));
+    K = Math.round(K * 1.25);
   } else if (conviction === "guessing") {
     K = Math.round(K * 0.8);
   }
 
   const expected = 1 / (1 + Math.pow(10, (puzzleRating - userRating) / 400));
-  const newRating = userRating + K * (score - expected);
+  const rawDelta = K * (score - expected);
+
+  // No single trial may move the estimate further than this. Five puzzles is a
+  // small sample and the result is a starting point, not a measurement.
+  const cappedDelta = Math.max(-MAX_TRIAL_SWING, Math.min(MAX_TRIAL_SWING, rawDelta));
+
+  const newRating = userRating + cappedDelta;
   return Math.max(600, Math.min(2350, Math.round(newRating)));
 }
 
@@ -1152,94 +1166,94 @@ export function selectAdaptivePuzzle(
 export const INSIGHT_TEMPLATES: Record<string, BehavioralInsight> = {
   instinctive_hunter: {
     patternId: "instinctive_hunter",
-    patternName: "The Instinctive Hunter",
-    insight: "You spot tactical shots and King weaknesses with lightning speed. Focus on taking 2 seconds to double-check opponent defensive resources.",
-    strength: "Fast tactical intuition & attacking radar",
-    weakness: "Overlooking opponent defensive replies",
+    patternName: "Fast and mostly right",
+    insight: "You solved most of these quickly. Speed is only a problem when it skips the opponent's reply, so before committing, name the move they answer with.",
+    strength: "Quick pattern recognition",
+    weakness: "Checking the opponent's reply",
   },
   careful_calculator: {
     patternId: "careful_calculator",
-    patternName: "The Careful Calculator",
-    insight: "Your calculation process is disciplined and deep. Drill core tactical patterns to build intuition so you preserve your clock.",
-    strength: "Deep calculation & defensive discipline",
-    weakness: "Decision speed under clock pressure",
+    patternName: "Accurate but slow",
+    insight: "You got these right, taking your time over them. The accuracy is there; drilling common patterns is what turns 30 seconds of calculation into 5.",
+    strength: "Calculation accuracy",
+    weakness: "Speed on familiar patterns",
   },
   overconfident_striker: {
     patternId: "overconfident_striker",
-    patternName: "The Overconfident Striker",
-    insight: "You play with great courage and conviction, but your calculations sometimes miss in-between moves. Ask: 'What is my opponent's refutation?' before moving.",
-    strength: "Decisive play and high self-trust",
-    weakness: "Impulsive commitments on tricky lines",
+    patternName: "Confident on moves that were wrong",
+    insight: "You answered \"Sure\" on positions you got wrong. That gap matters more than the mistakes themselves, because it means nothing prompted you to look again.",
+    strength: "Decisiveness",
+    weakness: "Verifying before committing",
   },
   doubting_technician: {
     patternId: "doubting_technician",
-    patternName: "The Doubting Technician",
-    insight: "You find strong tactical moves, but doubt yourself too much. Trust your instincts—your tactical vision is sharper than you give yourself credit for.",
-    strength: "Accurate tactical vision & geometric radar",
-    weakness: "Self-doubt under pressure",
+    patternName: "Right, but unsure",
+    insight: "You found strong moves while reporting low confidence. Your tactical vision is running ahead of your trust in it.",
+    strength: "Tactical vision",
+    weakness: "Confidence in your own calculation",
   },
   resilient_learner: {
     patternId: "resilient_learner",
-    patternName: "The Resilient Learner",
-    insight: "You recover brilliantly after difficult positions. Once you strengthen your opening trap radar, your rating will rapidly climb.",
-    strength: "Rapid in-game adaptability & resilience",
-    weakness: "Opening trap awareness",
+    patternName: "Recovered after a slow start",
+    insight: "You missed an early benchmark and solved later, harder ones. The early miss is worth a look; the rest held up.",
+    strength: "Recovery within a session",
+    weakness: "Opening-phase pattern recognition",
   },
   foundation_builder: {
     patternId: "foundation_builder",
-    patternName: "The Foundation Builder",
-    insight: "Every chess master started here. Focus on the 2-Second Bodyguard Rule to eliminate free hanging pieces, and your level will soar.",
-    strength: "Persistence and willingness to test yourself",
-    weakness: "1-move hanging pieces and basic tactical motifs",
+    patternName: "Basics first",
+    insight: "Most of these did not land yet. Start with hanging pieces: check every move whether the piece you are moving, and the one you are leaving, is defended.",
+    strength: "Willingness to be measured",
+    weakness: "One-move tactics and hanging pieces",
   },
   clean_run: {
     patternId: "clean_run",
-    patternName: "Clean Run",
-    insight: "You handled the benchmark positions cleanly. Your foundation is solid for higher complexity.",
-    strength: "Consistency and tactical clarity",
-    weakness: "Need for higher master complexity",
+    patternName: "Clean run",
+    insight: "You solved every position first try, without help. This benchmark has nothing left to tell you; your real games will.",
+    strength: "Consistency across the set",
+    weakness: "Not measurable at this difficulty",
   },
   heavy_help: {
     patternId: "heavy_help",
-    patternName: "Heavy Help Usage",
-    insight: "The key patterns aren't fully automatic yet. Focused repetition will make a big difference.",
-    strength: "Persistence",
-    weakness: "Automatic pattern recognition",
+    patternName: "Needed hints",
+    insight: "You used hints or solutions on several positions, which means these patterns are not automatic yet. Repetition on the same motif is what fixes that.",
+    strength: "Working through unfamiliar positions",
+    weakness: "Pattern recall without prompting",
   },
   high_conviction_accurate: {
-    patternId: "instinctive_hunter",
-    patternName: "The Instinctive Hunter",
-    insight: "When you feel sure, you are usually right. Trust your calculation more often.",
-    strength: "Strong self-trust and calculation",
-    weakness: "Occasional over-extension",
+    patternId: "high_conviction_accurate",
+    patternName: "Confidence matched the result",
+    insight: "When you said you were sure, you were right. That calibration is worth trusting under a clock.",
+    strength: "Well-calibrated confidence",
+    weakness: "Not measurable at this difficulty",
   },
   high_conviction_inaccurate: {
     patternId: "overconfident_striker",
-    patternName: "The Overconfident Striker",
-    insight: "You often feel confident, but your calculation doesn't always support it yet.",
-    strength: "Willingness to decide",
-    weakness: "Verification of ideas",
+    patternName: "Confident on moves that were wrong",
+    insight: "Your confidence ran ahead of your accuracy on this set. The fix is mechanical: before you move, find the opponent's best answer.",
+    strength: "Decisiveness",
+    weakness: "Verifying before committing",
   },
   low_conviction_accurate: {
     patternId: "doubting_technician",
-    patternName: "The Doubting Technician",
-    insight: "You play good moves, but you doubt yourself too much. Trust your instincts.",
-    strength: "Accurate tactical vision",
-    weakness: "Self-trust under pressure",
+    patternName: "Right, but unsure",
+    insight: "You played good moves while reporting doubt. Nothing here needs fixing except how much you second-guess.",
+    strength: "Tactical vision",
+    weakness: "Confidence in your own calculation",
   },
   strong_recovery: {
     patternId: "resilient_learner",
-    patternName: "The Resilient Learner",
-    insight: "You recover well after mistakes. That resilience is a real strength.",
-    strength: "Resilience and problem-solving",
-    weakness: "First-move accuracy",
+    patternName: "Recovered after a slow start",
+    insight: "You missed early and solved later. Worth reviewing the first position rather than the last.",
+    strength: "Recovery within a session",
+    weakness: "First-attempt accuracy",
   },
   mixed_profile: {
     patternId: "mixed_profile",
-    patternName: "Balanced Pragmatist",
-    insight: "You balance calculation with pragmatic risk. Targeted practice will stabilize your peak level.",
-    strength: "Pragmatic adaptability",
-    weakness: "Complex calculation depth",
+    patternName: "Mixed result",
+    insight: "This set did not point at one clear pattern. Your own games will: they have far more positions than five.",
+    strength: "No single weak area stood out",
+    weakness: "Needs a larger sample than 5 puzzles",
   },
 };
 

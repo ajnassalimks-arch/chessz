@@ -201,8 +201,13 @@ function BlunderCardItem({
         </div>
       )}
 
+      {/* The study for this mistake, on the card that needs it. The lexicon used
+          to be a tab people visited once; now it arrives at the only moment it
+          is wanted. ruleTitle is "<rule>: <played move>", so resolve the rule. */}
       <div className="text-[11px] theme-text-secondary line-clamp-1 italic">
-        &ldquo;{puzzle.ruleTitle}&rdquo;
+        <TermHoverCard term={puzzle.ruleTitle.split(':')[0].trim()} showIcon>
+          {puzzle.ruleTitle.split(':')[0].trim()}
+        </TermHoverCard>
       </div>
 
       <div className="pt-2 border-t border-[var(--border-subtle)] flex items-center justify-between gap-2">

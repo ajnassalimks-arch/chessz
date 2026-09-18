@@ -178,8 +178,6 @@ export default function DiagnosePage() {
   const stockfishRef = useRef<BrowserStockfishEngine | null>(null);
   const [hasBookMemoryFlag, setHasBookMemoryFlag] = useState<boolean>(false);
   const [noveltyVerified, setNoveltyVerified] = useState<boolean>(false);
-  const [showCrucibleModal, setShowCrucibleModal] = useState<boolean>(false);
-  const [isCrucibleActive, setIsCrucibleActive] = useState<boolean>(false);
 
   // Initialize Stockfish WASM in background for P3-P5 micro-refutations
   useEffect(() => {
@@ -973,20 +971,7 @@ export default function DiagnosePage() {
 
   // Advance to next puzzle or start cognitive analysis
   const handleProceedNext = () => {
-    const maxIndex = isCrucibleActive ? 5 : 4;
-
-    // Check if player completed 5 trials flawlessly and is eligible for Grandmaster Crucible!
-    if (puzzleIndex === 4 && !isCrucibleActive) {
-      const isCrucibleEligible =
-        attempts.length === 5 &&
-        attempts.every((a) => a.firstTryCorrect || a.status === "best") &&
-        currentRating >= 1700;
-
-      if (isCrucibleEligible) {
-        setShowCrucibleModal(true);
-        return;
-      }
-    }
+    const maxIndex = 4;
 
     if (puzzleIndex < maxIndex) {
       const nextIdx = puzzleIndex + 1;
@@ -1023,17 +1008,6 @@ export default function DiagnosePage() {
       // Reached end of trials -> Launch FIDE Cognitive Telemetry Analysis!
       startAnalyzingSequence();
     }
-  };
-
-  const startCrucibleTrial = () => {
-    setShowCrucibleModal(false);
-    setIsCrucibleActive(true);
-    const masterPuz = selectAdaptivePuzzle(2150, attempts.map((a) => a.puzzleId));
-    if (diagnosticQuintetRef.current) {
-      diagnosticQuintetRef.current[5] = masterPuz;
-    }
-    setPuzzleIndex(5);
-    loadPuzzle(masterPuz);
   };
 
   // Intermediate Cognitive Telemetry Sequence (2.4s custom calculation)
@@ -1271,48 +1245,6 @@ export default function DiagnosePage() {
         items={studyItems}
       />
 
-      {/* Grandmaster Crucible Modal (Trial 6 Bonus Challenge) */}
-      {showCrucibleModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in">
-          <div className="theme-surface rounded-3xl max-w-md w-full p-6 border border-purple-500/30 shadow-2xl space-y-4">
-            <div className="w-12 h-12 rounded-2xl bg-purple-500/20 text-purple-400 flex items-center justify-center mx-auto text-2xl">
-              👑
-            </div>
-            <div className="text-center">
-              <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-purple-400">
-                Master Challenge Unlocked
-              </span>
-              <h3 className="text-xl font-bold theme-text-primary mt-1">
-                Master Level Challenge
-              </h3>
-              <p className="text-xs theme-text-secondary mt-2 leading-relaxed">
-                You solved all 5 puzzles cleanly and reached{" "}
-                <strong className="theme-text-primary font-bold">~{currentRating} Elo</strong>.
-                Take on the <strong className="text-purple-400 font-bold">Master Challenge (2150+ Elo)</strong> to see if you can break into Master level, or view your rating now.
-              </p>
-            </div>
-            <div className="space-y-2 pt-2">
-              <button
-                onClick={startCrucibleTrial}
-                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <span>Take the Master Challenge (Puzzle 6)</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => {
-                  setShowCrucibleModal(false);
-                  startAnalyzingSequence();
-                }}
-                className="w-full py-2.5 px-4 rounded-xl theme-surface-subtle hover:bg-[var(--surface-muted)] text-xs font-semibold theme-text-secondary border transition cursor-pointer"
-              >
-                Finish & View Rating (~{currentRating} Elo)
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Top Header */}
       <header className="w-full max-w-md md:max-w-5xl lg:max-w-6xl mx-auto flex items-center justify-between py-2 px-3 sm:px-4 rounded-2xl theme-surface mb-3 shrink-0 border shadow-xs relative z-30">
         <div className="flex items-center gap-2.5">
@@ -1507,7 +1439,7 @@ export default function DiagnosePage() {
               <div className="flex items-center justify-between pb-1.5 sm:pb-2 mb-2 sm:mb-3 border-b border-[var(--border-subtle)]">
                 <div className="flex items-center gap-1.5 text-xs font-mono font-bold theme-pill px-2.5 py-1 rounded-lg">
                   <Target className="w-3.5 h-3.5 text-[var(--accent-primary)]" />
-                  <span>Puzzle {puzzleIndex + 1} of {isCrucibleActive ? 6 : 5}</span>
+                  <span>Puzzle {puzzleIndex + 1} of 5</span>
                 </div>
                 <span className="text-[11px] font-mono theme-text-muted">
                   {puzzleIndex === 0
@@ -1523,8 +1455,8 @@ export default function DiagnosePage() {
               </div>
 
               {/* Progress Segment Bar */}
-              <div className={`grid ${isCrucibleActive ? "grid-cols-6" : "grid-cols-5"} gap-1.5 w-full mb-2 sm:mb-3`}>
-                {Array.from({ length: isCrucibleActive ? 6 : 5 }).map((_, idx) => (
+              <div className={"grid grid-cols-5 gap-1.5 w-full mb-2 sm:mb-3"}>
+                {Array.from({ length: 5 }).map((_, idx) => (
                   <div
                     key={idx}
                     className={`h-1.5 rounded-full transition-all duration-300 ${
@@ -1580,7 +1512,7 @@ export default function DiagnosePage() {
                   className="group relative w-full py-3 px-4 rounded-xl theme-accent-btn font-bold text-xs sm:text-sm tracking-wide flex items-center justify-center gap-2 shadow-sm transition-all duration-200 active:scale-[0.98] cursor-pointer animate-next-btn btn-shimmer-effect hover:-translate-y-0.5 hover:shadow-md"
                 >
                   <span className="relative z-10">
-                    {puzzleIndex === (isCrucibleActive ? 5 : 4) ? "View Final Diagnosis" : "Next Puzzle"}
+                    {puzzleIndex === 4 ? "See What To Train" : "Next Puzzle"}
                   </span>
                   <ArrowRight className="w-4 h-4 relative z-10 group-hover:translate-x-1.5 transition-transform duration-200 ease-out animate-arrow-nudge" />
                 </button>
@@ -1751,7 +1683,7 @@ export default function DiagnosePage() {
                 </div>
               </div>
               <span className="text-[10px] font-mono theme-text-muted px-2.5 py-1 rounded-full theme-surface-subtle border shrink-0">
-                {isCrucibleActive ? "6-Puzzle Master Benchmark" : "5-Puzzle Diagnostic Benchmark"}
+                "5-Puzzle Diagnostic Benchmark"
               </span>
             </div>
 
@@ -1789,18 +1721,12 @@ export default function DiagnosePage() {
                   </div>
 
                   {/* Calculation & Master Badges */}
-                  {(noveltyVerified || isCrucibleActive) && (
+                  {noveltyVerified && (
                     <div className="mt-3.5 flex flex-wrap gap-2">
                       {noveltyVerified && (
                         <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
                           <CheckCircle2 className="w-3 h-3" />
                           <span>Calculation Verified</span>
-                        </span>
-                      )}
-                      {isCrucibleActive && (
-                        <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-xl bg-purple-500/15 text-purple-600 dark:text-purple-400 border border-purple-500/30 flex items-center gap-1.5">
-                          <span>👑</span>
-                          <span>Master Challenge Tested</span>
                         </span>
                       )}
                     </div>

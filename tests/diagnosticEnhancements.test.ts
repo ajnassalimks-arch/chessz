@@ -11,6 +11,8 @@ import {
   HISTORICAL_BENCHMARKS_STAGE_1,
   HISTORICAL_BENCHMARKS_STAGE_2,
   PuzzleAttemptRecord,
+  CommitmentLevel,
+  MAX_TRIAL_SWING,
 } from "../lib/diagnosisEngine";
 
 describe("Con 1: Category Rules & Refutation Trees", () => {
@@ -95,21 +97,43 @@ describe("Con 3: Master Ceiling & Grandmaster Crucible", () => {
     assert.equal(seededElo, 1675);
   });
 
-  it("allows Grandmaster Crucible (Trial 6) with K=260 to break 2000 ceiling", () => {
-    // Starting at 1950, solving a 2150 puzzle in Trial 6 with 'sure' conviction
-    const newElo = calculateNewElo5(1950, 2150, 1.0, 5, "sure", false, false);
-    assert.ok(newElo >= 2150, `Expected new Elo >= 2150, got ${newElo}`);
-    assert.ok(newElo <= 2350, `Expected capped at 2350, got ${newElo}`);
+  it("never lets one trial move the estimate further than MAX_TRIAL_SWING", () => {
+    // Five puzzles is a small sample. The old ladder reached K=200 and then
+    // multiplied it by 2.2 for a "sure" answer, so one puzzle could move the
+    // estimate more than 400 points -- wider than the tiers the number selects.
+    const cases: [number, number, number, number, CommitmentLevel | null][] = [
+      [1950, 2150, 1.0, 4, "sure"],
+      [1250, 2150, 1.0, 4, "sure"],
+      [2000, 700, 0.0, 4, "sure"],
+      [900, 1600, 1.0, 0, "think_so"],
+      [1500, 1500, 0.0, 3, "guessing"],
+    ];
 
-    const level = mapEloToLevel(newElo);
-    assert.equal(level.tierId, "advanced");
+    for (const [before, puzzleRating, score, trial, conviction] of cases) {
+      const after = calculateNewElo5(before, puzzleRating, score, trial, conviction);
+      const moved = Math.abs(after - before);
+      assert.ok(
+        moved <= MAX_TRIAL_SWING,
+        `trial ${trial} moved ${before} -> ${after} (${moved} points), over the ${MAX_TRIAL_SWING} cap`
+      );
+    }
   });
 
-  it("routes blunder on trap straight to Beginner bracket (<900)", () => {
-    const fallenElo = calculateNewElo5(1250, 1350, 0.0, 0, null, true, false);
-    assert.ok(fallenElo < 900, `Expected fallen Elo < 900, got ${fallenElo}`);
-    const level = mapEloToLevel(fallenElo);
-    assert.equal(level.tierId, "beginner");
+  it("still rewards solving a harder puzzle than your current estimate", () => {
+    const up = calculateNewElo5(1400, 1800, 1.0, 2, "sure");
+    assert.ok(up > 1400, `Expected the estimate to rise, got ${up}`);
+  });
+
+  it("penalises a trap blunder heavily but does not discard the other trials", () => {
+    const fallen = calculateNewElo5(1800, 1350, 0.0, 0, null, true, false);
+    assert.ok(fallen < 1800, `Expected a drop, got ${fallen}`);
+    // It used to return min(880, rating - 370), sending a 1800 to the Beginner
+    // bracket on one move regardless of everything else in the session.
+    assert.ok(
+      fallen >= 1800 - MAX_TRIAL_SWING * 2,
+      `One trap should not erase the session: 1800 -> ${fallen}`
+    );
+    assert.ok(fallen >= 600, `Expected the floor to hold, got ${fallen}`);
   });
 });
 
