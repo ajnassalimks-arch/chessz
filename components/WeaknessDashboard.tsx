@@ -28,32 +28,13 @@ import {
   Filter,
 } from 'lucide-react';
 import { ChessPuzzle } from '@/lib/puzzles';
-import {
-  SkillTier,
-  classifyMistake,
-  getCategoryDefinitionsForTier,
-} from '@/lib/mistakeClassifier';
+import { SkillTier, getCategoryDefinitionsForTier } from '@/lib/mistakeClassifier';
+import { useWeaknessScan } from '@/lib/useWeaknessScan';
+import { BlunderPuzzle, momentsToBlunderPuzzles } from '@/lib/blunderAdapter';
 import { TermHoverCard } from '@/components/TermHoverCard';
 import { LichessUser } from '@/lib/lichess';
 import { LichessIcon } from '@/components/LichessModal';
 
-export type BlunderPuzzle = ChessPuzzle & {
-  gameId?: string;
-  speed?: string;
-  opponentName?: string;
-  opponentRating?: number;
-  moveNumber?: number;
-  playedSan?: string;
-  bestSan?: string;
-  evalSwingPawns?: number;
-  judgmentName?: string;
-  category?: string;
-  categoryTitle?: string;
-  categoryBadge?: string;
-  categoryIcon?: string;
-  coachTip?: string;
-  parentTip?: string;
-};
 
 interface WeaknessDashboardProps {
   isOpen: boolean;
@@ -252,14 +233,20 @@ export function WeaknessDashboard({
 }: WeaknessDashboardProps) {
   // Skill tier state: auto-detects from user rating if available
   const [selectedTier, setSelectedTier] = useState<SkillTier>('beginner');
-  const [blunders, setBlunders] = useState<BlunderPuzzle[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [summaryData, setSummaryData] = useState<{
-    totalGamesScanned: number;
-    analyzedGamesCount: number;
-    unanalyzedGamesCount: number;
-  } | null>(null);
+
+  // One shared pipeline with /weakness: an unanalyzed game is a game the browser
+  // engine has not swept yet, not a game we have to ignore.
+  const {
+    games,
+    moments,
+    unanalyzedCount,
+    isLoading,
+    error,
+    isEngineRunning,
+    engineProgress,
+    scan,
+    runEngine,
+  } = useWeaknessScan({ autoUsername: user?.username, enabled: isOpen });
 
   // Active filter tab for mistake feed: 'all' or categoryId
   const [activeCategoryFilter, setActiveCategoryFilter] = useState<string>('all');
@@ -295,60 +282,27 @@ export function WeaknessDashboard({
   // Custom username input state
   const [inputUsername, setInputUsername] = useState<string>('');
 
-  // Fetch 50 games and blunders
-  const fetchBlunders = useCallback(async (targetUser?: string) => {
-    const username = (targetUser || inputUsername || user?.username || (typeof window !== 'undefined' ? localStorage.getItem('chessz_last_username') : '') || '').trim();
-    if (!username) {
-      return;
-    }
+  const blunders = useMemo<BlunderPuzzle[]>(
+    () => momentsToBlunderPuzzles(moments, games, selectedTier),
+    [moments, games, selectedTier]
+  );
 
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('chessz_last_username', username);
-    }
+  const fetchBlunders = useCallback(
+    (targetUser?: string) => {
+      const username = (
+        targetUser ||
+        inputUsername ||
+        user?.username ||
+        (typeof window !== 'undefined' ? localStorage.getItem('chessz_last_username') : '') ||
+        ''
+      ).trim();
+      if (username) scan(username, true);
+    },
+    [inputUsername, user?.username, scan]
+  );
 
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const res = await fetch(
-        `/api/lichess/blunders?username=${encodeURIComponent(username)}&max=50&tier=${selectedTier}`
-      );
-      if (!res.ok) {
-        throw new Error(`Failed to load games: ${res.statusText}`);
-      }
-      const data = await res.json();
-      if (data.blunders) {
-        setBlunders(data.blunders);
-        setSummaryData({
-          totalGamesScanned: data.summary?.totalGamesScanned || 0,
-          analyzedGamesCount: data.summary?.analyzedGamesCount || 0,
-          unanalyzedGamesCount: data.summary?.unanalyzedGamesCount || 0,
-        });
-      } else {
-        setBlunders([]);
-      }
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Error extracting Lichess blunders';
-      setError(msg);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [inputUsername, user?.username, selectedTier]);
-
-  // Fetch blunders when modal opens if empty
-  useEffect(() => {
-    if (isOpen && blunders.length === 0 && !isLoading) {
-      const username = user?.username || (typeof window !== 'undefined' ? localStorage.getItem('chessz_last_username') : '') || '';
-      if (username) {
-        const timer = setTimeout(() => {
-          fetchBlunders(username);
-        }, 0);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [isOpen, blunders.length, isLoading, user?.username, fetchBlunders]);
-
-  // Dynamically classify blunders into the 5 categories of the active tier (0ms latency!)
+  // Group into the 5 categories of the active tier. The adapter already
+  // classified each moment, so this is a count, not a second classification.
   const { categoryBreakdown, classifiedBlunders, primaryLeak } = useMemo(() => {
     const tierDefs = getCategoryDefinitionsForTier(selectedTier);
     const counts: Record<string, number> = {};
@@ -356,34 +310,11 @@ export function WeaknessDashboard({
       counts[def.id] = 0;
     });
 
-    const enriched = blunders.map((b) => {
-      const bestUci = b.solutionMoves?.[0] ? `${b.solutionMoves[0].from}${b.solutionMoves[0].to}` : '';
-      const c = classifyMistake(
-        b.initialFen,
-        b.playedSan || '',
-        bestUci,
-        (b.moveNumber || 1) * 2,
-        b.evalSwingPawns,
-        selectedTier
-      );
-      if (counts[c.categoryId] !== undefined) {
-        counts[c.categoryId]++;
-      }
-      return {
-        ...b,
-        category: c.categoryId,
-        categoryTitle: c.categoryTitle,
-        categoryBadge: c.badge,
-        categoryIcon: c.icon,
-        ruleTitle: `${c.ruleTitle}: ${b.playedSan}`,
-        ruleBody: c.ruleBody,
-        coachTip: c.coachTip,
-        parentTip: c.parentTip,
-      };
-    });
+    for (const b of blunders) {
+      if (b.category && counts[b.category] !== undefined) counts[b.category]++;
+    }
 
-    const total = enriched.length;
-
+    const total = blunders.length;
     const breakdown = tierDefs.map((def) => {
       const cnt = counts[def.id] || 0;
       return {
@@ -393,22 +324,19 @@ export function WeaknessDashboard({
       };
     });
 
-    // Find primary leak immutably
     const primaryItem = breakdown.reduce(
       (max, curr) => (curr.count > max.count ? curr : max),
       breakdown[0] || { ...tierDefs[0], count: 0, percentage: 0 }
     );
 
-    const leakInfo = {
-      ...primaryItem,
-      count: Math.max(0, primaryItem.count),
-      percentage: primaryItem.percentage,
-    };
-
     return {
       categoryBreakdown: breakdown,
-      classifiedBlunders: enriched,
-      primaryLeak: leakInfo,
+      classifiedBlunders: blunders,
+      primaryLeak: {
+        ...primaryItem,
+        count: Math.max(0, primaryItem.count),
+        percentage: primaryItem.percentage,
+      },
     };
   }, [blunders, selectedTier]);
 
@@ -483,9 +411,9 @@ export function WeaknessDashboard({
                   className="text-base sm:text-lg font-extrabold theme-text-primary flex items-center gap-2"
                 >
                   Weakness Studio
-                  {summaryData && (
+                  {games.length > 0 && (
                     <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                      {summaryData.totalGamesScanned} Games Scanned
+                      {games.length} Games Scanned
                     </span>
                   )}
                 </h2>
@@ -638,21 +566,28 @@ export function WeaknessDashboard({
           )}
 
           {!isLoading && blunders.length === 0 && !error && !!(user?.username || (typeof window !== 'undefined' && localStorage.getItem('chessz_last_username'))) && (
-            summaryData && summaryData.totalGamesScanned > 0 && summaryData.analyzedGamesCount === 0 ? (
+            unanalyzedCount > 0 ? (
               <div className="p-8 rounded-2xl theme-surface-subtle border text-center space-y-3">
-                <AlertTriangle className="w-10 h-10 text-amber-400 mx-auto" />
+                <Cpu className="w-10 h-10 text-amber-400 mx-auto" />
                 <div className="text-sm font-bold theme-text-primary">
-                  {summaryData.totalGamesScanned} Games Found, But No Computer Analysis Yet
+                  {unanalyzedCount} Games Waiting On Evaluation
                 </div>
                 <p className="text-xs theme-text-secondary max-w-md mx-auto leading-relaxed">
-                  Lichess only exports blunder data after games have computer analysis. Open any recent game on Lichess, click <strong>&ldquo;Analysis board&rdquo;</strong> &rarr; <strong>&ldquo;Request computer analysis&rdquo;</strong>, then click Rescan!
+                  These games have no server-side evaluation from Lichess. Run Stockfish
+                  here instead &mdash; it sweeps them in your browser, no request to
+                  Lichess and nothing to wait for.
                 </p>
                 <button
-                  onClick={() => fetchBlunders()}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-black text-xs font-bold transition cursor-pointer"
+                  onClick={() => runEngine()}
+                  disabled={isEngineRunning}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-black text-xs font-bold transition cursor-pointer"
                 >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  <span>Rescan Games</span>
+                  <Cpu className={`w-3.5 h-3.5 ${isEngineRunning ? 'animate-spin' : ''}`} />
+                  <span>
+                    {isEngineRunning && engineProgress
+                      ? `Evaluating game ${engineProgress.currentGame} of ${engineProgress.totalGames}...`
+                      : 'Find My Blunders'}
+                  </span>
                 </button>
               </div>
             ) : (

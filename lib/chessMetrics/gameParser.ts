@@ -297,7 +297,7 @@ export function deriveGameStats(
         const pliesBack = Math.min(moveIdx, 6);
         for (let step = moveIdx - pliesBack; step < moveIdx; step++) {
           const am = analyzedMoves[step];
-          const moveNum = Math.floor(am.ply / 2) + 1;
+          const moveNum = Math.ceil(am.ply / 2);
           const prefix = am.ply % 2 === 1 ? `${moveNum}.` : `${moveNum}...`;
           if (am.fen) {
             setupMoves.push({

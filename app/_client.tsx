@@ -2434,7 +2434,6 @@ export default function Home() {
         onRefresh={refreshLichess}
         onConnectUsername={connectLichessUsername}
         diagnosedElo={isCalibrated ? calibratedRating : null}
-        onStartBlunderTraining={handleStartBlunderTraining}
         onOpenWeaknessDashboard={() => setShowWeaknessDashboard(true)}
       />
 

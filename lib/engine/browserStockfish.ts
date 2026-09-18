@@ -477,7 +477,7 @@ export async function analyzeUnanalyzedGames(
             const um = updatedMoves[step];
             const stepFen = um.fen || fenBeforeByPly[um.ply];
             if (!stepFen) continue;
-            const moveNum = Math.floor(um.ply / 2) + 1;
+            const moveNum = Math.ceil(um.ply / 2);
             setupMoves.push({
               ply: um.ply,
               moveNumber: moveNum,

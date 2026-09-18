@@ -273,7 +273,7 @@ function WeaknessDashboardContent() {
         setupMoves = [];
         for (let step = moveIdx - pliesBack; step < moveIdx; step++) {
           const pm = parentGame.moves[step];
-          const moveNum = Math.floor(pm.ply / 2) + 1;
+          const moveNum = Math.ceil(pm.ply / 2);
           const prefix = pm.ply % 2 === 1 ? `${moveNum}.` : `${moveNum}...`;
           if (pm.fen) {
             setupMoves.push({
