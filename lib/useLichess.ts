@@ -59,10 +59,10 @@ export function useLichess() {
           setIsAuthenticated(false);
         }
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed fetching Lichess session:', err);
       if (isMountedRef.current) {
-        setError(err.message);
+        setError(err instanceof Error ? err.message : 'Error fetching session');
       }
     } finally {
       if (isMountedRef.current) {
@@ -72,7 +72,10 @@ export function useLichess() {
   }, []);
 
   useEffect(() => {
-    fetchSession();
+    // Schedule initial session check asynchronously to avoid cascading renders
+    const timer = setTimeout(() => {
+      fetchSession();
+    }, 0);
 
     // Check if redirected from OAuth callback with success query param
     if (typeof window !== 'undefined') {
@@ -81,7 +84,7 @@ export function useLichess() {
         // Fires once per OAuth return; the param is stripped just below, and a
         // plain mount (cookie rehydration) never reaches here.
         track('lichess_connected');
-        fetchSession(true);
+        setTimeout(() => fetchSession(true), 0);
         // Clean URL query params cleanly without reloading
         const url = new URL(window.location.href);
         url.searchParams.delete('lichess_connected');
@@ -89,10 +92,14 @@ export function useLichess() {
         window.history.replaceState({}, '', url.pathname + url.search);
       }
     }
+
+    return () => clearTimeout(timer);
   }, [fetchSession]);
 
   const login = useCallback((returnUrl?: string) => {
     const target = returnUrl || (typeof window !== 'undefined' ? window.location.pathname : '/');
+    // External OAuth route redirect
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
     window.location.href = `/api/auth/lichess/login?returnUrl=${encodeURIComponent(target)}`;
   }, []);
 
@@ -107,7 +114,7 @@ export function useLichess() {
       try {
         localStorage.removeItem(LOCAL_STORAGE_KEY);
       } catch {}
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to log out from Lichess:', err);
     } finally {
       if (isMountedRef.current) setLoading(false);
@@ -138,8 +145,10 @@ export function useLichess() {
       }
       if (isMountedRef.current) setError('Lichess user not found');
       return false;
-    } catch (err: any) {
-      if (isMountedRef.current) setError(err.message);
+    } catch (err: unknown) {
+      if (isMountedRef.current) {
+        setError(err instanceof Error ? err.message : 'Error connecting to user');
+      }
       return false;
     } finally {
       if (isMountedRef.current) setLoading(false);

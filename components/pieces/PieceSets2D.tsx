@@ -361,6 +361,7 @@ function createLichessPieceSet(dirName: string) {
   const setObj: Record<string, (props?: PieceProps) => React.JSX.Element> = {};
   for (const p of pieceCodes) {
     setObj[p] = (props?: PieceProps) => (
+      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={`/pieces/lichess/${dirName}/${p}.svg`}
         alt={p}

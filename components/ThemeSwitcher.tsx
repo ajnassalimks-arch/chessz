@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Sun, Moon, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
+import React, { useState, useEffect, useCallback } from "react";
+import { Sun, Moon, Sparkles, ChevronDown } from "lucide-react";
 
 export type ThemePalette = "sage" | "periwinkle" | "terracotta" | "emerald";
 export type ThemeMode = "light" | "dark";
@@ -37,22 +37,22 @@ interface ThemeSwitcherProps {
 }
 
 export function ThemeSwitcher({ onThemeChange }: ThemeSwitcherProps) {
-  const [theme, setTheme] = useState<ThemePalette>("periwinkle");
-  const [mode, setMode] = useState<ThemeMode>("light");
+  const [theme, setTheme] = useState<ThemePalette>(() => {
+    if (typeof window !== "undefined") {
+      return (localStorage.getItem("chessz_theme") as ThemePalette) || "periwinkle";
+    }
+    return "periwinkle";
+  });
+  const [mode, setMode] = useState<ThemeMode>(() => {
+    if (typeof window !== "undefined") {
+      return (localStorage.getItem("chessz_mode") as ThemeMode) || "light";
+    }
+    return "light";
+  });
   const [isMinimized, setIsMinimized] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-    const savedTheme = (localStorage.getItem("chessz_theme") as ThemePalette) || "periwinkle";
-    const savedMode = (localStorage.getItem("chessz_mode") as ThemeMode) || "light";
-
-    setTheme(savedTheme);
-    setMode(savedMode);
-    applyTheme(savedTheme, savedMode);
-  }, []);
-
-  const applyTheme = (newTheme: ThemePalette, newMode: ThemeMode) => {
+  const applyTheme = useCallback((newTheme: ThemePalette, newMode: ThemeMode) => {
     if (typeof document !== "undefined") {
       document.documentElement.setAttribute("data-theme", newTheme);
       document.documentElement.setAttribute("data-mode", newMode);
@@ -72,7 +72,15 @@ export function ThemeSwitcher({ onThemeChange }: ThemeSwitcherProps) {
         onThemeChange(newTheme, newMode);
       }
     }
-  };
+  }, [onThemeChange]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setMounted(true);
+      applyTheme(theme, mode);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [applyTheme, theme, mode]);
 
   const handleSelectTheme = (newTheme: ThemePalette) => {
     setTheme(newTheme);

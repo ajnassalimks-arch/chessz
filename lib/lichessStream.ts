@@ -108,8 +108,8 @@ export async function streamUserGames(
         // If non-429 error, break and fallback
         break;
       }
-    } catch (err: any) {
-      if (err.name === 'AbortError') throw err;
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') throw err;
       // Network/CORS error on direct fetch -> break to fallback
       break;
     }
@@ -133,9 +133,10 @@ export async function streamUserGames(
         }
         throw new Error(rawMsg || `Failed to stream games: ${fallbackRes.statusText}`);
       }
-    } catch (err: any) {
-      if (err.name === 'AbortError') throw err;
-      throw new Error(err.message || 'Unable to connect to Lichess. Please check your network or try again.');
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') throw err;
+      const msg = err instanceof Error ? err.message : '';
+      throw new Error(msg || 'Unable to connect to Lichess. Please check your network or try again.');
     }
   }
 
@@ -174,7 +175,7 @@ export async function streamUserGames(
           const rawGame: LichessRawGame = JSON.parse(trimmed);
 
           // Only process standard games (skip variants like chess960, crazyhouse, etc.)
-          if ((rawGame as any).variant && (rawGame as any).variant !== 'standard') {
+          if (rawGame.variant && rawGame.variant !== 'standard') {
             continue;
           }
 
@@ -210,7 +211,7 @@ export async function streamUserGames(
     if (buffer.trim()) {
       try {
         const rawGame: LichessRawGame = JSON.parse(buffer.trim());
-        if (!(rawGame as any).variant || (rawGame as any).variant === 'standard') {
+        if (!rawGame.variant || rawGame.variant === 'standard') {
           const derived = deriveGameStats(rawGame, cleanUsername);
           if (derived) {
             games.push(derived);

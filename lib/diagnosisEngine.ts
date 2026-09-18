@@ -79,7 +79,7 @@ export const HISTORICAL_BENCHMARKS_STAGE_1: (ChessPuzzle & { numericRating: numb
     ruleTitle: "The Poisoned Bait Rule",
     ruleBody: "When an opponent leaves a major piece undefended, stop! Calculate forcing counter-attacks before touching the bait.",
     solutionMoves: [
-      { from: "c6", to: "e5", san: "Nxe5", explanation: "Nxe5! Eliminates the checkmate threat on f7 and guards the bishop on h5." },
+      { from: "c6", to: "e5", san: "Nxe5", explanation: "Nxe5! Eliminates the checkmate threat on f7 and counter-attacks White's bishop on c4." },
       { from: "e5", to: "c4", san: "Nxc4", explanation: "Nxc4! Black captures White's bishop, emerging with an extra piece (+3.5)." }
     ],
     opponentResponses: [
@@ -226,23 +226,23 @@ export const HISTORICAL_BENCHMARKS_STAGE_2: (ChessPuzzle & { numericRating: numb
     title: "Tactical Benchmark: Trapping the Piece",
     ratingBadge: "Benchmark ~1120",
     numericRating: 1120,
-    initialFen: "r1bqkb1r/1ppp1ppp/p1n5/4p3/B3P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 1 5",
+    initialFen: "r1bqkbnr/2p2ppp/p2p4/1p6/3QP3/1B6/PPP2PPP/RNB1K2R b KQkq - 0 8",
     playerColor: "black",
-    prompt: "Black to move: Push White's Spanish bishop into a restricted square.",
-    ruleTitle: "The Piece Mobility Rule",
-    ruleBody: "A piece without retreating squares is vulnerable to pawn chains.",
+    prompt: "Black to move: White played 8. Qxd4??, greedily grabbing a pawn. Unleash the Noah's Ark Trap to trap White's Spanish bishop!",
+    ruleTitle: "The Noah's Ark Trap",
+    ruleBody: "A bishop on b3 can be permanently entombed by connected pawns on a6, b5, and c4.",
     solutionMoves: [
-      { from: "b7", to: "b5", san: "b5", explanation: "b5! Kicks White's bishop to b3." },
-      { from: "c6", to: "a5", san: "Na5", explanation: "Na5! Traps the light-squared bishop." }
+      { from: "c7", to: "c5", san: "c5", explanation: "c5! Attacks White's queen and prepares the decisive ...c4 trap." },
+      { from: "c5", to: "c4", san: "c4", explanation: "c4! Shuts the cage! White's light-squared Spanish bishop is completely trapped and lost (+3.5)." }
     ],
     opponentResponses: [
-      { from: "a4", to: "b3", san: "Bb3", explanation: "Bishop retreats to b3." }
+      { from: "d4", to: "d3", san: "Qd3", explanation: "White retreats the queen to safety." }
     ],
     defaultRefutation: {
-      from: "d7", to: "d6", san: "d6",
-      coachExplanation: "Passive move allows White to castle comfortably without threat."
+      from: "g8", to: "f6", san: "Nf6",
+      coachExplanation: "Nf6 is a standard developing move, but misses the winning 1... c5! followed by ...c4 trapping White's Spanish bishop."
     },
-    successExplanation: "High-level opening vision! 1... b5 2. Bb3 Na5 corners White's prized Spanish bishop."
+    successExplanation: "Masterclass Trap Execution! 1... c5! 2. Qd3 c4! completes the famous Noah's Ark Trap, permanently trapping and winning White's Spanish bishop (+3.5 advantage)."
   }
 ];
 
@@ -300,20 +300,20 @@ export const BENCHMARK_PUZZLE_POOL: (ChessPuzzle & { numericRating: number })[] 
     successExplanation: "Crisp execution! 1... Bxc3+ forces bxc3, permanently ruining White's queenside pawn structure."
   },
 
-  // 5. Philidor Smothered Mate Decoy (~1280 FIDE)
+  // 5. Back-Rank Infiltration Net (~1280 FIDE)
   {
     id: "bench_smothered_decoy",
     lichessId: "smothered_1280",
     tier: "intermediate",
     track: "tactical",
-    title: "Mating Net: Smothered Geometry",
+    title: "Mating Net: Back-Rank Corridor Net",
     ratingBadge: "Benchmark ~1280",
     numericRating: 1280,
     initialFen: "6k1/5Npp/8/8/2B5/8/8/1Q4K1 w - - 0 1",
     playerColor: "white",
     prompt: "White to move: Coordinate queen, bishop, and knight to deliver an inescapable checkmate.",
-    ruleTitle: "The Smothered Net Rule",
-    ruleBody: "When a king is restricted by its own pieces and attacking minor pieces, back-rank queen infiltration can be instantly fatal.",
+    ruleTitle: "The Back-Rank Net Rule",
+    ruleBody: "When an opponent's king has its flight squares sealed off by minor pieces, back-rank queen infiltration delivers instant checkmate.",
     solutionMoves: [
       { from: "b1", to: "b8", san: "Qb8#", explanation: "Qb8#! King is trapped behind its own pawns with the f7-knight guarded by the bishop." }
     ],
@@ -333,38 +333,38 @@ export const BENCHMARK_PUZZLE_POOL: (ChessPuzzle & { numericRating: number })[] 
     title: "Kingside Benchmark: Classical Destruction",
     ratingBadge: "Benchmark ~1520",
     numericRating: 1520,
-    initialFen: "r1bq1rk1/ppp2ppp/2n1pn2/3p4/2PP4/2NBPN2/PP3PPP/R1BQK2R w KQ - 0 8",
+    initialFen: "r1bq1rk1/pp1nbppp/4p3/3pP3/7P/3B1N2/PPP2PPP/R1BQK2R w KQ - 0 11",
     playerColor: "white",
-    prompt: "White to move: Black castled into the classical Greek Gift vulnerability. Uncage the kingside assault.",
+    prompt: "White to move: Black's king is exposed to the classic Greek Gift sacrifice. Shatter Black's pawn fortress!",
     ruleTitle: "The Greek Gift Sacrifice Rule",
-    ruleBody: "When your bishop stares at h7 with a supporting knight ready to jump to g5 and queen to h5, sacrifice the bishop!",
+    ruleBody: "When your bishop targets h7 with a supporting knight ready to jump to g5 and the h-file or queen ready to join, sacrifice the bishop!",
     solutionMoves: [
-      { from: "d3", to: "h7", san: "Bxh7+", explanation: "Bxh7+! Strips Black's king of protective pawn shelter." },
-      { from: "f3", to: "g5", san: "Ng5+", explanation: "Ng5+! Brings the knight in with tempo, clearing the way for Qh5." }
+      { from: "d3", to: "h7", san: "Bxh7+", explanation: "Bxh7+! Destroys Black's protective pawn shield." },
+      { from: "f3", to: "g5", san: "Ng5+", explanation: "Ng5+! Brings the knight in with tempo, supported by the h4 pawn." }
     ],
     opponentResponses: [
       { from: "g8", to: "h7", san: "Kxh7", explanation: "Black is forced to accept the sacrificial bishop." }
     ],
     defaultRefutation: {
-      from: "e1", to: "g1", san: "O-O",
-      coachExplanation: "Castling allows Black to play Re8 or h6, eliminating the mating attack entirely."
+      from: "c1", to: "e3", san: "Be3",
+      coachExplanation: "Be3 develops passively, missing the devastating Greek Gift sacrifice 1. Bxh7+! Kxh7 2. Ng5+! which blows open Black's kingside."
     },
     successExplanation: "Grandmaster attacking instinct! 1. Bxh7+! Kxh7 2. Ng5+ initiates the legendary kingside destruction."
   },
 
-  // 7. Anastasia's Mate Corridor (~1420 FIDE)
+  // 7. 7th Rank Infiltration (~1420 FIDE)
   {
     id: "bench_anastasia_corridor",
     lichessId: "anastasia_1420",
     tier: "intermediate",
     track: "tactical",
-    title: "Mating Net: Anastasia's Corridor",
+    title: "7th Rank Benchmark: Open File Infiltration",
     ratingBadge: "Benchmark ~1420",
     numericRating: 1420,
     initialFen: "5rk1/1p3ppp/8/4N3/8/8/5PPP/1R4K1 w - - 0 1",
     playerColor: "white",
     prompt: "White to move: Black's b7 pawn is undefended. Seize the open file with maximum tempo.",
-    ruleTitle: "The Open File Infiltration Rule",
+    ruleTitle: "The 7th Rank Infiltration Rule",
     ruleBody: "Rooks belong on open files and the 7th rank where enemy pawns are completely exposed.",
     solutionMoves: [
       { from: "b1", to: "b7", san: "Rxb7", explanation: "Rxb7! Invades the 7th rank and wins clean material." }
@@ -799,28 +799,15 @@ export function evaluateBenchmarkMove(
 
   // 6. Granular handling for The Noah's Ark Trap
   if (puzzle.id === "bench_noah_ark_trap") {
-    if (from === "b7" && to === "b5") {
+    if (from === "c7" && to === "c5") {
       return {
         branchType: "best",
         status: "best",
         score: 1.0,
-        userMoveSan: "1... b5",
-        bestMoveSan: "1... b5! 2. Bb3 Na5 (Corners White's Spanish bishop)",
+        userMoveSan: "1... c5",
+        bestMoveSan: "1... c5! 2. Qd3 c4! (Traps White's Spanish bishop)",
         calibratedElo: 1380,
-        coachFeedback: "High-level opening vision! 1... b5 2. Bb3 Na5 corners White's prized Spanish bishop, preparing to trap it with pawns.",
-        ruleTitle,
-        ruleBody,
-      };
-    }
-    if (from === "d7" && to === "d6") {
-      return {
-        branchType: "solid_defense",
-        status: "inaccurate",
-        score: 0.50,
-        userMoveSan: "1... d6",
-        bestMoveSan: "1... b5! 2. Bb3 Na5",
-        calibratedElo: 1100,
-        coachFeedback: "Solid development, but misses the concrete opportunity to corner and trap White's Spanish bishop.",
+        coachFeedback: "Masterclass Trap Execution! 1... c5! attacks White's Queen, forcing it to retreat and preparing the deadly ...c4 pawn push that permanently boxes in White's Spanish bishop.",
         ruleTitle,
         ruleBody,
       };
@@ -831,16 +818,29 @@ export function evaluateBenchmarkMove(
         status: "inaccurate",
         score: 0.40,
         userMoveSan: "1... Nf6",
-        bestMoveSan: "1... b5! 2. Bb3 Na5",
+        bestMoveSan: "1... c5! 2. Qd3 c4!",
         calibratedElo: 1050,
-        coachFeedback: "Principled developing move, but allows White to castle comfortably without crisis.",
+        coachFeedback: "Natural developing move, but misses the winning tactical trap: 1... c5! attacks the queen and prepares 2... c4! trapping White's bishop on b3.",
+        ruleTitle,
+        ruleBody,
+      };
+    }
+    if (from === "c8" && to === "e6") {
+      return {
+        branchType: "solid_defense",
+        status: "inaccurate",
+        score: 0.50,
+        userMoveSan: "1... Be6",
+        bestMoveSan: "1... c5! 2. Qd3 c4!",
+        calibratedElo: 1100,
+        coachFeedback: "Solid piece development, but misses the concrete opportunity to trap White's Spanish bishop with 1... c5! and ...c4.",
         ruleTitle,
         ruleBody,
       };
     }
   }
 
-  const numeric = (puzzle as any).numericRating || 1250;
+  const numeric = (puzzle as { numericRating?: number }).numericRating || 1250;
 
   if (isBest) {
     const eloGain = Math.round(180 * (1 - 1 / (1 + Math.pow(10, (numeric - currentRating) / 400))));

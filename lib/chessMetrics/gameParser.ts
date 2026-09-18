@@ -1,3 +1,4 @@
+import { Chess } from 'chess.js';
 import {
   Color,
   GamePhase,
@@ -20,6 +21,7 @@ import { parsePgn } from './tokenizer';
 
 export interface LichessRawGame {
   id: string;
+  variant?: string;
   rated?: boolean;
   speed?: string;
   status?: string;
@@ -83,6 +85,7 @@ export function parseGameMoves(
   clockIncrementSeconds: number = 0
 ): MoveAnalysis[] {
   const result: MoveAnalysis[] = [];
+  const chess = new Chess();
   let pieceCount = 32;
 
   // Previous clocks for time-per-move calculation
@@ -94,6 +97,13 @@ export function parseGameMoves(
 
   for (let i = 0; i < moves.length; i++) {
     const m = moves[i];
+    const fenBefore = chess.fen();
+    try {
+      const normalizedSan = m.san.replace(/^0-0-0/, 'O-O-O').replace(/^0-0/, 'O-O');
+      chess.move(normalizedSan);
+    } catch {
+      // Keep going if a move string fails
+    }
 
     // 1. Piece count tracking: captures contain 'x'
     if (m.san.includes('x')) {
@@ -135,6 +145,7 @@ export function parseGameMoves(
       moveNumber: m.moveNumber,
       color: m.color,
       san: m.san,
+      fen: fenBefore,
       evalBefore,
       evalAfter,
       winPctBefore,
@@ -202,7 +213,6 @@ export function deriveGameStats(
 
   // Filter moves by player color
   const userMoves = analyzedMoves.filter((m) => m.color === userColor);
-  const opponentMoves = analyzedMoves.filter((m) => m.color === opponentColor);
 
   // Check if evals exist
   const hasEvals = analyzedMoves.some((m) => m.evalAfter.cp !== undefined || m.evalAfter.mate !== undefined);
@@ -210,23 +220,22 @@ export function deriveGameStats(
     ? 'lichess'
     : 'none';
 
-  // Compute judgments and win% lost per phase
-  let winpctLostOpening = 0;
-  let winpctLostMiddlegame = 0;
-  let winpctLostEndgame = 0;
-  let inaccuracies = 0;
-  let mistakes = 0;
-  let blunders = 0;
+  // Opening win% lost
+  const openingMoves = userMoves.filter((m) => m.phase === 'opening');
+  const winpctLostOpening = openingMoves.reduce((acc, m) => acc + m.winPctLost, 0);
 
-  for (const m of userMoves) {
-    if (m.phase === 'opening') winpctLostOpening += m.winPctLost;
-    else if (m.phase === 'middlegame') winpctLostMiddlegame += m.winPctLost;
-    else if (m.phase === 'endgame') winpctLostEndgame += m.winPctLost;
+  // Middlegame win% lost
+  const middlegameMoves = userMoves.filter((m) => m.phase === 'middlegame');
+  const winpctLostMiddlegame = middlegameMoves.reduce((acc, m) => acc + m.winPctLost, 0);
 
-    if (m.judgment === 'inaccuracy') inaccuracies++;
-    else if (m.judgment === 'mistake') mistakes++;
-    else if (m.judgment === 'blunder') blunders++;
-  }
+  // Endgame win% lost
+  const endgameMoves = userMoves.filter((m) => m.phase === 'endgame');
+  const winpctLostEndgame = endgameMoves.reduce((acc, m) => acc + m.winPctLost, 0);
+
+  // Judgments count
+  const inaccuracies = userMoves.filter((m) => m.judgment === 'inaccuracy').length;
+  const mistakes = userMoves.filter((m) => m.judgment === 'mistake').length;
+  const blunders = userMoves.filter((m) => m.judgment === 'blunder').length;
 
   // Accuracy: prefer API provided accuracy if present
   let accuracy = userPlayer?.analysis?.accuracy;
@@ -246,7 +255,7 @@ export function deriveGameStats(
   let troughEvalWhite = 15;
   for (const m of analyzedMoves) {
     const cp = m.evalAfter.mate !== undefined
-      ? m.evalAfter.mate > 0 ? 10000 : -10000
+      ? m.evalAfter.mate >= 0 ? 10000 : -10000
       : (m.evalAfter.cp || 0);
     if (cp > peakEvalWhite) peakEvalWhite = cp;
     if (cp < troughEvalWhite) troughEvalWhite = cp;
@@ -281,21 +290,45 @@ export function deriveGameStats(
     .filter((m) => m.judgment === 'blunder' || m.judgment === 'mistake' || m.winPctLost >= 15)
     .sort((a, b) => b.winPctLost - a.winPctLost)
     .slice(0, 10)
-    .map((m) => ({
-      gameId: rawGame.id,
-      ply: m.ply,
-      moveNumber: m.moveNumber,
-      san: m.san,
-      color: m.color,
-      evalBefore: m.evalBefore.mate ? m.evalBefore.mate * 1000 : (m.evalBefore.cp || 0),
-      evalAfter: m.evalAfter.mate ? m.evalAfter.mate * 1000 : (m.evalAfter.cp || 0),
-      winPctLost: m.winPctLost,
-      judgment: m.judgment,
-      phase: m.phase,
-      clockRemaining: m.clockRemaining,
-      timeSpentSeconds: m.timeSpentSeconds,
-      deepLink: `https://lichess.org/${rawGame.id}/${userColor}#${m.ply}`,
-    }));
+    .map((m) => {
+      const moveIdx = analyzedMoves.findIndex((am) => am.ply === m.ply);
+      const setupMoves: { ply: number; moveNumber: number; turnPrefix: string; san: string; fen: string }[] = [];
+      if (moveIdx !== -1) {
+        const pliesBack = Math.min(moveIdx, 6);
+        for (let step = moveIdx - pliesBack; step < moveIdx; step++) {
+          const am = analyzedMoves[step];
+          const moveNum = Math.floor(am.ply / 2) + 1;
+          const prefix = am.ply % 2 === 1 ? `${moveNum}.` : `${moveNum}...`;
+          if (am.fen) {
+            setupMoves.push({
+              ply: am.ply,
+              moveNumber: moveNum,
+              turnPrefix: prefix,
+              san: am.san,
+              fen: am.fen,
+            });
+          }
+        }
+      }
+
+      return {
+        gameId: rawGame.id,
+        ply: m.ply,
+        moveNumber: m.moveNumber,
+        san: m.san,
+        color: m.color,
+        fen: m.fen,
+        setupMoves,
+        evalBefore: m.evalBefore.mate !== undefined ? (m.evalBefore.mate >= 0 ? 10000 : -10000) : (m.evalBefore.cp || 0),
+        evalAfter: m.evalAfter.mate !== undefined ? (m.evalAfter.mate >= 0 ? 10000 : -10000) : (m.evalAfter.cp || 0),
+        winPctLost: m.winPctLost,
+        judgment: m.judgment,
+        phase: m.phase,
+        clockRemaining: m.clockRemaining,
+        timeSpentSeconds: m.timeSpentSeconds,
+        deepLink: `https://lichess.org/${rawGame.id}/${userColor}#${m.ply}`,
+      };
+    });
 
   return {
     gameId: rawGame.id,

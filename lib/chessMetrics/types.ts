@@ -52,6 +52,13 @@ export interface CriticalMoment {
   clockRemaining?: number;
   timeSpentSeconds?: number;
   deepLink: string; // https://lichess.org/{gameId}/{color}#{ply}
+  setupMoves?: {
+    ply: number;
+    moveNumber: number;
+    turnPrefix: string;
+    san: string;
+    fen: string;
+  }[];
 }
 
 export interface OpeningStats {

@@ -25,7 +25,7 @@ export interface LichessUser {
     puzzle?: LichessPerf;
     correspondence?: LichessPerf;
     storm?: { runs: number; score: number };
-    [key: string]: any;
+    [key: string]: unknown;
   };
   profile?: {
     bio?: string;

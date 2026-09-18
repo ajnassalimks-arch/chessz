@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Chess } from "chess.js";
@@ -55,12 +55,15 @@ import {
   Clock,
   Brain,
   Share2,
+  BookOpen,
 } from "lucide-react";
 import { track } from "@vercel/analytics";
 import { useLichess } from "@/lib/useLichess";
 import { LichessModal, LichessIcon } from "@/components/LichessModal";
 import { ChessZMark } from "@/components/ChessZLogo";
 import { SocialShareModal } from "@/components/SocialShareModal";
+import { CoachStudyModal, CoachStudyItem } from "@/components/CoachStudyModal";
+import { TermHoverCard } from "@/components/TermHoverCard";
 
 export default function DiagnosePage() {
   const router = useRouter();
@@ -76,6 +79,7 @@ export default function DiagnosePage() {
     connectByUsername: connectLichessUsername,
   } = useLichess();
   const [showLichessModal, setShowLichessModal] = useState<boolean>(false);
+  const [showStudyModal, setShowStudyModal] = useState<boolean>(false);
 
   // Theme synchronization
   const [themePalette, setThemePalette] = useState<ThemePalette>("periwinkle");
@@ -298,7 +302,7 @@ export default function DiagnosePage() {
   const [blunderedOnSure, setBlunderedOnSure] = useState<boolean>(false);
   const [selectedCommitment, setSelectedCommitment] = useState<CommitmentLevel | null>(null);
   const [feedbackMessage, setFeedbackMessage] = useState<string>("");
-  const puzzleStartTimeRef = useRef<number>(Date.now());
+  const puzzleStartTimeRef = useRef<number>(0);
 
   // Initialize Puzzle
   const loadPuzzle = (puzzle: ChessPuzzle & { numericRating: number }) => {
@@ -1204,6 +1208,33 @@ export default function DiagnosePage() {
   const detectedPattern = classifyBehavioralPattern(attempts);
   const currentLevelInfo = mapEloToLevel(currentRating);
 
+  const studyItems: CoachStudyItem[] = useMemo(() => {
+    return attempts.map((att) => {
+      const puz =
+        BENCHMARK_PUZZLE_POOL.find((p) => p.id === att.puzzleId) ||
+        HISTORICAL_BENCHMARKS_STAGE_1.find((p) => p.id === att.puzzleId) ||
+        HISTORICAL_BENCHMARKS_STAGE_2.find((p) => p.id === att.puzzleId);
+
+      return {
+        id: att.puzzleId,
+        title: att.puzzleTitle,
+        initialFen: puz?.initialFen || "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+        playerColor: puz?.playerColor || "white",
+        userMoveSan: att.userMoveSan || att.moveSan,
+        bestMoveSan: att.bestMoveSan || puz?.solutionMoves[0]?.san || "",
+        status: att.status,
+        timeMs: att.timeMs,
+        prompt: puz?.prompt,
+        ruleTitle: att.ruleTitle || puz?.ruleTitle,
+        ruleBody: att.ruleBody || puz?.ruleBody,
+        coachExplanation: att.coachExplanation || puz?.successExplanation,
+        solutionMoves: puz?.solutionMoves,
+        opponentResponses: puz?.opponentResponses,
+        defaultRefutation: puz?.defaultRefutation,
+      };
+    });
+  }, [attempts]);
+
   return (
     <main
       className="min-h-screen flex flex-col p-2.5 sm:p-4 md:px-6 md:py-3 font-sans transition-colors duration-200"
@@ -1237,6 +1268,9 @@ export default function DiagnosePage() {
         diagnosedElo={currentRating}
       />
 
+      {/* Coach Study Mode Data Memo */}
+      {(() => null)()}
+
       {/* Social Share Card Generator Modal */}
       <SocialShareModal
         isOpen={showShareModal}
@@ -1251,6 +1285,16 @@ export default function DiagnosePage() {
         correctCount={attempts.filter((a) => a.firstTryCorrect || a.status === "best").length}
         noveltyVerified={noveltyVerified}
         isCrucibleActive={isCrucibleActive}
+      />
+
+      {/* Interactive Coach Study Mode Modal */}
+      <CoachStudyModal
+        isOpen={showStudyModal}
+        onClose={() => setShowStudyModal(false)}
+        title="Diagnostic Benchmark Study Session"
+        subtitle="Review your 5 tactical diagnostic positions move-by-move with private academy coach guidance."
+        items={studyItems}
+        pieceSet={pieceSet}
       />
 
       {/* Grandmaster Crucible Modal (Trial 6 Bonus Challenge) */}
@@ -1329,6 +1373,14 @@ export default function DiagnosePage() {
             >
               <span>Weakness Studio</span>
               <span className="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+            </Link>
+            <Link
+              href="/terms"
+              className="px-2.5 py-1 rounded-lg font-semibold theme-text-secondary hover:theme-text-primary hover:bg-[var(--surface-muted)] transition flex items-center gap-1.5"
+            >
+              <BookOpen className="w-3.5 h-3.5 text-[var(--accent-primary)]" />
+              <span>Study Terms</span>
+              <span className="text-[9px] px-1 py-0.2 rounded bg-[var(--accent-primary)]/20 text-[var(--accent-primary)] font-bold">Coach</span>
             </Link>
           </nav>
         </div>
@@ -1926,16 +1978,26 @@ export default function DiagnosePage() {
 
             {/* Tile 4: Benchmark Solutions & Tactical Timeline */}
             <div className="theme-surface-subtle rounded-3xl p-4 sm:p-6 border border-[var(--border-subtle)] shadow-sm">
-              <div className="flex items-center justify-between mb-3.5">
+              <div className="flex items-center justify-between mb-3.5 flex-wrap gap-2">
                 <div className="flex items-center gap-2">
                   <Target className="w-4 h-4 text-[var(--accent-primary)]" />
                   <span className="text-xs sm:text-sm font-bold theme-text-primary font-display">
                     Benchmark Breakdown & Solutions
                   </span>
                 </div>
-                <span className="text-[10px] font-mono theme-text-muted px-2.5 py-0.5 rounded-full bg-[var(--surface-muted)] border">
-                  {attempts.length} Positions Analyzed
-                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowStudyModal(true)}
+                    className="text-xs font-mono font-bold px-3 py-1 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25 transition cursor-pointer flex items-center gap-1.5 active:scale-95 shadow-xs"
+                  >
+                    <BookOpen className="w-3.5 h-3.5" />
+                    <span>🎓 Move-by-Move Coach Study</span>
+                  </button>
+                  <span className="text-[10px] font-mono theme-text-muted px-2.5 py-0.5 rounded-full bg-[var(--surface-muted)] border hidden sm:inline">
+                    {attempts.length} Positions Analyzed
+                  </span>
+                </div>
               </div>
 
               {/* Quick Visual Timeline Ribbon */}
@@ -2041,8 +2103,8 @@ export default function DiagnosePage() {
                         <div className="text-[11px] theme-surface-subtle p-2.5 rounded-xl border border-[var(--border-focus)]/40 flex items-start gap-2">
                           <span className="text-amber-500 font-bold shrink-0">💡</span>
                           <div>
-                            <span className="font-bold theme-text-primary">
-                              {att.ruleTitle}:{" "}
+                            <span className="font-bold theme-text-primary mr-1">
+                              <TermHoverCard term={att.ruleTitle} showIcon />:
                             </span>
                             <span className="theme-text-secondary">
                               {att.ruleBody}
@@ -2057,21 +2119,30 @@ export default function DiagnosePage() {
             </div>
 
             {/* Bottom Launchpad CTAs */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowStudyModal(true)}
+                className="w-full py-4 px-4 rounded-2xl theme-surface border border-emerald-500/40 hover:border-emerald-500 hover:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-sm tracking-wide flex items-center justify-center gap-2 shadow-md transition cursor-pointer active:scale-[0.98]"
+              >
+                <BookOpen className="w-4 h-4" />
+                <span>🎓 Coach Study Mode</span>
+              </button>
+
               <button
                 onClick={handleStartPersonalizedTraining}
-                className="w-full py-4 px-6 rounded-2xl theme-accent-btn font-bold text-sm tracking-wide flex items-center justify-center gap-2.5 shadow-lg transition cursor-pointer active:scale-[0.98] hover:shadow-xl group"
+                className="w-full py-4 px-4 rounded-2xl theme-accent-btn font-bold text-sm tracking-wide flex items-center justify-center gap-2 shadow-lg transition cursor-pointer active:scale-[0.98] hover:shadow-xl group"
               >
-                <span>Start Personalized Training</span>
+                <span>Start Training</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
 
               <button
                 onClick={() => setShowShareModal(true)}
-                className="w-full py-4 px-6 rounded-2xl theme-surface border border-amber-500/40 hover:border-amber-500 hover:bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-sm tracking-wide flex items-center justify-center gap-2.5 shadow-md transition cursor-pointer active:scale-[0.98]"
+                className="w-full py-4 px-4 rounded-2xl theme-surface border border-amber-500/40 hover:border-amber-500 hover:bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-sm tracking-wide flex items-center justify-center gap-2 shadow-md transition cursor-pointer active:scale-[0.98]"
               >
                 <Share2 className="w-4 h-4" />
-                <span>Share My Diagnosis</span>
+                <span>Share Diagnosis</span>
               </button>
             </div>
           </div>

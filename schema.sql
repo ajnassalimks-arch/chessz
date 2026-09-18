@@ -74,3 +74,115 @@ create trigger on_auth_user_created
 -- 7. Helpful Indexing for fast queries
 create index if not exists idx_puzzle_history_user_id on public.puzzle_history(user_id);
 create index if not exists idx_puzzle_history_puzzle_id on public.puzzle_history(puzzle_id);
+
+-- ==============================================================================
+-- 8. Lichess Accounts Table & RLS
+-- ==============================================================================
+create table if not exists public.lichess_accounts (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references auth.users(id) on delete cascade not null unique,
+  lichess_username text not null unique,
+  last_synced_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  last_game_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+alter table public.lichess_accounts enable row level security;
+
+create policy "Users can view own lichess account"
+  on public.lichess_accounts for select
+  using (auth.uid() = user_id);
+
+create policy "Users can insert own lichess account"
+  on public.lichess_accounts for insert
+  with check (auth.uid() = user_id);
+
+create policy "Users can update own lichess account"
+  on public.lichess_accounts for update
+  using (auth.uid() = user_id);
+
+-- ==============================================================================
+-- 9. Game Stats Table & RLS
+-- ==============================================================================
+create table if not exists public.game_stats (
+  game_id text primary key,
+  user_id uuid references auth.users(id) on delete cascade not null,
+  played_at timestamp with time zone not null,
+  color text not null check (color in ('white', 'black')),
+  result text not null check (result in ('win', 'loss', 'draw')),
+  speed text not null,
+  eco text,
+  opening_name text,
+  opening_ply integer default 16,
+  clock_initial integer,
+  clock_increment integer default 0,
+  user_rating integer,
+  opponent_rating integer,
+  rating_diff integer,
+  accuracy numeric(5, 2),
+  acpl integer,
+  winpct_lost_opening numeric(5, 2),
+  winpct_lost_middlegame numeric(5, 2),
+  winpct_lost_endgame numeric(5, 2),
+  inaccuracies integer default 0,
+  mistakes integer default 0,
+  blunders integer default 0,
+  peak_eval integer,
+  trough_eval integer,
+  converted boolean default true,
+  rescued boolean default false,
+  missed_punishments integer default 0,
+  eval_source text default 'none',
+  engine_nodes bigint,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+alter table public.game_stats enable row level security;
+
+create policy "Users can view own game stats"
+  on public.game_stats for select
+  using (auth.uid() = user_id);
+
+create policy "Users can insert own game stats"
+  on public.game_stats for insert
+  with check (auth.uid() = user_id);
+
+create policy "Users can update own game stats"
+  on public.game_stats for update
+  using (auth.uid() = user_id);
+
+-- ==============================================================================
+-- 10. Critical Moments Table & RLS
+-- ==============================================================================
+create table if not exists public.critical_moments (
+  id uuid default gen_random_uuid() primary key,
+  game_id text references public.game_stats(game_id) on delete cascade not null,
+  user_id uuid references auth.users(id) on delete cascade not null,
+  ply integer not null,
+  san text not null,
+  fen text,
+  eval_before integer not null,
+  eval_after integer not null,
+  winpct_lost numeric(5, 2) not null,
+  judgment text not null check (judgment in ('none', 'inaccuracy', 'mistake', 'blunder')),
+  phase text not null check (phase in ('opening', 'middlegame', 'endgame')),
+  clock_remaining integer,
+  time_spent_seconds integer,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+alter table public.critical_moments enable row level security;
+
+create policy "Users can view own critical moments"
+  on public.critical_moments for select
+  using (auth.uid() = user_id);
+
+create policy "Users can insert own critical moments"
+  on public.critical_moments for insert
+  with check (auth.uid() = user_id);
+
+-- Indexing for fast weakness studio queries
+create index if not exists idx_game_stats_user_id_played_at on public.game_stats(user_id, played_at desc);
+create index if not exists idx_critical_moments_game_id on public.critical_moments(game_id);
+create index if not exists idx_critical_moments_user_id on public.critical_moments(user_id);
+

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Settings, Sun, Moon, Volume2, VolumeX, Sparkles, X, Check, HelpCircle, Image as ImageIcon } from "lucide-react";
+import { Sun, Moon, Volume2, VolumeX, Sparkles, X, Check, HelpCircle, Image as ImageIcon } from "lucide-react";
 import { ThemePalette, ThemeMode, THEME_BOARD_COLORS, THEME_NAMES } from "./ThemeSwitcher";
 import { PieceSetStyle } from "./pieces/PieceSets2D";
 import { sounds } from "@/lib/sounds";
@@ -20,19 +20,22 @@ export function SettingsModal({ isOpen, onClose, onThemeChange }: SettingsModalP
   const [pieceSet, setPieceSet] = useState<PieceSetStyle>("default");
 
   useEffect(() => {
-    try {
-      const savedTheme = (localStorage.getItem("chessz_theme") as ThemePalette) || "periwinkle";
-      const savedMode = (localStorage.getItem("chessz_mode") as ThemeMode) || "light";
-      const savedMute = localStorage.getItem("chessz_muted");
-      const savedWallpaper = localStorage.getItem("chessz_wallpaper");
+    const timer = setTimeout(() => {
+      try {
+        const savedTheme = (localStorage.getItem("chessz_theme") as ThemePalette) || "periwinkle";
+        const savedMode = (localStorage.getItem("chessz_mode") as ThemeMode) || "light";
+        const savedMute = localStorage.getItem("chessz_muted");
+        const savedWallpaper = localStorage.getItem("chessz_wallpaper");
 
-      setTheme(savedTheme);
-      setMode(savedMode);
-      setPieceSet("default");
-      localStorage.setItem("chessz_piece_set", "default");
-      if (savedMute !== null) setIsMuted(JSON.parse(savedMute));
-      if (savedWallpaper !== null) setWallpaperEnabled(JSON.parse(savedWallpaper));
-    } catch {}
+        setTheme(savedTheme);
+        setMode(savedMode);
+        setPieceSet("default");
+        localStorage.setItem("chessz_piece_set", "default");
+        if (savedMute !== null) setIsMuted(JSON.parse(savedMute));
+        if (savedWallpaper !== null) setWallpaperEnabled(JSON.parse(savedWallpaper));
+      } catch {}
+    }, 0);
+    return () => clearTimeout(timer);
   }, [isOpen]);
 
   useEffect(() => {
@@ -120,14 +123,6 @@ export function SettingsModal({ isOpen, onClose, onThemeChange }: SettingsModalP
     dispatchSettingsChanged(theme, mode, pieceSet, nextVal);
   };
 
-  const handleSelectPieceSet = (newPieceSet: PieceSetStyle) => {
-    setPieceSet(newPieceSet);
-    try {
-      localStorage.setItem("chessz_piece_set", newPieceSet);
-    } catch {}
-    dispatchSettingsChanged(theme, mode, newPieceSet, wallpaperEnabled);
-  };
-
   if (!isOpen) return null;
 
   return (
@@ -213,6 +208,7 @@ export function SettingsModal({ isOpen, onClose, onThemeChange }: SettingsModalP
           <div className="mb-4 p-3 rounded-2xl theme-surface-subtle border border-emerald-500/30 flex items-center justify-between animate-in fade-in">
             <div className="flex items-center gap-2.5">
               <div className="w-7 h-7 rounded-lg overflow-hidden border border-emerald-500/40 shrink-0">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="/wallpapers/emerald-glitter.jpg" alt="Wallpaper preview" className="w-full h-full object-cover" />
               </div>
               <div>

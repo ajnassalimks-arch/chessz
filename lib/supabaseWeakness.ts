@@ -1,7 +1,24 @@
 import { supabase, isSupabaseConfigured } from './supabase';
-import { GameDerivedStats, CriticalMoment } from './chessMetrics/types';
+import { GameDerivedStats } from './chessMetrics/types';
 
 const LOCAL_STORAGE_KEY_PREFIX = 'chessz_weakness_';
+
+async function ensureAuthenticatedSession(): Promise<string | null> {
+  if (!isSupabaseConfigured || !supabase) return null;
+  try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (sessionData?.session?.user?.id) {
+      return sessionData.session.user.id;
+    }
+    const { data: anonData, error } = await supabase.auth.signInAnonymously();
+    if (error || !anonData?.user) {
+      return null;
+    }
+    return anonData.user.id;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Saves games and critical moments to Supabase if authenticated,
@@ -35,11 +52,10 @@ export async function saveGameStatsBatch(
   }
 
   try {
-    const { data: sessionData } = await supabase.auth.getSession();
-    const userId = sessionData?.session?.user?.id;
+    const userId = await ensureAuthenticatedSession();
 
     if (!userId) {
-      // User is viewing anonymously / without Supabase login
+      // User is viewing anonymously without active session
       return { savedToSupabase: false, count: games.length };
     }
 
@@ -105,7 +121,21 @@ export async function saveGameStatsBatch(
     }
 
     // Batch insert critical moments (max 10 per game)
-    const momentRows: any[] = [];
+    interface MomentRow {
+      game_id: string;
+      user_id: string;
+      ply: number;
+      san: string;
+      fen: string | null;
+      eval_before: number;
+      eval_after: number;
+      winpct_lost: number;
+      judgment: string;
+      phase: string;
+      clock_remaining: number | null;
+      time_spent_seconds: number | null;
+    }
+    const momentRows: MomentRow[] = [];
     for (const g of games) {
       for (const m of g.criticalMoments) {
         momentRows.push({
@@ -136,6 +166,38 @@ export async function saveGameStatsBatch(
   }
 }
 
+interface DbGameRow {
+  game_id: string;
+  user_id: string;
+  played_at: string;
+  color: 'white' | 'black';
+  result: 'win' | 'loss' | 'draw';
+  speed: string;
+  eco?: string;
+  opening_name?: string;
+  opening_ply?: number;
+  clock_initial?: number;
+  clock_increment?: number;
+  user_rating?: number;
+  opponent_rating?: number;
+  rating_diff?: number;
+  accuracy?: number | string;
+  acpl?: number | string;
+  winpct_lost_opening?: number | string;
+  winpct_lost_middlegame?: number | string;
+  winpct_lost_endgame?: number | string;
+  inaccuracies?: number;
+  mistakes?: number;
+  blunders?: number;
+  peak_eval?: number;
+  trough_eval?: number;
+  converted?: boolean;
+  rescued?: boolean;
+  missed_punishments?: number;
+  eval_source?: 'lichess' | 'local' | 'none';
+  engine_nodes?: number;
+}
+
 /**
  * Loads cached game stats from Supabase or localStorage
  */
@@ -161,7 +223,7 @@ export async function loadCachedGameStats(
           .limit(100);
 
         if (rows && rows.length > 0) {
-          const mapped: GameDerivedStats[] = rows.map((r: any) => ({
+          const mapped: GameDerivedStats[] = (rows as DbGameRow[]).map((r) => ({
             gameId: r.game_id,
             userId: r.user_id,
             playedAt: new Date(r.played_at).getTime(),

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Download, Copy, Check, Sparkles, ExternalLink } from 'lucide-react';
 
 interface SocialShareModalProps {
@@ -325,8 +325,11 @@ export function SocialShareModal({
 
     // Convert to Image Data URL for high-res preview
     const dataUrl = canvas.toDataURL('image/png');
-    setPreviewUrl(dataUrl);
-    setImageLoaded(true);
+    const timer = setTimeout(() => {
+      setPreviewUrl(dataUrl);
+      setImageLoaded(true);
+    }, 0);
+    return () => clearTimeout(timer);
   }, [
     isOpen,
     diagnosedElo,
@@ -424,6 +427,7 @@ export function SocialShareModal({
           {/* Card Preview Container */}
           <div className="rounded-2xl overflow-hidden border border-[var(--border-subtle)] shadow-xl bg-[#0F172A] aspect-video relative flex items-center justify-center">
             {imageLoaded && previewUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={previewUrl}
                 alt="ChessZ Diagnostic Share Card Preview"

@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Chess } from "chess.js";
 import { Chessboard, defaultArrowOptions } from "react-chessboard";
 import { ChessboardFrame } from "@/components/ChessboardFrame";
@@ -9,7 +10,9 @@ import {
   Zap,
   RotateCcw,
   Award,
+  ChevronLeft,
   ChevronRight,
+  History,
   Swords,
   Sparkles,
   Target,
@@ -52,6 +55,8 @@ import { LichessModal, LichessIcon } from "@/components/LichessModal";
 import { WeaknessDashboard } from "@/components/WeaknessDashboard";
 import { useStockfish } from "@/lib/useStockfish";
 import { EngineAnalysisBar } from "@/components/EngineAnalysisBar";
+import { CoachStudyModal, CoachStudyItem } from "@/components/CoachStudyModal";
+import { TermHoverCard } from "@/components/TermHoverCard";
 
 interface CoachDiagnosis {
   archetypeTitle: string;
@@ -191,6 +196,8 @@ export default function Home() {
     toggleEngine,
   } = useStockfish();
 
+  const searchParams = useSearchParams();
+
   const [selectedLevel, setSelectedLevel] = useState<LevelOption | null>(null);
   const [calibratedRating, setCalibratedRating] = useState<number>(900);
   const [coachDiagnosis, setCoachDiagnosis] = useState<CoachDiagnosis | null>(null);
@@ -201,6 +208,27 @@ export default function Home() {
   const [curriculumIndex, setCurriculumIndex] = useState<number>(0);
   const [isCurriculumActive, setIsCurriculumActive] = useState<boolean>(false);
   const [curriculumCompleted, setCurriculumCompleted] = useState<boolean>(false);
+  const [showStudyModal, setShowStudyModal] = useState<boolean>(false);
+
+  const curriculumStudyItems: CoachStudyItem[] = useMemo(() => {
+    const list = coachDiagnosis?.curatedPlaylist || diagnosisPlaylist;
+    return list.map((p) => ({
+      id: p.id,
+      title: p.title,
+      tier: p.tier,
+      initialFen: p.initialFen,
+      playerColor: p.playerColor,
+      bestMoveSan: p.solutionMoves[0]?.san || '',
+      status: 'solved' as const,
+      prompt: p.prompt,
+      ruleTitle: p.ruleTitle,
+      ruleBody: p.ruleBody,
+      coachExplanation: p.successExplanation,
+      solutionMoves: p.solutionMoves,
+      opponentResponses: p.opponentResponses,
+      defaultRefutation: p.defaultRefutation,
+    }));
+  }, [coachDiagnosis?.curatedPlaylist, diagnosisPlaylist]);
 
   // Puzzle State
   const [currentPuzzle, setCurrentPuzzle] = useState<ChessPuzzle | null>(null);
@@ -213,6 +241,7 @@ export default function Home() {
   const [streak, setStreak] = useState<number>(0);
   const [solvedCount, setSolvedCount] = useState<number>(0);
   const [continuousIndex, setContinuousIndex] = useState<number>(0);
+  const [setupStepIndex, setSetupStepIndex] = useState<number>(-1);
 
   // Piece Selection & Marking State
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
@@ -486,8 +515,60 @@ export default function Home() {
     setIsCalibrated(true);
     setIsCurriculumActive(false);
     loadPuzzle(puzzle);
-    setEngineEnabled(true);
+    // User must calculate first! Never spoil the solution with engine arrows on open.
+    setEngineEnabled(false);
   };
+
+  // Hydrate Blunder from Weakness Studio if navigated via ?mode=blunder
+  const hasHydratedBlunderRef = useRef<boolean>(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mode = searchParams.get("mode");
+    if (mode === "blunder" && !hasHydratedBlunderRef.current) {
+      hasHydratedBlunderRef.current = true;
+      let blunderData: any = null;
+
+      try {
+        const stored = sessionStorage.getItem("chessz_active_blunder");
+        if (stored) {
+          blunderData = JSON.parse(stored);
+        }
+      } catch {}
+
+      const fen = blunderData?.initialFen || searchParams.get("fen");
+      const playerColor = (blunderData?.playerColor || searchParams.get("color") || "white") as "white" | "black";
+      const playedSan = blunderData?.playedSan || searchParams.get("blunder") || "";
+      const gameId = blunderData?.gameId || searchParams.get("gameId") || "game";
+      const ply = blunderData?.ply || parseInt(searchParams.get("ply") || "0", 10);
+
+      if (fen) {
+        const blunderPuzzle: ChessPuzzle = {
+          id: blunderData?.id || `blunder_${gameId}_${ply}`,
+          lichessId: gameId,
+          tier: "intermediate",
+          track: "tactical",
+          ratingBadge: "Blunder Fix",
+          title: `Blunder Fix: Game ${gameId.slice(0, 8)}`,
+          initialFen: fen,
+          playerColor,
+          prompt: `${playerColor === "white" ? "White" : "Black"} to move: In your game you played ${playedSan}. Calculate the Stockfish refutation!`,
+          ruleTitle: `Tactical Correction: ${playedSan}`,
+          ruleBody: `Avoid playing ${playedSan}. Find the tactical counter-strike.`,
+          solutionMoves: blunderData?.solutionMoves || [],
+          defaultRefutation: {
+            from: "",
+            to: "",
+            san: playedSan,
+            coachExplanation: `In your game, ${playedSan} was a critical tactical error. Find the tactical counter-strike!`,
+          },
+          successExplanation: `Masterful calculation! You found the exact tactical refutation.`,
+          setupMoves: blunderData?.setupMoves || [],
+        };
+
+        handleStartBlunderTraining(blunderPuzzle);
+      }
+    }
+  }, [searchParams]);
 
   // Advance to next puzzle in the 5-puzzle curriculum
   const handleAdvanceCurriculum = () => {
@@ -510,10 +591,8 @@ export default function Home() {
 
   const loadPuzzle = (puzzle: ChessPuzzle) => {
     clearPuzzleTimeouts();
-    if (engineEnabled) {
-      setEngineEnabled(false);
-      stopAnalysis();
-    }
+    setEngineEnabled(false);
+    stopAnalysis();
     setCurrentPuzzle(puzzle);
     setPuzzleStatus("solving");
     setRefutationInfo(null);
@@ -526,6 +605,32 @@ export default function Home() {
     const newChess = new Chess(puzzle.initialFen);
     setGame(newChess);
     setStatus(`${newChess.turn() === "w" ? "White" : "Black"} to move`);
+    if (puzzle.setupMoves && puzzle.setupMoves.length > 0) {
+      setSetupStepIndex(puzzle.setupMoves.length - 1);
+    } else {
+      setSetupStepIndex(-1);
+    }
+  };
+
+  const handleStepSetupMove = (targetIndex: number) => {
+    if (!currentPuzzle?.setupMoves || targetIndex < 0 || targetIndex >= currentPuzzle.setupMoves.length) return;
+    setSetupStepIndex(targetIndex);
+    clearPuzzleTimeouts();
+    setSelectedSquare(null);
+    setLegalMoves([]);
+    setHintSquare(null);
+    setAnnotatedSquares({});
+    const targetFen = currentPuzzle.setupMoves[targetIndex].fen;
+    const newChess = new Chess(targetFen);
+    setGame(newChess);
+    setBoardKey((prev) => prev + 1);
+
+    if (targetIndex === currentPuzzle.setupMoves.length - 1) {
+      setStatus(`${newChess.turn() === "w" ? "White" : "Black"} to move`);
+    } else {
+      const step = currentPuzzle.setupMoves[targetIndex];
+      setStatus(`Lead-up: ${step.turnPrefix} ${step.san} (Click 'Solve' to refute)`);
+    }
   };
 
   const clearAllAnnotations = () => {
@@ -536,6 +641,9 @@ export default function Home() {
   // Shared move executor for Drag-and-Drop and Tap-to-Move
   const handleMoveAttempt = (sourceSquare: string, targetSquare: string): boolean => {
     if (!game || !currentPuzzle || puzzleStatus !== "solving") return false;
+    if (currentPuzzle.setupMoves && setupStepIndex !== -1 && setupStepIndex < currentPuzzle.setupMoves.length - 1) {
+      return false;
+    }
 
     // Clear UI markings
     clearPuzzleTimeouts();
@@ -675,6 +783,7 @@ export default function Home() {
   // Tap-to-move square click handler
   const handleSquareClick = ({ square }: { square: string }) => {
     if (!game || !currentPuzzle || puzzleStatus !== "solving") return;
+    if (currentPuzzle.setupMoves && setupStepIndex !== -1 && setupStepIndex < currentPuzzle.setupMoves.length - 1) return;
 
     // 0. If mobile touch annotation color is active, mark the square directly
     if (activeAnnotationColor) {
@@ -931,6 +1040,7 @@ export default function Home() {
     setLastMove(null);
     setHintSquare(null);
     setAnnotatedSquares({});
+    setSetupStepIndex(-1);
   };
 
   const handleSaveProgressSubmit = async (e: React.FormEvent) => {
@@ -1060,6 +1170,14 @@ export default function Home() {
             >
               <span>Weakness Studio</span>
               <span className="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+            </Link>
+            <Link
+              href="/terms"
+              className="px-2.5 py-1 rounded-lg font-semibold theme-text-secondary hover:theme-text-primary hover:bg-[var(--surface-muted)] transition flex items-center gap-1.5"
+            >
+              <BookOpen className="w-3.5 h-3.5 text-[var(--accent-primary)]" />
+              <span>Study Terms</span>
+              <span className="text-[9px] px-1 py-0.2 rounded bg-[var(--accent-primary)]/20 text-[var(--accent-primary)] font-bold">Coach</span>
             </Link>
           </nav>
         </div>
@@ -1310,6 +1428,35 @@ export default function Home() {
             </div>
           </div>
 
+          {/* Bento Card 3: Study Chess Terms & Coach Brainstorming */}
+          <div className="w-full max-w-3xl mb-4 p-3.5 sm:p-4 rounded-2xl theme-surface theme-surface-hover border border-[var(--border-subtle)] hover:border-[var(--border-focus)] shadow-xs hover:shadow-md transition-all duration-150 flex flex-col sm:flex-row items-center justify-between gap-3 group">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-[var(--accent-primary)]/15 text-[var(--accent-primary)] border border-[var(--accent-primary)]/30 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                <BookOpen className="w-5 h-5" />
+              </div>
+              <div className="text-left">
+                <div className="flex flex-wrap items-center gap-2 mb-0.5">
+                  <span className="text-xs sm:text-sm font-extrabold theme-text-primary">
+                    Study Chess Terms & Master Coach
+                  </span>
+                  <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 uppercase">
+                    Real Master Games
+                  </span>
+                </div>
+                <p className="text-xs theme-text-secondary leading-snug">
+                  Brainstorm candidate moves with live coach feedback on historical games from Morphy, Fischer, and Capablanca. Hover over any chess term to inspect its rule.
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/terms"
+              className="shrink-0 w-full sm:w-auto py-2 px-3.5 rounded-xl theme-accent-btn text-xs font-mono font-bold flex items-center justify-center gap-1.5 shadow-xs hover:shadow-md transition cursor-pointer"
+            >
+              <span>Explore Terms</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+            </Link>
+          </div>
+
           {/* Direct Practice Lobby Selector (Prestige Rank Accents) */}
           <div className="w-full max-w-3xl mb-5">
             <div className="flex items-center gap-3 my-2 text-zinc-400">
@@ -1490,7 +1637,9 @@ export default function Home() {
                   {isCurriculumActive ? `Curriculum Step ${curriculumIndex + 1} of 5` : "Coach Instruction"}
                 </span>
                 <span className="font-bold theme-text-primary block">{currentPuzzle.prompt}</span>
-                <span className="text-[11px] theme-text-secondary">Rule: {currentPuzzle.ruleTitle}</span>
+                <span className="text-[11px] theme-text-secondary flex items-center gap-1">
+                  Rule: <TermHoverCard term={currentPuzzle.ruleTitle} showIcon />
+                </span>
               </div>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded theme-surface theme-text-muted border">
                 {currentPuzzle.ratingBadge}
@@ -1527,6 +1676,77 @@ export default function Home() {
 
           {/* Chessboard Column (Left / Center) with Exterior ChessBase Bezel */}
           <div className="flex flex-col items-center justify-center shrink-0">
+            {/* Setup Moves Lead-up Stepper for Blunder Review */}
+            {currentPuzzle?.setupMoves && currentPuzzle.setupMoves.length > 1 && (
+              <div 
+                className="w-full mb-2 px-2.5 py-1.5 rounded-xl theme-surface border border-[var(--border-subtle)] flex items-center justify-between gap-2 text-xs select-none shadow-xs"
+                style={{ maxWidth: boardWidth + bezelSize * 2 }}
+              >
+                <div className="flex items-center gap-1.5 overflow-x-auto py-0.5 scrollbar-none min-w-0">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-amber-500 shrink-0 flex items-center gap-1">
+                    <History className="w-3 h-3" /> Lead-up:
+                  </span>
+                  <div className="flex items-center gap-1 overflow-x-auto">
+                    {currentPuzzle.setupMoves.map((m, idx) => {
+                      const isCurrent = setupStepIndex === idx;
+                      const isCritical = idx === currentPuzzle.setupMoves!.length - 1;
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => handleStepSetupMove(idx)}
+                          className={`px-2 py-0.5 rounded-md font-mono text-[11px] font-semibold transition cursor-pointer shrink-0 ${
+                            isCurrent
+                              ? isCritical
+                                ? "bg-rose-500 text-white shadow-xs"
+                                : "bg-[var(--accent-primary)] text-white shadow-xs"
+                              : isCritical
+                              ? "bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 hover:bg-rose-500/25"
+                              : "theme-surface-subtle theme-text-secondary hover:theme-text-primary"
+                          }`}
+                          title={isCritical ? "Critical Blunder Position (Solve)" : `Lead-up Move ${m.turnPrefix} ${m.san}`}
+                        >
+                          {m.turnPrefix} {m.san || "..."}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => handleStepSetupMove(Math.max(0, setupStepIndex - 1))}
+                    disabled={setupStepIndex <= 0}
+                    className="p-1 rounded-md theme-surface-subtle theme-text-secondary hover:theme-text-primary disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+                    title="Previous Move (◀)"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleStepSetupMove(Math.min(currentPuzzle.setupMoves!.length - 1, setupStepIndex + 1))}
+                    disabled={setupStepIndex >= currentPuzzle.setupMoves.length - 1}
+                    className="p-1 rounded-md theme-surface-subtle theme-text-secondary hover:theme-text-primary disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+                    title="Next Move (▶)"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+
+                  {setupStepIndex < currentPuzzle.setupMoves.length - 1 && (
+                    <button
+                      type="button"
+                      onClick={() => handleStepSetupMove(currentPuzzle.setupMoves!.length - 1)}
+                      className="ml-1 px-2 py-0.5 rounded-md bg-rose-500 hover:bg-rose-600 text-white font-bold text-[10px] uppercase tracking-wider transition shadow-xs cursor-pointer"
+                      title="Jump to critical blunder position"
+                    >
+                      Solve
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
             {game && currentPuzzle && (
               <ChessboardFrame
                   boardOrientation={currentPuzzle.playerColor}
@@ -1608,15 +1828,6 @@ export default function Home() {
                   <RefreshCw className="w-3.5 h-3.5" />
                   <span>Try Again</span>
                 </button>
-                {isCurriculumActive && (
-                  <button
-                    onClick={() => toggleEngine(game?.fen())}
-                    className="w-full mt-2 py-2 px-3 rounded-xl border border-[var(--border-subtle)] hover:bg-[var(--surface-muted)] text-xs font-semibold theme-text-secondary flex items-center justify-center gap-1.5 transition cursor-pointer"
-                  >
-                    <Cpu className="w-3.5 h-3.5 text-emerald-500" />
-                    <span>{engineEnabled ? "Hide Engine Analysis" : "Check Engine Analysis"}</span>
-                  </button>
-                )}
               </div>
             )}
 
@@ -1652,6 +1863,13 @@ export default function Home() {
                           Your leak ({coachDiagnosis?.leakName}) is now patched.
                         </span>
                       </div>
+                      <button
+                        onClick={() => setShowStudyModal(true)}
+                        className="w-full py-2.5 px-3 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs"
+                      >
+                        <BookOpen className="w-4 h-4" />
+                        <span>🎓 Coach Study Mode (Review My 5 Puzzles)</span>
+                      </button>
                       <button
                         onClick={continueToUnlimitedPractice}
                         className="group relative w-full py-2.5 px-3 rounded-xl theme-accent-btn font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all duration-200 shadow-sm cursor-pointer animate-next-btn btn-shimmer-effect hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]"
@@ -1794,8 +2012,8 @@ export default function Home() {
                       currentPuzzle.prompt
                     )}
                   </p>
-                  <p className="text-[11px] theme-text-secondary leading-relaxed">
-                    Rule: <span className="theme-text-primary font-medium">{currentPuzzle.ruleTitle}</span>
+                  <p className="text-[11px] theme-text-secondary leading-relaxed flex items-center gap-1">
+                    Rule: <TermHoverCard term={currentPuzzle.ruleTitle} showIcon />
                   </p>
                 </div>
               )}
@@ -1833,15 +2051,6 @@ export default function Home() {
                       <RefreshCw className="w-3.5 h-3.5" />
                       <span>Try Again</span>
                     </button>
-                    {isCurriculumActive && (
-                      <button
-                        onClick={() => toggleEngine(game?.fen())}
-                        className="w-full py-1.5 px-3 rounded-lg border border-[var(--border-subtle)] hover:bg-[var(--surface-muted)] text-[11px] font-semibold theme-text-secondary flex items-center justify-center gap-1.5 transition cursor-pointer"
-                      >
-                        <Cpu className="w-3.5 h-3.5 text-emerald-500" />
-                        <span>{engineEnabled ? "Hide Engine Analysis" : "Check Engine Analysis"}</span>
-                      </button>
-                    )}
                   </div>
                 </div>
               )}
@@ -1906,6 +2115,14 @@ export default function Home() {
                             Target leak patched: <strong className="theme-text-primary">{coachDiagnosis?.leakName || "Tactical Precision"}</strong>
                           </span>
                         </div>
+
+                        <button
+                          onClick={() => setShowStudyModal(true)}
+                          className="w-full py-2.5 px-3 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs"
+                        >
+                          <BookOpen className="w-4 h-4" />
+                          <span>🎓 Coach Study Mode (Review My 5 Puzzles)</span>
+                        </button>
 
                         <button
                           onClick={continueToUnlimitedPractice}
@@ -1994,17 +2211,6 @@ export default function Home() {
                 <RotateCcw className="w-3 h-3" />
                 <span>Reset Position</span>
               </button>
-
-              {isCurriculumActive && puzzleStatus === "solving" && (
-                <button
-                  onClick={() => toggleEngine(game?.fen())}
-                  className="flex items-center gap-1 text-[11px] theme-text-muted hover:theme-text-primary transition cursor-pointer"
-                  title="Check Stockfish Analysis"
-                >
-                  <Cpu className="w-3 h-3 text-emerald-500" />
-                  <span>{engineEnabled ? "Hide Analysis" : "Check Analysis"}</span>
-                </button>
-              )}
             </div>
           </div>
         </section>
@@ -2181,6 +2387,16 @@ export default function Home() {
         onClose={() => setShowWeaknessDashboard(false)}
         user={lichessUser}
         onStartTraining={handleStartBlunderTraining}
+      />
+
+      {/* Interactive Coach Study Mode Modal */}
+      <CoachStudyModal
+        isOpen={showStudyModal}
+        onClose={() => setShowStudyModal(false)}
+        title="Curriculum Tactical Review"
+        subtitle={`Step-by-step master breakdown of your 5 calibrated curriculum positions for ${coachDiagnosis?.leakName || "Tactical Precision"}.`}
+        items={curriculumStudyItems}
+        pieceSet={pieceSet}
       />
     </main>
   );

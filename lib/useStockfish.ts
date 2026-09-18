@@ -40,63 +40,6 @@ export function useStockfish() {
   const currentFenRef = useRef<string>('');
   const isMountedRef = useRef<boolean>(true);
 
-  // Initialize Worker cleanly on mount
-  useEffect(() => {
-    isMountedRef.current = true;
-
-    if (typeof window === 'undefined') return;
-
-    try {
-      const wasmSupported =
-        typeof WebAssembly === 'object' &&
-        typeof WebAssembly.validate === 'function' &&
-        WebAssembly.validate(
-          Uint8Array.of(0x0, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00)
-        );
-
-      const workerPath = wasmSupported
-        ? '/stockfish/stockfish.wasm.js'
-        : '/stockfish/stockfish.js';
-
-      const worker = new Worker(workerPath);
-      workerRef.current = worker;
-
-      worker.onmessage = (event: MessageEvent) => {
-        if (!isMountedRef.current) return;
-        const line = typeof event.data === 'string' ? event.data : '';
-
-        if (line.includes('uciok')) {
-          worker.postMessage('isready');
-        } else if (line.includes('readyok')) {
-          setIsReady(true);
-        } else if (line.startsWith('info') && line.includes('score')) {
-          parseInfoLine(line);
-        } else if (line.startsWith('bestmove')) {
-          parseBestMoveLine(line);
-        }
-      };
-
-      worker.onerror = (err) => {
-        console.warn('Stockfish worker notice (using fallback):', err);
-      };
-
-      worker.postMessage('uci');
-    } catch (e) {
-      console.warn('Failed to initialize Stockfish worker:', e);
-    }
-
-    return () => {
-      isMountedRef.current = false;
-      if (workerRef.current) {
-        try {
-          workerRef.current.postMessage('quit');
-          workerRef.current.terminate();
-        } catch {}
-        workerRef.current = null;
-      }
-    };
-  }, []);
-
   // Parse UCI 'info' line
   const parseInfoLine = useCallback((line: string) => {
     try {
@@ -113,71 +56,65 @@ export function useStockfish() {
 
       // Extract Score: cp or mate
       let score: number | null = null;
-      let displayScore = '0.0';
-      let isMate = false;
-      let mateIn: number | null = null;
+      let mate: number | null = null;
 
-      const mateMatch = line.match(/\bscore mate (-?\d+)\b/);
       const cpMatch = line.match(/\bscore cp (-?\d+)\b/);
+      const mateMatch = line.match(/\bscore mate (-?\d+)\b/);
 
-      if (mateMatch) {
-        isMate = true;
-        const rawMate = parseInt(mateMatch[1], 10);
-        mateIn = isBlackTurn ? -rawMate : rawMate;
-        displayScore = mateIn > 0 ? `M${mateIn}` : `-M${Math.abs(mateIn)}`;
-      } else if (cpMatch) {
+      if (cpMatch) {
+        // UCI gives score from engine's POV; convert to White's POV
         const rawCp = parseInt(cpMatch[1], 10);
-        // Normalize score to White's perspective (+ = White, - = Black)
         score = isBlackTurn ? -rawCp : rawCp;
-        const pawnVal = (score / 100).toFixed(1);
-        displayScore = score > 0 ? `+${pawnVal}` : pawnVal;
+      } else if (mateMatch) {
+        const rawMate = parseInt(mateMatch[1], 10);
+        mate = isBlackTurn ? -rawMate : rawMate;
       }
 
-      // Extract PV moves
+      // Extract PV line
       const pvIndex = line.indexOf(' pv ');
-      let pvMoves: string[] = [];
-      let firstMoveUci: string | null = null;
+      const pvMoves = pvIndex !== -1 ? line.slice(pvIndex + 4).trim().split(/\s+/) : [];
 
-      if (pvIndex !== -1) {
-        const pvStr = line.slice(pvIndex + 4).trim();
-        pvMoves = pvStr.split(/\s+/).filter(Boolean);
-        firstMoveUci = pvMoves[0] || null;
+      if (score !== null || mate !== null) {
+        const isMate = mate !== null;
+        const displayScore = isMate
+          ? (mate! > 0 ? `+M${mate}` : `-M${Math.abs(mate!)}`)
+          : `${score! > 0 ? '+' : ''}${(score! / 100).toFixed(1)}`;
+
+        setEvaluation({
+          score,
+          displayScore,
+          isMate,
+          mateIn: mate,
+          depth,
+          nps: nps || undefined,
+        });
       }
 
-      setEvaluation({
-        score,
-        displayScore,
-        isMate,
-        mateIn,
-        depth,
-        nps,
-      });
-
-      if (pvMoves.length > 0) {
-        setBestLine(pvMoves);
-      }
-
-      // If we have a first move from PV, convert to SAN & create Engine Arrow
-      if (firstMoveUci && firstMoveUci.length >= 4 && fen) {
-        const from = firstMoveUci.slice(0, 2);
-        const to = firstMoveUci.slice(2, 4);
-        const promotion = firstMoveUci.length > 4 ? firstMoveUci[4] : undefined;
-
-        let san = `${from}-${to}`;
+      // If we have PV moves, construct readable SAN line
+      if (pvMoves.length > 0 && fen) {
         try {
           const testChess = new Chess(fen);
-          const moveResult = testChess.move({ from, to, promotion: promotion || 'q' });
-          if (moveResult) san = moveResult.san;
+          const sanMoves: string[] = [];
+          for (const uciMove of pvMoves.slice(0, 5)) {
+            const from = uciMove.slice(0, 2);
+            const to = uciMove.slice(2, 4);
+            const promotion = uciMove.length > 4 ? uciMove[4] : undefined;
+            const res = testChess.move({ from, to, promotion: promotion || 'q' });
+            if (!res) break;
+            sanMoves.push(res.san);
+          }
+          setBestLine(sanMoves);
+
+          // Update arrow from first PV move
+          const firstMove = pvMoves[0];
+          if (firstMove && firstMove.length >= 4) {
+            setEngineArrow({
+              startSquare: firstMove.slice(0, 2),
+              endSquare: firstMove.slice(2, 4),
+              color: 'rgba(16, 185, 129, 0.88)',
+            });
+          }
         } catch {}
-
-        setBestMove({ from, to, promotion, san, uci: firstMoveUci });
-
-        // Highlight arrow on board: Cyan-Emerald luminous arrow
-        setEngineArrow({
-          startSquare: from,
-          endSquare: to,
-          color: 'rgba(16, 185, 129, 0.88)',
-        });
       }
     } catch {}
   }, []);
@@ -211,6 +148,71 @@ export function useStockfish() {
     }
   }, []);
 
+  const parseInfoLineRef = useRef(parseInfoLine);
+  const parseBestMoveLineRef = useRef(parseBestMoveLine);
+
+  useEffect(() => {
+    parseInfoLineRef.current = parseInfoLine;
+    parseBestMoveLineRef.current = parseBestMoveLine;
+  }, [parseInfoLine, parseBestMoveLine]);
+
+  // Initialize Worker cleanly on mount
+  useEffect(() => {
+    isMountedRef.current = true;
+
+    if (typeof window === 'undefined') return;
+
+    try {
+      const wasmSupported =
+        typeof WebAssembly === 'object' &&
+        typeof WebAssembly.validate === 'function' &&
+        WebAssembly.validate(
+          Uint8Array.of(0x0, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00)
+        );
+
+      const workerPath = wasmSupported
+        ? '/stockfish/stockfish.wasm.js'
+        : '/stockfish/stockfish.js';
+
+      const worker = new Worker(workerPath);
+      workerRef.current = worker;
+
+      worker.onmessage = (event: MessageEvent) => {
+        if (!isMountedRef.current) return;
+        const line = typeof event.data === 'string' ? event.data : '';
+
+        if (line.includes('uciok')) {
+          worker.postMessage('isready');
+        } else if (line.includes('readyok')) {
+          setIsReady(true);
+        } else if (line.startsWith('info') && line.includes('score')) {
+          parseInfoLineRef.current(line);
+        } else if (line.startsWith('bestmove')) {
+          parseBestMoveLineRef.current(line);
+        }
+      };
+
+      worker.onerror = (err) => {
+        console.warn('Stockfish worker notice (using fallback):', err);
+      };
+
+      worker.postMessage('uci');
+    } catch (e) {
+      console.warn('Failed to initialize Stockfish worker:', e);
+    }
+
+    return () => {
+      isMountedRef.current = false;
+      if (workerRef.current) {
+        try {
+          workerRef.current.postMessage('quit');
+          workerRef.current.terminate();
+        } catch {}
+        workerRef.current = null;
+      }
+    };
+  }, []);
+
   // Start analysis on a given FEN
   const startAnalysis = useCallback(
     (fen: string, depth: number = 15) => {
@@ -222,19 +224,21 @@ export function useStockfish() {
       setEngineArrow(null);
 
       workerRef.current.postMessage('stop');
-      workerRef.current.postMessage('ucinewgame');
       workerRef.current.postMessage(`position fen ${fen}`);
       workerRef.current.postMessage(`go depth ${depth}`);
     },
     []
   );
 
-  // Stop current calculation
+  // Stop current calculation and clear visual engine marks
   const stopAnalysis = useCallback(() => {
     if (workerRef.current) {
       workerRef.current.postMessage('stop');
     }
     setIsAnalyzing(false);
+    setEvaluation(null);
+    setBestMove(null);
+    setEngineArrow(null);
   }, []);
 
   // Toggle engine on/off

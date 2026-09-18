@@ -184,19 +184,29 @@ export async function GET(request: NextRequest) {
           const bestTo = bestUci.slice(2, 4);
           const bestProm = bestUci.length > 4 ? bestUci[4] : undefined;
 
-          // Collect preceding setup moves leading up to the mistake
+          // Dynamically collect up to 6 plies (3 full moves) of preceding context
           const setupMoves: { ply: number; moveNumber: number; turnPrefix: string; san: string; fen: string }[] = [];
-          if (i >= 2) {
-            const m2Num = Math.floor((i - 2) / 2) + 1;
-            const m2Prefix = (i - 2) % 2 === 0 ? `${m2Num}.` : `${m2Num}...`;
-            setupMoves.push({ ply: i - 2, moveNumber: m2Num, turnPrefix: m2Prefix, san: moves[i - 2], fen: fensHistory[i - 2] });
+          const pliesBack = Math.min(i, 6);
+          for (let step = i - pliesBack; step < i; step++) {
+            if (step >= 0 && fensHistory[step]) {
+              const moveNum = Math.floor(step / 2) + 1;
+              const prefix = step % 2 === 0 ? `${moveNum}.` : `${moveNum}...`;
+              setupMoves.push({
+                ply: step,
+                moveNumber: moveNum,
+                turnPrefix: prefix,
+                san: moves[step],
+                fen: fensHistory[step],
+              });
+            }
           }
-          if (i >= 1) {
-            const m1Num = Math.floor((i - 1) / 2) + 1;
-            const m1Prefix = (i - 1) % 2 === 0 ? `${m1Num}.` : `${m1Num}...`;
-            setupMoves.push({ ply: i - 1, moveNumber: m1Num, turnPrefix: m1Prefix, san: moves[i - 1], fen: fensHistory[i - 1] });
-          }
-          setupMoves.push({ ply: i, moveNumber: Math.floor(i / 2) + 1, turnPrefix: userColor === 'white' ? `${Math.floor(i / 2) + 1}.` : `${Math.floor(i / 2) + 1}...`, san: playedSan, fen: fenBefore });
+          setupMoves.push({
+            ply: i,
+            moveNumber: Math.floor(i / 2) + 1,
+            turnPrefix: userColor === 'white' ? `${Math.floor(i / 2) + 1}.` : `${Math.floor(i / 2) + 1}...`,
+            san: playedSan,
+            fen: fenBefore,
+          });
 
           // Verify best move is legal on FEN
           let bestSan = `${bestFrom}-${bestTo}`;

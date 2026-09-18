@@ -128,7 +128,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col selection:bg-neutral-300 dark:selection:bg-neutral-700">
         {children}
-        <Analytics />
+        {process.env.VERCEL ? <Analytics /> : null}
       </body>
     </html>
   );

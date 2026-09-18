@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -25,10 +25,14 @@ import {
   Search,
   ChevronDown,
   Info,
+  Brain,
+  BookOpen,
 } from 'lucide-react';
 import { useLichess } from '@/lib/useLichess';
 import { LichessIcon } from '@/components/LichessModal';
 import { ChessZMark } from '@/components/ChessZLogo';
+import { MaiaHumanSpectrum } from '@/components/MaiaHumanSpectrum';
+import { TermHoverCard } from '@/components/TermHoverCard';
 import { streamUserGames, StreamProgress } from '@/lib/lichessStream';
 import { GameDerivedStats, UserAggregateStats, CriticalMoment } from '@/lib/chessMetrics/types';
 import { aggregateUserStats } from '@/lib/chessMetrics/gameParser';
@@ -38,6 +42,7 @@ import {
   isMobileOrLowEndDevice,
 } from '@/lib/engine/browserStockfish';
 import { EngineProgress } from '@/lib/engine/types';
+import { TransparentProgressBar } from '@/components/TransparentProgressBar';
 
 function WeaknessDashboardContent() {
   const router = useRouter();
@@ -55,33 +60,23 @@ function WeaknessDashboardContent() {
 
   // Engine analysis state
   const [isEngineRunning, setIsEngineRunning] = useState<boolean>(false);
+  const [isEnginePaused, setIsEnginePaused] = useState<boolean>(false);
   const [engineProgress, setEngineProgress] = useState<EngineProgress | null>(null);
   const engineAbortControllerRef = useRef<AbortController | null>(null);
   const streamAbortControllerRef = useRef<AbortController | null>(null);
   const hasLoadedInitialRef = useRef<boolean>(false);
 
-  // View tabs: 'all' | 'blunders' | 'phases' | 'openings'
-  const [activeTab, setActiveTab] = useState<'overview' | 'phases' | 'openings' | 'moments'>('overview');
+  // View tabs: 'overview' | 'phases' | 'openings' | 'moments' | 'maia'
+  const [activeTab, setActiveTab] = useState<'overview' | 'phases' | 'openings' | 'moments' | 'maia'>('overview');
+  const [activeMaiaMoment, setActiveMaiaMoment] = useState<CriticalMoment | null>(null);
+  const [customMaiaFen, setCustomMaiaFen] = useState<string>('');
+  const [submittedMaiaFen, setSubmittedMaiaFen] = useState<string>('');
 
   // Filter openings threshold: show all or >= 4 games
   const [minOpeningGames, setMinOpeningGames] = useState<number>(1);
 
-  // Auto-detect username on mount once
-  useEffect(() => {
-    if (hasLoadedInitialRef.current) return;
-    const cached = initialUser || connectedLichessUser?.username || (typeof window !== 'undefined' ? localStorage.getItem('chessz_last_username') : '') || '';
-    if (cached) {
-      hasLoadedInitialRef.current = true;
-      setUsername(cached);
-      loadDataForUser(cached);
-    }
-    return () => {
-      streamAbortControllerRef.current?.abort();
-    };
-  }, [connectedLichessUser, initialUser]);
-
   // Load cached stats first, then fetch live games
-  const loadDataForUser = async (targetUser: string, forceRefresh: boolean = false) => {
+  const loadDataForUser = useCallback(async (targetUser: string, forceRefresh: boolean = false) => {
     const clean = targetUser.trim();
     if (!clean) return;
 
@@ -129,8 +124,8 @@ function WeaknessDashboardContent() {
         // Checkpoint to localStorage & Supabase
         await saveGameStatsBatch(clean, streamed);
       }
-    } catch (err: any) {
-      if (err.name !== 'AbortError') {
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name !== 'AbortError') {
         setError(err.message || 'Error loading games');
       }
     } finally {
@@ -139,17 +134,39 @@ function WeaknessDashboardContent() {
         setStreamProgress(null);
       }
     }
-  };
+  }, []);
+
+  // Auto-detect username on mount once
+  useEffect(() => {
+    if (hasLoadedInitialRef.current) return;
+    const cached = initialUser || connectedLichessUser?.username || (typeof window !== 'undefined' ? localStorage.getItem('chessz_last_username') : '') || '';
+    if (cached) {
+      hasLoadedInitialRef.current = true;
+      const timer = setTimeout(() => {
+        setUsername(cached);
+        loadDataForUser(cached);
+      }, 0);
+      return () => {
+        clearTimeout(timer);
+        streamAbortControllerRef.current?.abort();
+      };
+    }
+    return () => {
+      streamAbortControllerRef.current?.abort();
+    };
+  }, [connectedLichessUser, initialUser, loadDataForUser]);
 
   // Run in-browser Stockfish on unanalyzed games
   const handleRunBrowserEngine = async () => {
     if (isEngineRunning) {
       engineAbortControllerRef.current?.abort();
       setIsEngineRunning(false);
+      setIsEnginePaused(true);
       return;
     }
 
     setIsEngineRunning(true);
+    setIsEnginePaused(false);
     engineAbortControllerRef.current = new AbortController();
 
     try {
@@ -160,11 +177,12 @@ function WeaknessDashboardContent() {
 
       setGames(enriched);
       await saveGameStatsBatch(activeUsername, enriched);
+      setIsEnginePaused(false);
+      setEngineProgress(null);
     } catch (err: any) {
       console.error('Engine error:', err);
     } finally {
       setIsEngineRunning(false);
-      setEngineProgress(null);
     }
   };
 
@@ -179,6 +197,66 @@ function WeaknessDashboardContent() {
   }, [games]);
 
   const isMobile = isMobileOrLowEndDevice();
+
+  const handleTrainBlunderInArena = (moment: CriticalMoment) => {
+    const parentGame = games.find((g) => g.gameId === moment.gameId);
+    let setupMoves = moment.setupMoves || [];
+    if ((!setupMoves || setupMoves.length === 0) && parentGame && parentGame.moves) {
+      const moveIdx = parentGame.moves.findIndex((pm) => pm.ply === moment.ply);
+      if (moveIdx !== -1) {
+        const pliesBack = Math.min(moveIdx, 6);
+        setupMoves = [];
+        for (let step = moveIdx - pliesBack; step < moveIdx; step++) {
+          const pm = parentGame.moves[step];
+          const moveNum = Math.floor(pm.ply / 2) + 1;
+          const prefix = pm.ply % 2 === 1 ? `${moveNum}.` : `${moveNum}...`;
+          if (pm.fen) {
+            setupMoves.push({
+              ply: pm.ply,
+              moveNumber: moveNum,
+              turnPrefix: prefix,
+              san: pm.san,
+              fen: pm.fen,
+            });
+          }
+        }
+      }
+    }
+
+    const trainingPayload = {
+      id: `lichess_${moment.gameId}_p${moment.ply}`,
+      gameId: moment.gameId,
+      ply: moment.ply,
+      moveNumber: moment.moveNumber,
+      initialFen: moment.fen,
+      playerColor: moment.color,
+      playedSan: moment.san,
+      evalBefore: moment.evalBefore,
+      evalAfter: moment.evalAfter,
+      winPctLost: moment.winPctLost,
+      judgment: moment.judgment,
+      phase: moment.phase,
+      deepLink: moment.deepLink,
+      setupMoves,
+    };
+
+    try {
+      sessionStorage.setItem('chessz_active_blunder', JSON.stringify(trainingPayload));
+    } catch (err) {
+      console.warn('Failed to store blunder in sessionStorage', err);
+    }
+
+    const query = new URLSearchParams({
+      mode: 'blunder',
+      gameId: moment.gameId,
+      ply: moment.ply.toString(),
+      color: moment.color,
+      blunder: moment.san,
+      fen: moment.fen || '',
+    });
+
+    router.push(`/?${query.toString()}`);
+  };
 
   return (
     <main className="min-h-screen theme-canvas flex flex-col items-center p-3 sm:p-6 lg:p-8">
@@ -235,6 +313,14 @@ function WeaknessDashboardContent() {
               <span>Weakness Studio</span>
               <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse"></span>
             </span>
+            <Link
+              href="/terms"
+              className="px-2.5 py-1 rounded-lg font-semibold theme-text-secondary hover:theme-text-primary hover:bg-[var(--surface-muted)] transition flex items-center gap-1.5"
+            >
+              <BookOpen className="w-3.5 h-3.5 text-[var(--accent-primary)]" />
+              <span>Study Terms</span>
+              <span className="text-[9px] px-1 py-0.2 rounded bg-[var(--accent-primary)]/20 text-[var(--accent-primary)] font-bold">Coach</span>
+            </Link>
           </nav>
         </div>
 
@@ -305,25 +391,21 @@ function WeaknessDashboardContent() {
 
         {/* Loading Progress Card */}
         {isLoading && streamProgress && (
-          <div className="p-6 rounded-3xl theme-surface border space-y-3 shadow-md">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full border-2 border-emerald-400 border-t-transparent animate-spin" />
-                <span className="text-xs font-bold theme-text-primary font-mono">
-                  Streaming games for @{activeUsername}...
-                </span>
-              </div>
-              <span className="text-xs font-mono text-emerald-400 font-bold">
-                {streamProgress.gamesFetched} games fetched ({streamProgress.analyzedCount} with Lichess evals)
-              </span>
-            </div>
-            <div className="w-full h-1.5 rounded-full bg-[var(--surface-muted)] overflow-hidden">
-              <div
-                className="h-full bg-linear-to-r from-emerald-500 to-cyan-500 transition-all duration-300"
-                style={{ width: `${Math.min(100, (streamProgress.gamesFetched / 50) * 100)}%` }}
-              />
-            </div>
-          </div>
+          <TransparentProgressBar
+            title={`Streaming Games for @${activeUsername}`}
+            phase={streamProgress.currentPhase === 'connecting' ? 'Connecting' : 'Streaming Games'}
+            stepDetail={
+              streamProgress.currentPhase === 'connecting'
+                ? 'Connecting to official Lichess NDJSON stream...'
+                : `Parsing Game ${streamProgress.gamesFetched} of 50 (${streamProgress.analyzedCount} with computer evals)...`
+            }
+            progressPercent={Math.min(100, Math.max(5, (streamProgress.gamesFetched / 50) * 100))}
+            currentCount={streamProgress.gamesFetched}
+            totalCount={50}
+            unitLabel="games"
+            allowPause={false}
+            tabTitlePrefix="ChessZ Stream"
+          />
         )}
 
         {/* Error Banner */}
@@ -373,26 +455,43 @@ function WeaknessDashboardContent() {
               </div>
             )}
 
-            {/* Engine Progress Active Bar */}
-            {isEngineRunning && engineProgress && (
-              <div className="p-4 rounded-2xl theme-surface border space-y-2 text-xs font-mono">
-                <div className="flex items-center justify-between">
-                  <span className="text-amber-400 font-bold">
-                    Pass {engineProgress.pass}: Evaluating Game {engineProgress.currentGame}/{engineProgress.totalGames} (Ply {engineProgress.currentPly}/{engineProgress.totalPliesInGame})
-                  </span>
-                  <span className="theme-text-muted">
-                    {(engineProgress.totalNodesEvaluated / 1000).toFixed(0)}k nodes
-                  </span>
-                </div>
-                <div className="w-full h-1.5 rounded-full bg-[var(--surface-muted)] overflow-hidden">
-                  <div
-                    className="h-full bg-amber-500 transition-all duration-200"
-                    style={{
-                      width: `${Math.min(100, (engineProgress.currentPly / Math.max(1, engineProgress.totalPliesInGame)) * 100)}%`,
-                    }}
-                  />
-                </div>
-              </div>
+            {/* Engine Progress Active Bar (0 to 100% Continuous) */}
+            {(isEngineRunning || isEnginePaused) && engineProgress && (
+              <TransparentProgressBar
+                title="Stockfish WASM Engine Analysis"
+                phase={isEnginePaused ? 'Paused' : `Pass ${engineProgress.pass}`}
+                stepDetail={
+                  isEnginePaused
+                    ? `Paused at Game ${engineProgress.currentGame} of ${engineProgress.totalGames} • Click Continue to resume without loss`
+                    : `Evaluating Game ${engineProgress.currentGame} of ${engineProgress.totalGames} (Ply ${engineProgress.currentPly}/${engineProgress.totalPliesInGame}) • ${(engineProgress.totalNodesEvaluated / 1000).toFixed(0)}k nodes evaluated`
+                }
+                progressPercent={Math.min(
+                  100,
+                  Math.max(
+                    2,
+                    (((engineProgress.currentGame - 1) +
+                      engineProgress.currentPly / Math.max(1, engineProgress.totalPliesInGame)) /
+                      Math.max(1, engineProgress.totalGames)) *
+                      100
+                  )
+                )}
+                currentCount={engineProgress.currentGame}
+                totalCount={engineProgress.totalGames}
+                unitLabel="games"
+                isPaused={isEnginePaused}
+                onTogglePause={() => {
+                  if (isEngineRunning) {
+                    setIsEnginePaused(true);
+                    engineAbortControllerRef.current?.abort();
+                    setIsEngineRunning(false);
+                  } else {
+                    setIsEnginePaused(false);
+                    handleRunBrowserEngine();
+                  }
+                }}
+                allowPause={true}
+                tabTitlePrefix="ChessZ Engine"
+              />
             )}
 
             {/* Section Tabs */}
@@ -402,6 +501,7 @@ function WeaknessDashboardContent() {
                 { id: 'phases', label: 'Phase Diagnostics', icon: Layers },
                 { id: 'openings', label: 'Opening Repertoire', icon: Award },
                 { id: 'moments', label: `Critical Moments (${aggregate.criticalMoments.length})`, icon: Target },
+                { id: 'maia', label: 'Maia Human Lens', icon: Brain },
               ].map((tab) => {
                 const Icon = tab.icon;
                 const active = activeTab === tab.id;
@@ -534,7 +634,7 @@ function WeaknessDashboardContent() {
                       {aggregate.missedPunishmentsTotal}
                     </div>
                     <p className="text-[11px] theme-text-secondary">
-                      Opponent lost ≥20% win% and wasn't punished
+                      Opponent lost ≥20% win% and wasn&apos;t punished
                     </p>
                   </div>
 
@@ -785,6 +885,18 @@ function WeaknessDashboardContent() {
                         </span>
 
                         <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => {
+                              setActiveMaiaMoment(m);
+                              if (m.fen) setSubmittedMaiaFen(m.fen);
+                              setActiveTab('maia');
+                            }}
+                            className="flex items-center gap-1 text-[11px] font-mono font-bold bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/30 px-2.5 py-1 rounded-lg transition cursor-pointer"
+                          >
+                            <Brain className="w-3 h-3" />
+                            <span>Maia Lens</span>
+                          </button>
+
                           <a
                             href={m.deepLink}
                             target="_blank"
@@ -796,18 +908,171 @@ function WeaknessDashboardContent() {
                             <ExternalLink className="w-3 h-3" />
                           </a>
 
-                          <Link
-                            href="/"
+                          <button
+                            type="button"
+                            onClick={() => handleTrainBlunderInArena(m)}
                             className="flex items-center gap-1 text-[11px] font-mono font-bold bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-lg transition cursor-pointer"
                           >
                             <Play className="w-3 h-3" />
                             <span>Train in Arena</span>
-                          </Link>
+                          </button>
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* TAB 5: MAIA HUMAN LENS & OPPONENT RADAR */}
+            {activeTab === 'maia' && (
+              <div className="space-y-5">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                  <div>
+                    <h3 className="text-base font-bold theme-text-primary flex items-center gap-2">
+                      <span>Maia Human Lens & Opponent Radar</span>
+                      <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-400 font-bold border border-purple-500/30">
+                        Dual-Engine Studio
+                      </span>
+                    </h3>
+                    <p className="text-xs theme-text-secondary">
+                      Compare Stockfish’s mathematical oracle move against real human move probabilities across Elo 1100 to 1900
+                    </p>
+                  </div>
+                </div>
+
+                {/* Preset Benchmarks & Game Blunder Selector */}
+                <div className="p-4 rounded-2xl theme-surface border space-y-3">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <span className="text-xs font-mono font-bold theme-text-primary">
+                      {aggregate.criticalMoments.length > 0
+                        ? 'Select a Blunder from Your Analyzed Games or a Benchmark'
+                        : 'Choose a Benchmark Position or Input Custom FEN'}
+                    </span>
+                  </div>
+
+                  {/* Blunder Quick Selector */}
+                  {aggregate.criticalMoments.length > 0 && (
+                    <div className="space-y-1.5">
+                      <span className="text-[10px] font-mono uppercase theme-text-muted block">
+                        Your Recent Critical Moments:
+                      </span>
+                      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                        {aggregate.criticalMoments.slice(0, 8).map((moment) => {
+                          const isSelected = activeMaiaMoment?.ply === moment.ply && activeMaiaMoment?.gameId === moment.gameId;
+                          return (
+                            <button
+                              key={`${moment.gameId}_${moment.ply}`}
+                              onClick={() => {
+                                setActiveMaiaMoment(moment);
+                                if (moment.fen) setSubmittedMaiaFen(moment.fen);
+                              }}
+                              className={`px-2.5 py-1.5 rounded-xl text-xs font-mono shrink-0 transition cursor-pointer border ${
+                                isSelected
+                                  ? 'bg-purple-600 text-white border-purple-500 shadow-xs'
+                                  : 'theme-surface-subtle theme-text-primary hover:border-purple-500/50'
+                              }`}
+                            >
+                              Move {moment.moveNumber} ({moment.san}) -{moment.winPctLost}%
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Benchmark Presets */}
+                  <div className="space-y-1.5 pt-1 border-t border-[var(--border-subtle)]">
+                    <span className="text-[10px] font-mono uppercase theme-text-muted block">
+                      Curated Tactical & Psychological Presets:
+                    </span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {[
+                        {
+                          name: 'KiwiPete Tactical Crisis',
+                          fen: 'r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 10',
+                          eval: '+0.6',
+                        },
+                        {
+                          name: 'Sicilian Defense Pressure',
+                          fen: 'r1bqkb1r/pp2pppp/2np1n2/8/3NP3/2N5/PPP2PPP/R1BQKB1R w KQkq - 2 6',
+                          eval: '+0.4',
+                        },
+                        {
+                          name: 'French Defense Tension',
+                          fen: 'rnbqkbnr/pppp1ppp/4p3/8/3PP3/8/PPP2PPP/RNBQKBNR b KQkq - 0 2',
+                          eval: '+0.3',
+                        },
+                        {
+                          name: 'Queen\'s Pawn Imbalance',
+                          fen: 'rnbqkbnr/ppp1pppp/8/3p4/2PP4/8/PP2PPPP/RNBQKBNR b KQkq - 0 2',
+                          eval: '+0.3',
+                        },
+                      ].map((preset) => (
+                        <button
+                          key={preset.name}
+                          onClick={() => {
+                            setActiveMaiaMoment(null);
+                            setSubmittedMaiaFen(preset.fen);
+                          }}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-mono font-medium transition cursor-pointer border ${
+                            submittedMaiaFen === preset.fen
+                              ? 'bg-purple-600 text-white border-purple-500'
+                              : 'theme-surface-subtle theme-text-secondary hover:theme-text-primary'
+                          }`}
+                        >
+                          {preset.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Custom FEN input bar */}
+                  <div className="pt-2 border-t border-[var(--border-subtle)] flex items-center gap-2">
+                    <input
+                      type="text"
+                      placeholder="Or paste any custom FEN position here..."
+                      value={customMaiaFen}
+                      onChange={(e) => setCustomMaiaFen(e.target.value)}
+                      className="flex-1 px-3 py-1.5 rounded-xl border text-xs font-mono theme-surface-subtle theme-text-primary placeholder:theme-text-muted focus:outline-hidden focus:border-purple-500"
+                    />
+                    <button
+                      onClick={() => {
+                        if (customMaiaFen.trim()) {
+                          setActiveMaiaMoment(null);
+                          setSubmittedMaiaFen(customMaiaFen.trim());
+                        }
+                      }}
+                      className="px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-purple-600 hover:bg-purple-700 text-white transition cursor-pointer shrink-0"
+                    >
+                      Analyze Position
+                    </button>
+                  </div>
+                </div>
+
+                {/* The Maia Human Spectrum Live Component */}
+                <MaiaHumanSpectrum
+                  fen={
+                    submittedMaiaFen ||
+                    activeMaiaMoment?.fen ||
+                    'r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 10'
+                  }
+                  playedMoveSan={activeMaiaMoment?.san}
+                  stockfishBestMoveSan={
+                    activeMaiaMoment
+                      ? activeMaiaMoment.evalBefore > activeMaiaMoment.evalAfter
+                        ? undefined
+                        : activeMaiaMoment.san
+                      : undefined
+                  }
+                  stockfishEval={
+                    activeMaiaMoment
+                      ? `${activeMaiaMoment.evalBefore > 0 ? '+' : ''}${(activeMaiaMoment.evalBefore / 100).toFixed(1)}`
+                      : '+0.6'
+                  }
+                  clockRemaining={activeMaiaMoment?.clockRemaining}
+                  playerColor={activeMaiaMoment?.color}
+                />
               </div>
             )}
           </>

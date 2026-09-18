@@ -1,4 +1,4 @@
-import { Chess } from 'chess.js';
+import { Chess, type Square } from 'chess.js';
 
 export type SkillTier = 'beginner' | 'adv_beginner' | 'intermediate';
 
@@ -215,11 +215,33 @@ export function classifyMistake(
   tier: SkillTier = 'beginner'
 ): ClassifiedMistake {
   const selectedTier: SkillTier = tier in TIER_CATEGORY_DEFINITIONS ? tier : 'beginner';
-  const tierCategories = TIER_CATEGORY_DEFINITIONS[selectedTier];
+  const tierCategories = TIER_CATEGORY_DEFINITIONS[selectedTier] || TIER_CATEGORY_DEFINITIONS.beginner;
+
+  const fallback = tierCategories[0];
+  function toClassified(cat?: MistakeCategoryInfo): ClassifiedMistake {
+    const target = cat || fallback;
+    return {
+      categoryId: target.id,
+      tier: target.tier,
+      categoryTitle: target.title,
+      badge: target.badge,
+      icon: target.icon,
+      ruleTitle: target.ruleTitle,
+      ruleBody: target.ruleBody,
+      coachTip: target.coachTip,
+      parentTip: target.parentTip,
+    };
+  }
 
   try {
     const chess = new Chess(fenBefore);
     const board = chess.board();
+
+    // 1. Determine moving piece of best move by inspecting origin square
+    const fromSq = (bestUci.length >= 2 ? bestUci.slice(0, 2) : '') as Square;
+    const targetSq = (bestUci.length >= 4 ? bestUci.slice(2, 4) : '') as Square;
+    const movingPiece = fromSq ? chess.get(fromSq) : null;
+    const movingPieceType = movingPiece?.type; // 'p' | 'n' | 'b' | 'r' | 'q' | 'k'
 
     // Count remaining non-pawn pieces
     let totalPieces = 0;
@@ -237,22 +259,7 @@ export function classifyMistake(
     }
 
     const isCheck = chess.inCheck() || playedSan.includes('+') || playedSan.includes('#');
-    const targetSq = bestUci.slice(2, 4);
     const isBackRank = targetSq.endsWith('1') || targetSq.endsWith('8');
-
-    function toClassified(cat: MistakeCategoryInfo): ClassifiedMistake {
-      return {
-        categoryId: cat.id,
-        tier: cat.tier,
-        categoryTitle: cat.title,
-        badge: cat.badge,
-        icon: cat.icon,
-        ruleTitle: cat.ruleTitle,
-        ruleBody: cat.ruleBody,
-        coachTip: cat.coachTip,
-        parentTip: cat.parentTip,
-      };
-    }
 
     // ==========================================
     // 1. BEGINNER CLASSIFICATION (400 - 900)
@@ -260,34 +267,29 @@ export function classifyMistake(
     if (selectedTier === 'beginner') {
       // Early Queen (moves 1-6 / ply <= 14)
       if (ply <= 14 && playedSan.startsWith('Q')) {
-        const cat = tierCategories.find((c) => c.id === 'beg_early_queen')!;
-        return toClassified(cat);
+        return toClassified(tierCategories.find((c) => c.id === 'beg_early_queen'));
       }
 
       // Back-Rank or Checkmate
       if (playedSan.includes('#') || (isCheck && isBackRank)) {
-        const cat = tierCategories.find((c) => c.id === 'beg_back_rank_mate')!;
-        return toClassified(cat);
+        return toClassified(tierCategories.find((c) => c.id === 'beg_back_rank_mate'));
       }
 
       // Stranded uncastled king (ply > 16, king on e1/e8)
       const turn = chess.turn();
-      const kingSq = turn === 'w' ? 'e1' : 'e8';
-      const kingPiece = chess.get(kingSq as any);
+      const kingSq: Square = turn === 'w' ? 'e1' : 'e8';
+      const kingPiece = chess.get(kingSq);
       if (ply > 16 && kingPiece && kingPiece.type === 'k') {
-        const cat = tierCategories.find((c) => c.id === 'beg_uncastled_king')!;
-        return toClassified(cat);
+        return toClassified(tierCategories.find((c) => c.id === 'beg_uncastled_king'));
       }
 
       // Missed Free Captures (Best move was capture with large swing, but user played non-capture)
       if (bestUci.length >= 4 && !playedSan.includes('x') && evalSwingPawns && evalSwingPawns >= 2.0) {
-        const cat = tierCategories.find((c) => c.id === 'beg_missed_capture')!;
-        return toClassified(cat);
+        return toClassified(tierCategories.find((c) => c.id === 'beg_missed_capture'));
       }
 
       // Default for beginner: 1-Move Hanging Pieces
-      const cat = tierCategories.find((c) => c.id === 'beg_hanging_piece')!;
-      return toClassified(cat);
+      return toClassified(tierCategories.find((c) => c.id === 'beg_hanging_piece'));
     }
 
     // ==========================================
@@ -296,31 +298,26 @@ export function classifyMistake(
     if (selectedTier === 'adv_beginner') {
       // Opening Traps (ply <= 18)
       if (ply <= 18) {
-        const cat = tierCategories.find((c) => c.id === 'adv_opening_traps')!;
-        return toClassified(cat);
+        return toClassified(tierCategories.find((c) => c.id === 'adv_opening_traps'));
       }
 
       // Endgame Pawn Races (Total pieces <= 12)
       if (totalPieces <= 12 || nonPawnPieces <= 4) {
-        const cat = tierCategories.find((c) => c.id === 'adv_pawn_races')!;
-        return toClassified(cat);
+        return toClassified(tierCategories.find((c) => c.id === 'adv_pawn_races'));
       }
 
       // Knight Forks & Double Attacks
-      if (bestUci.startsWith('n') || playedSan.startsWith('N')) {
-        const cat = tierCategories.find((c) => c.id === 'adv_knight_forks')!;
-        return toClassified(cat);
+      if (movingPieceType === 'n' || playedSan.startsWith('N')) {
+        return toClassified(tierCategories.find((c) => c.id === 'adv_knight_forks'));
       }
 
       // Pins & Skewers (Bishop/Rook/Queen line)
-      if (bestUci.startsWith('b') || bestUci.startsWith('r') || bestUci.startsWith('q')) {
-        const cat = tierCategories.find((c) => c.id === 'adv_pins_skewers')!;
-        return toClassified(cat);
+      if (movingPieceType === 'b' || movingPieceType === 'r' || movingPieceType === 'q') {
+        return toClassified(tierCategories.find((c) => c.id === 'adv_pins_skewers'));
       }
 
       // In-Between Moves / Zwischenzug
-      const cat = tierCategories.find((c) => c.id === 'adv_zwischenzug')!;
-      return toClassified(cat);
+      return toClassified(tierCategories.find((c) => c.id === 'adv_zwischenzug'));
     }
 
     // ==========================================
@@ -328,45 +325,29 @@ export function classifyMistake(
     // ==========================================
     // Endgame Technicality
     if (totalPieces <= 12 || nonPawnPieces <= 4) {
-      const cat = tierCategories.find((c) => c.id === 'inter_technical_endgame')!;
-      return toClassified(cat);
+      return toClassified(tierCategories.find((c) => c.id === 'inter_technical_endgame'));
     }
 
     // King Ring Vulnerabilities
     if (isCheck || isBackRank) {
-      const cat = tierCategories.find((c) => c.id === 'inter_king_pressure')!;
-      return toClassified(cat);
+      return toClassified(tierCategories.find((c) => c.id === 'inter_king_pressure'));
     }
 
     // Multi-move Combinations (High swing > 3.0 pawns)
     if (evalSwingPawns && evalSwingPawns >= 3.0) {
-      const cat = tierCategories.find((c) => c.id === 'inter_combinations')!;
-      return toClassified(cat);
+      return toClassified(tierCategories.find((c) => c.id === 'inter_combinations'));
     }
 
     // Overloaded Defenders (Medium tactical swing)
     if (evalSwingPawns && evalSwingPawns >= 1.5) {
-      const cat = tierCategories.find((c) => c.id === 'inter_overloaded_guards')!;
-      return toClassified(cat);
+      return toClassified(tierCategories.find((c) => c.id === 'inter_overloaded_guards'));
     }
 
     // Structural Concessions & Outposts
-    const cat = tierCategories.find((c) => c.id === 'inter_pawn_structure')!;
-    return toClassified(cat);
+    return toClassified(tierCategories.find((c) => c.id === 'inter_pawn_structure'));
 
   } catch {
-    const fallback = tierCategories[0];
-    return {
-      categoryId: fallback.id,
-      tier: selectedTier,
-      categoryTitle: fallback.title,
-      badge: fallback.badge,
-      icon: fallback.icon,
-      ruleTitle: fallback.ruleTitle,
-      ruleBody: fallback.ruleBody,
-      coachTip: fallback.coachTip,
-      parentTip: fallback.parentTip,
-    };
+    return toClassified(fallback);
   }
 }
 

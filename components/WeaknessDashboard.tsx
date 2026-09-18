@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import {
   X,
@@ -25,18 +25,35 @@ import {
   Anchor,
   Cpu,
   BookOpen,
-  ChevronRight,
   Filter,
 } from 'lucide-react';
 import { ChessPuzzle } from '@/lib/puzzles';
 import {
   SkillTier,
-  MistakeCategoryInfo,
-  getCategoryDefinitionsForTier,
   classifyMistake,
+  getCategoryDefinitionsForTier,
 } from '@/lib/mistakeClassifier';
+import { TermHoverCard } from '@/components/TermHoverCard';
 import { LichessUser } from '@/lib/lichess';
 import { LichessIcon } from '@/components/LichessModal';
+
+export type BlunderPuzzle = ChessPuzzle & {
+  gameId?: string;
+  speed?: string;
+  opponentName?: string;
+  opponentRating?: number;
+  moveNumber?: number;
+  playedSan?: string;
+  bestSan?: string;
+  evalSwingPawns?: number;
+  judgmentName?: string;
+  category?: string;
+  categoryTitle?: string;
+  categoryBadge?: string;
+  categoryIcon?: string;
+  coachTip?: string;
+  parentTip?: string;
+};
 
 interface WeaknessDashboardProps {
   isOpen: boolean;
@@ -46,7 +63,7 @@ interface WeaknessDashboardProps {
 }
 
 interface BlunderCardItemProps {
-  puzzle: any;
+  puzzle: BlunderPuzzle;
   isMastered: boolean;
   onStartTraining: (puzzle: ChessPuzzle) => void;
   onClose: () => void;
@@ -58,25 +75,29 @@ function BlunderCardItem({
   onStartTraining,
   onClose,
 }: BlunderCardItemProps) {
+  const moveNum = puzzle.moveNumber ?? 1;
+  const playedSan = puzzle.playedSan ?? '';
+
   const setupMoves =
     puzzle.setupMoves && puzzle.setupMoves.length > 0
       ? puzzle.setupMoves
       : [
           {
             ply: 0,
-            moveNumber: puzzle.moveNumber,
+            moveNumber: moveNum,
             turnPrefix: '',
-            san: puzzle.playedSan,
+            san: playedSan,
             fen: puzzle.initialFen,
           },
         ];
 
   // Step index within setup moves (default to the last move, the blunder)
   const [stepIdx, setStepIdx] = useState<number>(setupMoves.length - 1);
+  const [isRevealed, setIsRevealed] = useState<boolean>(false);
   const phaseName =
-    puzzle.moveNumber <= 10
+    moveNum <= 10
       ? 'Opening'
-      : puzzle.moveNumber <= 30
+      : moveNum <= 30
       ? 'Middlegame'
       : 'Endgame';
 
@@ -89,21 +110,45 @@ function BlunderCardItem({
               {puzzle.title}
             </span>
             <span className="text-[9px] font-mono uppercase px-1.5 py-0.2 rounded bg-rose-500/15 text-rose-400 font-bold shrink-0">
-              Move {puzzle.moveNumber} • {phaseName}
+              Move {moveNum} • {phaseName}
             </span>
           </div>
-          <div className="text-[11px] font-mono text-rose-400 mt-0.5 flex items-center gap-1.5 flex-wrap">
-            <span>
-              Played: <strong>{puzzle.playedSan}</strong>
+          <div className="text-[11px] font-mono mt-1 flex items-center gap-2 flex-wrap">
+            <span className="text-rose-400 bg-rose-500/10 px-1.5 py-0.5 rounded">
+              Played: <strong>{playedSan}</strong>
             </span>
             {puzzle.evalSwingPawns && (
-              <span className="text-[10px] text-amber-400 bg-amber-500/10 px-1 rounded">
+              <span className="text-[10px] text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">
                 -~{puzzle.evalSwingPawns} pts
               </span>
             )}
-            <span className="text-emerald-400">
-              Best: <strong>{puzzle.bestSan}</strong>
-            </span>
+            {isMastered ? (
+              <span className="text-emerald-400 font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3" />
+                Solution: {puzzle.bestSan}
+              </span>
+            ) : isRevealed ? (
+              <span className="text-emerald-400 font-bold bg-emerald-500/10 px-1.5 py-0.5 rounded flex items-center gap-1.5 animate-in fade-in duration-150">
+                <span>Best: {puzzle.bestSan}</span>
+                <button
+                  type="button"
+                  onClick={() => setIsRevealed(false)}
+                  className="text-[9px] text-neutral-400 hover:text-white underline cursor-pointer"
+                >
+                  Hide
+                </button>
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setIsRevealed(true)}
+                className="text-[10px] text-amber-300 hover:text-amber-200 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 px-2 py-0.5 rounded font-mono flex items-center gap-1 transition cursor-pointer"
+                title="Click to reveal winning move (or click Fix to calculate and test yourself!)"
+              >
+                <span>🎯 Spot winning move</span>
+                <span className="opacity-60 text-[9px]">(reveal?)</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -123,7 +168,7 @@ function BlunderCardItem({
               Setup:
             </span>
             <div className="flex items-center gap-1 overflow-x-auto custom-scrollbar">
-              {setupMoves.map((sm: any, idx: number) => {
+              {setupMoves.map((sm, idx: number) => {
                 const isSelected = stepIdx === idx;
                 const isFinal = idx === setupMoves.length - 1;
                 return (
@@ -176,7 +221,7 @@ function BlunderCardItem({
       )}
 
       <div className="text-[11px] theme-text-secondary line-clamp-1 italic">
-        "{puzzle.ruleTitle}"
+        &ldquo;{puzzle.ruleTitle}&rdquo;
       </div>
 
       <div className="pt-2 border-t border-[var(--border-subtle)] flex items-center justify-between gap-2">
@@ -207,7 +252,7 @@ export function WeaknessDashboard({
 }: WeaknessDashboardProps) {
   // Skill tier state: auto-detects from user rating if available
   const [selectedTier, setSelectedTier] = useState<SkillTier>('beginner');
-  const [blunders, setBlunders] = useState<any[]>([]);
+  const [blunders, setBlunders] = useState<BlunderPuzzle[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [summaryData, setSummaryData] = useState<{
@@ -219,30 +264,31 @@ export function WeaknessDashboard({
   // Active filter tab for mistake feed: 'all' or categoryId
   const [activeCategoryFilter, setActiveCategoryFilter] = useState<string>('all');
 
-  // Mastered mistake IDs from localStorage
-  const [masteredIds, setMasteredIds] = useState<string[]>([]);
-
-  // Load mastered mistakes from localStorage on mount
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem('chessz_mastered_blunders');
-      if (saved) {
-        setMasteredIds(JSON.parse(saved));
-      }
-    } catch {}
-  }, []);
+  // Mastered mistake IDs from localStorage with lazy initialization
+  const [masteredIds] = useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('chessz_mastered_blunders');
+        if (saved) return JSON.parse(saved);
+      } catch {}
+    }
+    return [];
+  });
 
   // Auto-detect tier from Lichess rating on initial user connection
   useEffect(() => {
     if (user?.perfs) {
       const rating = user.perfs.rapid?.rating || user.perfs.blitz?.rating || 1000;
-      if (rating < 900) {
-        setSelectedTier('beginner');
-      } else if (rating < 1300) {
-        setSelectedTier('adv_beginner');
-      } else {
-        setSelectedTier('intermediate');
-      }
+      const timer = setTimeout(() => {
+        if (rating < 900) {
+          setSelectedTier('beginner');
+        } else if (rating < 1300) {
+          setSelectedTier('adv_beginner');
+        } else {
+          setSelectedTier('intermediate');
+        }
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [user]);
 
@@ -250,7 +296,7 @@ export function WeaknessDashboard({
   const [inputUsername, setInputUsername] = useState<string>('');
 
   // Fetch 50 games and blunders
-  const fetchBlunders = async (targetUser?: string) => {
+  const fetchBlunders = useCallback(async (targetUser?: string) => {
     const username = (targetUser || inputUsername || user?.username || (typeof window !== 'undefined' ? localStorage.getItem('chessz_last_username') : '') || '').trim();
     if (!username) {
       return;
@@ -281,22 +327,26 @@ export function WeaknessDashboard({
       } else {
         setBlunders([]);
       }
-    } catch (e: any) {
-      setError(e.message || 'Error extracting Lichess blunders');
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Error extracting Lichess blunders';
+      setError(msg);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [inputUsername, user?.username, selectedTier]);
 
   // Fetch blunders when modal opens if empty
   useEffect(() => {
     if (isOpen && blunders.length === 0 && !isLoading) {
       const username = user?.username || (typeof window !== 'undefined' ? localStorage.getItem('chessz_last_username') : '') || '';
       if (username) {
-        fetchBlunders(username);
+        const timer = setTimeout(() => {
+          fetchBlunders(username);
+        }, 0);
+        return () => clearTimeout(timer);
       }
     }
-  }, [isOpen]);
+  }, [isOpen, blunders.length, isLoading, user?.username, fetchBlunders]);
 
   // Dynamically classify blunders into the 5 categories of the active tier (0ms latency!)
   const { categoryBreakdown, classifiedBlunders, primaryLeak } = useMemo(() => {
@@ -310,9 +360,9 @@ export function WeaknessDashboard({
       const bestUci = b.solutionMoves?.[0] ? `${b.solutionMoves[0].from}${b.solutionMoves[0].to}` : '';
       const c = classifyMistake(
         b.initialFen,
-        b.playedSan,
+        b.playedSan || '',
         bestUci,
-        b.moveNumber * 2,
+        (b.moveNumber || 1) * 2,
         b.evalSwingPawns,
         selectedTier
       );
@@ -333,15 +383,9 @@ export function WeaknessDashboard({
     });
 
     const total = enriched.length;
-    let maxCount = -1;
-    let maxId = tierDefs[0]?.id || 'beg_hanging_piece';
 
     const breakdown = tierDefs.map((def) => {
       const cnt = counts[def.id] || 0;
-      if (cnt > maxCount) {
-        maxCount = cnt;
-        maxId = def.id;
-      }
       return {
         ...def,
         count: cnt,
@@ -349,11 +393,16 @@ export function WeaknessDashboard({
       };
     });
 
-    const leakDef = tierDefs.find((d) => d.id === maxId) || tierDefs[0];
+    // Find primary leak immutably
+    const primaryItem = breakdown.reduce(
+      (max, curr) => (curr.count > max.count ? curr : max),
+      breakdown[0] || { ...tierDefs[0], count: 0, percentage: 0 }
+    );
+
     const leakInfo = {
-      ...leakDef,
-      count: Math.max(0, maxCount),
-      percentage: total > 0 ? Math.round((Math.max(0, maxCount) / total) * 100) : 0,
+      ...primaryItem,
+      count: Math.max(0, primaryItem.count),
+      percentage: primaryItem.percentage,
     };
 
     return {
@@ -555,7 +604,7 @@ export function WeaknessDashboard({
               <div>
                 <h3 className="text-base font-bold theme-text-primary flex items-center justify-center gap-2">
                   <LichessIcon className="w-4 h-4 text-amber-400" />
-                  <span>What's your Lichess ID?</span>
+                  <span>What&apos;s your Lichess ID?</span>
                 </h3>
                 <p className="text-xs theme-text-secondary mt-1 leading-relaxed">
                   Enter your username (or any player&apos;s) to scan your recent games and practice the exact blunders where you threw. No password required!
@@ -640,7 +689,7 @@ export function WeaknessDashboard({
                       </h3>
                       <p className="text-xs theme-text-secondary">
                         <span className="font-semibold text-amber-400">Rule to remember: </span>
-                        "{primaryLeak.ruleBody}"
+                        &ldquo;{primaryLeak.ruleBody}&rdquo;
                       </p>
                     </div>
                   </div>
@@ -716,8 +765,8 @@ export function WeaknessDashboard({
                             <div className="text-xs font-bold theme-text-primary leading-tight line-clamp-1">
                               {cat.title}
                             </div>
-                            <div className="text-[10px] theme-text-muted mt-0.5 truncate">
-                              {cat.ruleTitle}
+                            <div className="text-[10px] theme-text-muted mt-0.5 truncate flex items-center gap-1">
+                              <TermHoverCard term={cat.ruleTitle} showIcon />
                             </div>
                           </div>
                         </div>

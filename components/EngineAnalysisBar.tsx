@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Cpu, Zap, ArrowRight, Power, Activity, Sparkles } from 'lucide-react';
+import { Cpu, Power, Sparkles } from 'lucide-react';
 import { EngineEvaluation, EngineMove } from '@/lib/useStockfish';
 
 interface EngineAnalysisBarProps {
@@ -84,7 +84,7 @@ export function EngineAnalysisBar({
                 Stockfish 10 WASM
               </span>
               <span className="px-1.5 py-0.2 rounded-full text-[9px] font-mono bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold">
-                {isAnalyzing ? 'Calculating...' : 'Ready'}
+                {isAnalyzing ? 'Calculating...' : isReady ? 'Ready' : 'Initializing...'}
               </span>
             </div>
           </div>

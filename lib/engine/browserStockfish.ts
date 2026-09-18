@@ -1,15 +1,18 @@
 import { Chess } from 'chess.js';
 import { ChessEngine, EngineEvalResult, EngineProgress } from './types';
 import { GameDerivedStats, MoveAnalysis } from '../chessMetrics/types';
-import { parsePgn } from '../chessMetrics/tokenizer';
-import { getGamePhase } from '../chessMetrics/gameParser';
 import { evalToWinPct, calculateWinPctLost, getJudgment, calculateAccuracy } from '../chessMetrics/math';
 
 export class BrowserStockfishEngine implements ChessEngine {
   private worker: Worker | null = null;
   private ready: boolean = false;
-  private pendingResolver: ((res: EngineEvalResult) => void) | null = null;
+  private currentSeq: number = 0;
+  private activeResolver: {
+    seq: number;
+    resolve: (res: EngineEvalResult) => void;
+  } | null = null;
   private currentEval: Partial<EngineEvalResult> = {};
+  private isSearching: boolean = false;
 
   async init(): Promise<boolean> {
     if (typeof window === 'undefined') return false;
@@ -57,6 +60,7 @@ export class BrowserStockfishEngine implements ChessEngine {
   }
 
   private handleInfoLine(line: string) {
+    if (!this.isSearching) return;
     const cpMatch = line.match(/\bscore cp (-?\d+)\b/);
     const mateMatch = line.match(/\bscore mate (-?\d+)\b/);
     const depthMatch = line.match(/\bdepth (\d+)\b/);
@@ -79,13 +83,14 @@ export class BrowserStockfishEngine implements ChessEngine {
   }
 
   private handleBestMoveLine(line: string) {
+    this.isSearching = false;
     const parts = line.split(/\s+/);
     const uci = parts[1];
 
-    if (this.pendingResolver) {
-      const resolver = this.pendingResolver;
-      this.pendingResolver = null;
-      resolver({
+    if (this.activeResolver) {
+      const { resolve } = this.activeResolver;
+      this.activeResolver = null;
+      resolve({
         cp: this.currentEval.cp,
         mate: this.currentEval.mate,
         depth: this.currentEval.depth || 0,
@@ -101,20 +106,33 @@ export class BrowserStockfishEngine implements ChessEngine {
       if (!ok) throw new Error('Failed to initialize Stockfish worker');
     }
 
-    // If an evaluation is already pending, resolve it immediately so callers do not hang
-    if (this.pendingResolver) {
-      try {
-        this.pendingResolver({ cp: 0, depth: 0, nodes: 0 });
-      } catch {}
-      this.pendingResolver = null;
+    const seq = ++this.currentSeq;
+
+    // If a search is already active, stop it and drain the terminating bestmove
+    if (this.isSearching) {
+      await new Promise<void>((drainResolve) => {
+        if (!this.worker) return drainResolve();
+        const prevResolver = this.activeResolver;
+        this.activeResolver = {
+          seq: -1,
+          resolve: () => {
+            if (prevResolver) {
+              try {
+                prevResolver.resolve({ cp: 0, depth: 0, nodes: 0 });
+              } catch {}
+            }
+            drainResolve();
+          },
+        };
+        this.worker.postMessage('stop');
+      });
     }
 
     return new Promise((resolve) => {
+      this.isSearching = true;
       this.currentEval = { nodes: 0, depth: 0 };
-      this.pendingResolver = resolve;
+      this.activeResolver = { seq, resolve };
 
-      // Normalize turn perspective: UCI returns score from side to move
-      this.worker?.postMessage('stop');
       this.worker?.postMessage(`position fen ${fen}`);
       this.worker?.postMessage(`go nodes ${nodes}`);
     });
@@ -129,7 +147,8 @@ export class BrowserStockfishEngine implements ChessEngine {
       this.worker = null;
     }
     this.ready = false;
-    this.pendingResolver = null;
+    this.isSearching = false;
+    this.activeResolver = null;
   }
 
   isReady(): boolean {
@@ -146,13 +165,14 @@ export function isMobileOrLowEndDevice(): boolean {
     navigator.userAgent
   );
   const cores = navigator.hardwareConcurrency || 4;
-  return isMobileUserAgent || cores < 4;
+  const memory = (navigator as unknown as { deviceMemory?: number }).deviceMemory || 8;
+  return isMobileUserAgent || cores < 4 || memory < 4;
 }
 
 /**
  * Analyzes unanalyzed games using two-pass fixed nodes Stockfish:
- * Pass 1: 80k nodes sweep
- * Pass 2: 300k nodes refinement on >15% swing candidates
+ * Pass 1: 80k nodes sweep (40k on low-end/mobile)
+ * Pass 2: 300k nodes refinement on >15% swing candidates (150k on low-end/mobile)
  * Checkpoints per game to localStorage.
  */
 export async function analyzeUnanalyzedGames(
@@ -169,7 +189,10 @@ export async function analyzeUnanalyzedGames(
   await engine.init();
 
   const isLowEnd = isMobileOrLowEndDevice();
-  const maxToAnalyze = isLowEnd && !options.allowAllOnMobile ? 20 : games.length;
+  // Low-end mobile phones throttle to max 5 games per batch
+  const maxToAnalyze = isLowEnd && !options.allowAllOnMobile ? 5 : games.length;
+  const pass1Nodes = isLowEnd ? 40000 : 80000;
+  const pass2Nodes = isLowEnd ? 150000 : 300000;
 
   const unanalyzedIndices: number[] = [];
   games.forEach((g, idx) => {
@@ -221,7 +244,7 @@ export async function analyzeUnanalyzedGames(
     const evalsByPly: Record<number, { cp?: number; mate?: number }> = {};
     const candidatesForPass2: number[] = [];
 
-    // --- PASS 1: Sweep with fixed 80k nodes (skipping opening plies) ---
+    // --- PASS 1: Sweep with fixed nodes (skipping opening plies) ---
     for (let p = 0; p < positions.length; p++) {
       if (options.signal?.aborted) break;
       const pos = positions[p];
@@ -242,13 +265,13 @@ export async function analyzeUnanalyzedGames(
       }
 
       try {
-        const res = await engine.evaluatePosition(pos.fen, 80000);
-        totalNodesEvaluated += res.nodes || 80000;
+        const res = await engine.evaluatePosition(pos.fen, pass1Nodes);
+        totalNodesEvaluated += res.nodes || pass1Nodes;
 
         // Stockfish returns eval relative to side to move: convert to White perspective
         const isBlack = pos.fen.split(' ')[1] === 'b';
-        let whiteCp = res.cp !== undefined ? (isBlack ? -res.cp : res.cp) : undefined;
-        let whiteMate = res.mate !== undefined ? (isBlack ? -res.mate : res.mate) : undefined;
+        const whiteCp = res.cp !== undefined ? (isBlack ? -res.cp : res.cp) : undefined;
+        const whiteMate = res.mate !== undefined ? (isBlack ? -res.mate : res.mate) : undefined;
 
         evalsByPly[pos.ply] = { cp: whiteCp, mate: whiteMate };
 
@@ -261,12 +284,15 @@ export async function analyzeUnanalyzedGames(
         if (winLost >= 15) {
           candidatesForPass2.push(pos.ply);
         }
+
+        // Macro-task yield to avoid locking UI
+        await new Promise((resolve) => setTimeout(resolve, isLowEnd ? 12 : 2));
       } catch {
         // Continue on engine failure for single position
       }
     }
 
-    // --- PASS 2: Deep 300k nodes on candidates ---
+    // --- PASS 2: Deep refinement on candidates ---
     for (const candPly of candidatesForPass2) {
       if (options.signal?.aborted) break;
       const pos = positions.find((item) => item.ply === candPly);
@@ -283,14 +309,17 @@ export async function analyzeUnanalyzedGames(
       });
 
       try {
-        const deepRes = await engine.evaluatePosition(pos.fen, 300000);
-        totalNodesEvaluated += deepRes.nodes || 300000;
+        const deepRes = await engine.evaluatePosition(pos.fen, pass2Nodes);
+        totalNodesEvaluated += deepRes.nodes || pass2Nodes;
 
         const isBlack = pos.fen.split(' ')[1] === 'b';
-        let whiteCp = deepRes.cp !== undefined ? (isBlack ? -deepRes.cp : deepRes.cp) : undefined;
-        let whiteMate = deepRes.mate !== undefined ? (isBlack ? -deepRes.mate : deepRes.mate) : undefined;
+        const whiteCp = deepRes.cp !== undefined ? (isBlack ? -deepRes.cp : deepRes.cp) : undefined;
+        const whiteMate = deepRes.mate !== undefined ? (isBlack ? -deepRes.mate : deepRes.mate) : undefined;
 
         evalsByPly[candPly] = { cp: whiteCp, mate: whiteMate };
+
+        // Macro-task yield to avoid locking UI
+        await new Promise((resolve) => setTimeout(resolve, isLowEnd ? 12 : 2));
       } catch {}
     }
 

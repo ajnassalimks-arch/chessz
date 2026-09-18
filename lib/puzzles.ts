@@ -34,6 +34,13 @@ export interface ChessPuzzle {
   opponentResponses?: PuzzleStep[];
   defaultRefutation: RefutationMove;
   successExplanation: string;
+  setupMoves?: {
+    ply: number;
+    moveNumber: number;
+    turnPrefix: string;
+    san: string;
+    fen: string;
+  }[];
 }
 
 // Real Lichess Puzzles categorized by Tier and Diagnostic Blunder Leak

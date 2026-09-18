@@ -15,10 +15,10 @@ import {
   Award,
   ArrowRight,
   Target,
-  Cpu,
 } from 'lucide-react';
 import { LichessUser } from '@/lib/lichess';
 import { ChessPuzzle } from '@/lib/puzzles';
+import { TransparentProgressBar } from '@/components/TransparentProgressBar';
 
 // Iconic Lichess Knight SVG Emblem (Official Lichess vector)
 export function LichessIcon({ className = 'w-5 h-5' }: { className?: string }) {
@@ -73,14 +73,61 @@ export function LichessModal({
   const [blunders, setBlunders] = useState<ChessPuzzle[]>([]);
   const [isLoadingBlunders, setIsLoadingBlunders] = useState(false);
   const [blunderError, setBlunderError] = useState<string | null>(null);
+  const [scanStep, setScanStep] = useState<{
+    percent: number;
+    phase: string;
+    detail: string;
+  }>({
+    percent: 0,
+    phase: 'Connecting',
+    detail: 'Connecting to Lichess game database...',
+  });
 
   const fetchMyBlunders = async () => {
     if (!user) return;
     setIsLoadingBlunders(true);
     setBlunderError(null);
+    setScanStep({
+      percent: 15,
+      phase: 'Connecting',
+      detail: `Contacting Lichess game archive for @${user.username}...`,
+    });
+
+    const stepTimer = setInterval(() => {
+      setScanStep((prev) => {
+        if (prev.percent < 45) {
+          return {
+            percent: prev.percent + 10,
+            phase: 'Fetching Games',
+            detail: 'Downloading recent games with Stockfish computer analysis...',
+          };
+        } else if (prev.percent < 75) {
+          return {
+            percent: prev.percent + 10,
+            phase: 'Evaluating Blunders',
+            detail: 'Scanning moves for decisive centipawn swings and errors...',
+          };
+        } else if (prev.percent < 90) {
+          return {
+            percent: prev.percent + 4,
+            phase: 'Creating Puzzles',
+            detail: 'Synthesizing interactive challenge positions...',
+          };
+        }
+        return prev;
+      });
+    }, 400);
+
     try {
       const res = await fetch(`/api/lichess/blunders?username=${encodeURIComponent(user.username)}`);
       const data = await res.json();
+      clearInterval(stepTimer);
+      setScanStep({
+        percent: 100,
+        phase: 'Complete',
+        detail: 'Finalizing personal blunder training playlist...',
+      });
+
       if (data.blunders && data.blunders.length > 0) {
         setBlunders(data.blunders);
       } else {
@@ -88,9 +135,12 @@ export function LichessModal({
           'No evaluated mistakes found in your last 10 games. Request computer analysis on your recent Lichess games, then click scan again!'
         );
       }
-    } catch (e: any) {
-      setBlunderError(e.message || 'Failed to extract blunders from Lichess.');
+    } catch (e: unknown) {
+      clearInterval(stepTimer);
+      const msg = e instanceof Error ? e.message : '';
+      setBlunderError(msg || 'Failed to extract blunders from Lichess.');
     } finally {
+      clearInterval(stepTimer);
       setIsLoadingBlunders(false);
     }
   };
@@ -189,7 +239,7 @@ export function LichessModal({
                   </div>
                   {user.profile?.bio && (
                     <p className="text-xs theme-text-secondary line-clamp-2 italic">
-                      "{user.profile.bio}"
+                      &ldquo;{user.profile.bio}&rdquo;
                     </p>
                   )}
                   {user.profile?.realName && (
@@ -348,6 +398,20 @@ export function LichessModal({
                     </button>
                   </div>
                 </div>
+
+                {isLoadingBlunders && (
+                  <div className="mt-3">
+                    <TransparentProgressBar
+                      title={`Scanning Games for @${user.username}`}
+                      phase={scanStep.phase}
+                      stepDetail={scanStep.detail}
+                      progressPercent={scanStep.percent}
+                      unitLabel="games"
+                      allowPause={false}
+                      tabTitlePrefix="ChessZ Scan"
+                    />
+                  </div>
+                )}
 
                 {blunderError && (
                   <div className="mt-2.5 p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/25 text-rose-400 text-xs flex items-start gap-2 animate-in fade-in">
