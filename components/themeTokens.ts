@@ -15,9 +15,18 @@ export const THEME_BOARD_COLORS: Record<ThemePalette, Record<ThemeMode, { light:
     light: { light: "#f7f0e7", dark: "#a97061" },
     dark: { light: "#ebdcd4", dark: "#6e4338" },
   },
+  // Emerald's dark square was near-black (#123824, luminance 0.03). A black
+  // piece on it measured 1.34:1 -- piece and square were effectively the same
+  // colour. Every other palette sits between 2.1 and 5.6; these values give
+  // 3.37:1, in line with the other dark-mode boards.
+  //
+  // Emerald is deliberately always-dark: app/globals.css applies one block to
+  // both modes, so the board keeps a single pair too. Those --board-light /
+  // --board-dark custom properties must be kept in step with this entry; the
+  // CSS drives the bezel and coordinate rail, this drives the squares.
   emerald: {
-    light: { light: "#dcfce7", dark: "#123824" },
-    dark: { light: "#dcfce7", dark: "#123824" },
+    light: { light: "#cbe9d6", dark: "#357a55" },
+    dark: { light: "#cbe9d6", dark: "#357a55" },
   },
 };
 
