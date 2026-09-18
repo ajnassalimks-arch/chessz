@@ -1188,42 +1188,7 @@ export default function Home() {
             </span>
           </button>
 
-          {/* Harmonized Global Navigation */}
-          <nav className="hidden md:flex items-center gap-1 ml-2 pl-2 border-l border-[var(--border-subtle)] text-xs font-mono">
-            <button
-              onClick={resetCalibration}
-              className={`px-2.5 py-1 rounded-lg font-semibold transition cursor-pointer ${
-                !selectedLevel
-                  ? "bg-[var(--accent-primary)]/15 text-[var(--accent-primary)]"
-                  : "theme-text-secondary hover:theme-text-primary hover:bg-[var(--surface-muted)]"
-              }`}
-            >
-              Train
-            </button>
-            <Link
-              href="/diagnose"
-              className="px-2.5 py-1 rounded-lg font-semibold theme-text-secondary hover:theme-text-primary hover:bg-[var(--surface-muted)] transition flex items-center gap-1"
-            >
-              <span>Skill Test</span>
-              <span className="text-[9px] px-1 py-0.2 rounded bg-[var(--accent-primary)]/20 text-[var(--accent-primary)] font-bold">5m</span>
-            </Link>
-            <Link
-              href="/weakness"
-              className="px-2.5 py-1 rounded-lg font-semibold theme-text-secondary hover:theme-text-primary hover:bg-[var(--surface-muted)] transition flex items-center gap-1"
-            >
-              <span>Weakness Studio</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
-            </Link>
-            <Link
-              href="/terms"
-              className="px-2.5 py-1 rounded-lg font-semibold theme-text-secondary hover:theme-text-primary hover:bg-[var(--surface-muted)] transition flex items-center gap-1.5"
-            >
-              <BookOpen className="w-3.5 h-3.5 text-[var(--accent-primary)]" />
-              <span>Study Terms</span>
-              <span className="text-[9px] px-1 py-0.2 rounded bg-[var(--accent-primary)]/20 text-[var(--accent-primary)] font-bold">Coach</span>
-            </Link>
-          </nav>
-        </div>
+          </div>
 
         <div className="flex items-center gap-1.5">
           {/* Lichess Account / Sync Button */}

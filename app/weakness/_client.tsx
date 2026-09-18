@@ -1,35 +1,23 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
-  Target,
   ArrowLeft,
   RefreshCw,
-  Award,
   AlertTriangle,
   ExternalLink,
   Play,
   Clock,
-  BarChart3,
   Cpu,
-  Layers,
-  BookOpen,
 } from 'lucide-react';
 import { useLichess } from '@/lib/useLichess';
 import { LichessIcon } from '@/components/LichessModal';
 import { ChessZMark } from '@/components/ChessZLogo';
-import { streamUserGames, StreamProgress } from '@/lib/lichessStream';
-import { GameDerivedStats, UserAggregateStats, CriticalMoment } from '@/lib/chessMetrics/types';
-import { aggregateUserStats } from '@/lib/chessMetrics/gameParser';
-import { saveGameStatsBatch, loadCachedGameStats } from '@/lib/supabaseWeakness';
-import {
-  analyzeUnanalyzedGames,
-  isMobileOrLowEndDevice,
-  MOBILE_GAME_BATCH_CAP,
-} from '@/lib/engine/browserStockfish';
-import { EngineProgress } from '@/lib/engine/types';
+import { CriticalMoment } from '@/lib/chessMetrics/types';
+import { useWeaknessScan } from '@/lib/useWeaknessScan';
+import { isMobileOrLowEndDevice, MOBILE_GAME_BATCH_CAP } from '@/lib/engine/browserStockfish';
 import { TransparentProgressBar } from '@/components/TransparentProgressBar';
 
 /**
@@ -41,272 +29,120 @@ function formatClock(totalSeconds: number): string {
   return `${Math.floor(safe / 60)}m ${safe % 60}s`;
 }
 
-function WeaknessDashboardContent() {
+function WeaknessStudioContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialUser = searchParams.get('u') || '';
 
   const { user: connectedLichessUser } = useLichess();
-
   const [username, setUsername] = useState<string>(initialUser);
-  const [activeUsername, setActiveUsername] = useState<string>('');
-  const [games, setGames] = useState<GameDerivedStats[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [streamProgress, setStreamProgress] = useState<StreamProgress | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const hasSyncedInputRef = useRef<boolean>(false);
 
-  // Engine analysis state
-  const [isEngineRunning, setIsEngineRunning] = useState<boolean>(false);
-  const [isEnginePaused, setIsEnginePaused] = useState<boolean>(false);
-  const [engineProgress, setEngineProgress] = useState<EngineProgress | null>(null);
-  const engineAbortControllerRef = useRef<AbortController | null>(null);
-  const streamAbortControllerRef = useRef<AbortController | null>(null);
-  const hasLoadedInitialRef = useRef<boolean>(false);
-  // Mirrors activeUsername so loadDataForUser can compare against it without
-  // taking it as a dependency (the callback is intentionally stable).
-  const activeUsernameRef = useRef<string>('');
+  const {
+    activeUsername,
+    games,
+    aggregate,
+    moments,
+    unanalyzedCount,
+    isLoading,
+    streamProgress,
+    error,
+    isEngineRunning,
+    isEnginePaused,
+    engineProgress,
+    scan,
+    runEngine,
+    pauseEngine,
+  } = useWeaknessScan({ autoUsername: initialUser || connectedLichessUser?.username });
 
-  // View tabs: 'overview' | 'phases' | 'openings' | 'moments'
-  const [activeTab, setActiveTab] = useState<'overview' | 'phases' | 'openings' | 'moments'>('overview');
-
-  // Filter openings threshold: show all or >= 4 games
-  const [minOpeningGames, setMinOpeningGames] = useState<number>(1);
-
-  // Load cached stats first, then fetch live games
-  const loadDataForUser = useCallback(async (targetUser: string, forceRefresh: boolean = false) => {
-    const clean = targetUser.trim();
-    if (!clean) return;
-
-    // Abort previous in-flight stream if still downloading
-    if (streamAbortControllerRef.current) {
-      streamAbortControllerRef.current.abort();
-      streamAbortControllerRef.current = null;
-    }
-    const abortCtrl = new AbortController();
-    streamAbortControllerRef.current = abortCtrl;
-
-    // Switching accounts: drop the previous user's games immediately so a
-    // failed or empty scan can never render one account's data under another
-    // account's name (and so an engine run can't save it under the new user).
-    if (activeUsernameRef.current.toLowerCase() !== clean.toLowerCase()) {
-      setGames([]);
-    }
-    activeUsernameRef.current = clean;
-    setActiveUsername(clean);
-    setError(null);
-
-    // 1. Try local cache first for 0ms render
-    let cachedGames: GameDerivedStats[] = [];
-    if (!forceRefresh) {
-      const cached = await loadCachedGameStats(clean);
-      if (cached.games.length > 0) {
-        cachedGames = cached.games;
-        setGames(cached.games);
-      }
-    }
-
-    // 2. Validate username
-    setIsLoading(true);
-    try {
-      const valRes = await fetch(`/api/lichess/user/validate?username=${encodeURIComponent(clean)}`, {
-        signal: abortCtrl.signal,
-      });
-      const valData = await valRes.json();
-      if (!valRes.ok || !valData.valid) {
-        throw new Error(valData.error || 'User not found on Lichess');
-      }
-
-      // If Lichess returned canonical casing, update displayed username
-      const canonicalUser = valData.user?.username || clean;
-      if (canonicalUser !== clean) {
-        setUsername(canonicalUser);
-        activeUsernameRef.current = canonicalUser;
-        setActiveUsername(canonicalUser);
-      }
-
-      // Only remember a username that Lichess actually resolved, so a typo or
-      // an offline scan doesn't become the account auto-loaded on next visit.
-      try {
-        localStorage.setItem('chessz_last_username', canonicalUser);
-      } catch {}
-
-      // 3. Stream games up to 50
-      const streamed = await streamUserGames(canonicalUser, {
-        max: 50,
-        signal: abortCtrl.signal,
-        onProgress: (p) => setStreamProgress(p),
-      });
-
-      if (streamed.length === 0) {
-        if (cachedGames.length === 0) {
-          setError(`No recent standard games found for @${canonicalUser}.`);
-        }
-      } else {
-        // Merge streamed games with cached games
-        // Preserve locally computed Stockfish engine evals if already run
-        const cachedMap = new Map(cachedGames.map((g) => [g.gameId, g]));
-        const merged: GameDerivedStats[] = streamed.map((sg) => {
-          const prev = cachedMap.get(sg.gameId);
-          if (prev && prev.evalSource === 'local' && sg.evalSource === 'none') {
-            return prev;
-          }
-          return sg;
-        });
-
-        const streamedIds = new Set(streamed.map((g) => g.gameId));
-        for (const cg of cachedGames) {
-          if (!streamedIds.has(cg.gameId)) {
-            merged.push(cg);
-          }
-        }
-
-        merged.sort((a, b) => b.playedAt - a.playedAt);
-        const finalGames = merged.slice(0, 50);
-
-        setGames(finalGames);
-        // Checkpoint to localStorage & Supabase
-        await saveGameStatsBatch(canonicalUser, finalGames);
-      }
-    } catch (err: unknown) {
-      if (err instanceof Error && err.name !== 'AbortError') {
-        setError(err.message || 'Error loading games');
-      }
-    } finally {
-      if (streamAbortControllerRef.current === abortCtrl) {
-        setIsLoading(false);
-        setStreamProgress(null);
-      }
-    }
-  }, []);
-
-  // Auto-detect username on mount once
+  // Mirror whichever account the scan settled on into the input box
   useEffect(() => {
-    if (hasLoadedInitialRef.current) return;
-    const targetUser = initialUser || connectedLichessUser?.username || (typeof window !== 'undefined' ? localStorage.getItem('chessz_last_username') : '') || '';
-    if (targetUser) {
-      hasLoadedInitialRef.current = true;
-      setUsername(targetUser);
-      loadDataForUser(targetUser);
-      // Deliberately no cleanup here: cancelling the initial load whenever this
-      // effect re-runs (the Lichess session resolving, or a dev re-mount) left
-      // the ref guard set, so the load was dropped and never retried.
-      // loadDataForUser already aborts a stream it supersedes.
-      return;
+    if (activeUsername && !hasSyncedInputRef.current) {
+      hasSyncedInputRef.current = true;
+      setUsername(activeUsername);
     }
-    return () => {
-      streamAbortControllerRef.current?.abort();
-    };
-  }, [connectedLichessUser?.username, initialUser, loadDataForUser]);
-
-  // Pausing and resuming share one path so the two controls can't disagree
-  // about the engine's state.
-  const pauseBrowserEngine = useCallback(() => {
-    engineAbortControllerRef.current?.abort();
-    setIsEngineRunning(false);
-    setIsEnginePaused(true);
-  }, []);
-
-  // Run in-browser Stockfish on unanalyzed games
-  const handleRunBrowserEngine = async () => {
-    if (isEngineRunning) {
-      pauseBrowserEngine();
-      return;
-    }
-
-    setIsEngineRunning(true);
-    setIsEnginePaused(false);
-    const abortCtrl = new AbortController();
-    engineAbortControllerRef.current = abortCtrl;
-
-    try {
-      const enriched = await analyzeUnanalyzedGames(games, activeUsername, {
-        signal: abortCtrl.signal,
-        onProgress: (p) => setEngineProgress(p),
-        // Surface each finished game as it lands instead of leaving the
-        // dashboard frozen for the whole batch.
-        onGameAnalyzed: (partial) => setGames(partial),
-      });
-
-      setGames(enriched);
-      await saveGameStatsBatch(activeUsername, enriched);
-
-      // A run that was paused must keep its paused state and its progress bar:
-      // the aborted analysis still resolves normally, and clearing here is what
-      // used to wipe the "Paused - click Continue" affordance the user asked for.
-      if (!abortCtrl.signal.aborted) {
-        setIsEnginePaused(false);
-        setEngineProgress(null);
-      }
-    } catch (err: unknown) {
-      console.error('Engine error:', err);
-      setIsEnginePaused(false);
-      setEngineProgress(null);
-    } finally {
-      setIsEngineRunning(false);
-    }
-  };
-
-  // Aggregated stats computed purely
-  const aggregate: UserAggregateStats | null = useMemo(() => {
-    if (games.length === 0 || !activeUsername) return null;
-    return aggregateUserStats(games, activeUsername);
-  }, [games, activeUsername]);
-
-  const unanalyzedCount = useMemo(() => {
-    return games.filter((g) => g.evalSource === 'none').length;
-  }, [games]);
+  }, [activeUsername]);
 
   const isMobile = isMobileOrLowEndDevice();
 
-  const handleTrainBlunderInArena = (moment: CriticalMoment) => {
+  /**
+   * The one sentence that replaced the phase-metrics tab: where the bleeding is
+   * worst, stated once, above the queue it explains.
+   */
+  const phaseHeadline = useMemo(() => {
+    if (!aggregate) return null;
+    const phases = [
+      { name: 'opening', metric: aggregate.phaseMetrics.opening },
+      { name: 'middlegame', metric: aggregate.phaseMetrics.middlegame },
+      { name: 'endgame', metric: aggregate.phaseMetrics.endgame },
+    ].filter((p) => p.metric.movesCount > 0);
+    if (phases.length === 0) return null;
+
+    const worst = phases.reduce((a, b) =>
+      b.metric.avgWinPctLostPerMove > a.metric.avgWinPctLostPerMove ? b : a
+    );
+    const rest = phases.filter((p) => p.name !== worst.name);
+    const restAvg =
+      rest.length > 0
+        ? rest.reduce((s, p) => s + p.metric.avgWinPctLostPerMove, 0) / rest.length
+        : 0;
+    const ratio = restAvg > 0 ? worst.metric.avgWinPctLostPerMove / restAvg : 0;
+
+    return {
+      phase: worst.name,
+      perMove: worst.metric.avgWinPctLostPerMove,
+      blunders: worst.metric.blunders,
+      ratio: ratio >= 1.5 ? ratio : null,
+    };
+  }, [aggregate]);
+
+  const handleTrainInArena = (moment: CriticalMoment) => {
     const parentGame = games.find((g) => g.gameId === moment.gameId);
     const moveInGame = parentGame?.moves?.find((pm) => pm.ply === moment.ply);
-    // Older cached moments (and anything analyzed before FEN retention) may not
-    // carry the position, so recover it from the parent game's move list.
+    // Moments cached before FEN retention may not carry the position.
     const startingFen = moment.fen || moveInGame?.fen;
 
     let setupMoves = moment.setupMoves || [];
-    if ((!setupMoves || setupMoves.length === 0) && parentGame && parentGame.moves) {
+    if (setupMoves.length === 0 && parentGame?.moves) {
       const moveIdx = parentGame.moves.findIndex((pm) => pm.ply === moment.ply);
       if (moveIdx !== -1) {
         const pliesBack = Math.min(moveIdx, 6);
         setupMoves = [];
         for (let step = moveIdx - pliesBack; step < moveIdx; step++) {
           const pm = parentGame.moves[step];
+          if (!pm.fen) continue;
           const moveNum = Math.ceil(pm.ply / 2);
-          const prefix = pm.ply % 2 === 1 ? `${moveNum}.` : `${moveNum}...`;
-          if (pm.fen) {
-            setupMoves.push({
-              ply: pm.ply,
-              moveNumber: moveNum,
-              turnPrefix: prefix,
-              san: pm.san,
-              fen: pm.fen,
-            });
-          }
+          setupMoves.push({
+            ply: pm.ply,
+            moveNumber: moveNum,
+            turnPrefix: pm.ply % 2 === 1 ? `${moveNum}.` : `${moveNum}...`,
+            san: pm.san,
+            fen: pm.fen,
+          });
         }
       }
     }
 
-    const trainingPayload = {
-      id: `lichess_${moment.gameId}_p${moment.ply}`,
-      gameId: moment.gameId,
-      ply: moment.ply,
-      moveNumber: moment.moveNumber,
-      initialFen: startingFen,
-      playerColor: moment.color,
-      playedSan: moment.san,
-      evalBefore: moment.evalBefore,
-      evalAfter: moment.evalAfter,
-      winPctLost: moment.winPctLost,
-      judgment: moment.judgment,
-      phase: moment.phase,
-      deepLink: moment.deepLink,
-      setupMoves,
-    };
-
     try {
-      sessionStorage.setItem('chessz_active_blunder', JSON.stringify(trainingPayload));
+      sessionStorage.setItem(
+        'chessz_active_blunder',
+        JSON.stringify({
+          id: `lichess_${moment.gameId}_p${moment.ply}`,
+          gameId: moment.gameId,
+          ply: moment.ply,
+          moveNumber: moment.moveNumber,
+          initialFen: startingFen,
+          playerColor: moment.color,
+          playedSan: moment.san,
+          evalBefore: moment.evalBefore,
+          evalAfter: moment.evalAfter,
+          winPctLost: moment.winPctLost,
+          judgment: moment.judgment,
+          phase: moment.phase,
+          deepLink: moment.deepLink,
+          setupMoves,
+        })
+      );
     } catch (err) {
       console.warn('Failed to store blunder in sessionStorage', err);
     }
@@ -319,81 +155,46 @@ function WeaknessDashboardContent() {
       blunder: moment.san,
       fen: startingFen || '',
     });
-
     router.push(`/?${query.toString()}`);
   };
 
   return (
     <main className="min-h-screen theme-canvas flex flex-col items-center p-3 sm:p-6 lg:p-8">
-      {/* Top Navbar */}
-      <header className="w-full max-w-6xl flex items-center justify-between pb-4 border-b border-[var(--border-subtle)] gap-3">
+      <header className="w-full max-w-4xl flex items-center justify-between pb-4 border-b border-[var(--border-subtle)] gap-3">
         <div className="flex items-center gap-3">
           <Link
             href="/"
-            className="w-9 h-9 rounded-xl theme-surface theme-surface-hover border flex items-center justify-center cursor-pointer transition text-zinc-400 hover:text-white"
-            title="Return to Training Arena"
+            className="w-9 h-9 rounded-xl theme-surface theme-surface-hover border flex items-center justify-center cursor-pointer transition"
+            title="Back to the board"
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
-
-          <div className="flex items-center gap-2">
-            <Link
-              href="/"
-              className="w-7 h-7 rounded-xl overflow-hidden shrink-0 shadow-xs flex items-center justify-center hover:opacity-90 transition-opacity"
-              title="ChessZ Home"
-            >
-              <ChessZMark size={28} treatment="tight" className="w-full h-full" />
-            </Link>
-            <div>
-              <h1 className="text-base sm:text-lg font-black theme-text-primary flex items-center gap-2">
-                Weakness Studio
-                {aggregate && (
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                    {aggregate.totalGames} Games
-                  </span>
-                )}
-              </h1>
-              <p className="text-xs theme-text-secondary">
-                Recurring tactical leaks, phase loss & critical moment diagnostic
-              </p>
-            </div>
+          <Link
+            href="/"
+            className="w-7 h-7 rounded-xl overflow-hidden shrink-0 flex items-center justify-center hover:opacity-90 transition-opacity"
+            title="ChessZ"
+          >
+            <ChessZMark size={28} treatment="tight" className="w-full h-full" />
+          </Link>
+          <div>
+            <h1 className="text-base sm:text-lg font-black theme-text-primary flex items-center gap-2">
+              Your Mistakes
+              {games.length > 0 && (
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                  {games.length} games
+                </span>
+              )}
+            </h1>
+            <p className="text-xs theme-text-secondary">
+              The exact positions where you lost the most, worst first
+            </p>
           </div>
-
-          {/* Harmonized Global Navigation */}
-          <nav className="hidden md:flex items-center gap-1 ml-3 pl-3 border-l border-[var(--border-subtle)] text-xs font-mono">
-            <Link
-              href="/"
-              className="px-2.5 py-1 rounded-lg font-semibold theme-text-secondary hover:theme-text-primary hover:bg-[var(--surface-muted)] transition"
-            >
-              Train
-            </Link>
-            <Link
-              href="/diagnose"
-              className="px-2.5 py-1 rounded-lg font-semibold theme-text-secondary hover:theme-text-primary hover:bg-[var(--surface-muted)] transition flex items-center gap-1"
-            >
-              <span>Skill Test</span>
-              <span className="text-[9px] px-1 py-0.2 rounded bg-[var(--accent-primary)]/20 text-[var(--accent-primary)] font-bold">5m</span>
-            </Link>
-            <span className="px-2.5 py-1 rounded-lg font-semibold bg-rose-500/15 text-rose-400 border border-rose-500/30 flex items-center gap-1">
-              <span>Weakness Studio</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse"></span>
-            </span>
-            <Link
-              href="/terms"
-              className="px-2.5 py-1 rounded-lg font-semibold theme-text-secondary hover:theme-text-primary hover:bg-[var(--surface-muted)] transition flex items-center gap-1.5"
-            >
-              <BookOpen className="w-3.5 h-3.5 text-[var(--accent-primary)]" />
-              <span>Study Terms</span>
-              <span className="text-[9px] px-1 py-0.2 rounded bg-[var(--accent-primary)]/20 text-[var(--accent-primary)] font-bold">Coach</span>
-            </Link>
-          </nav>
         </div>
 
-        {/* Username Search Input Bar */}
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            if (username.trim()) loadDataForUser(username.trim(), true);
+            if (username.trim()) scan(username.trim(), true);
           }}
           className="flex items-center gap-2"
         >
@@ -403,15 +204,14 @@ function WeaknessDashboardContent() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Lichess username..."
-              className="w-36 sm:w-48 pl-8 pr-3 py-1.5 rounded-xl theme-surface border text-xs font-mono theme-text-primary focus:outline-none focus:border-[var(--accent-primary)] transition"
+              className="w-32 sm:w-44 pl-8 pr-3 py-1.5 rounded-xl theme-surface border text-xs font-mono theme-text-primary focus:outline-none focus:border-[var(--accent-primary)] transition"
             />
             <LichessIcon className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
-
           <button
             type="submit"
             disabled={isLoading || !username.trim()}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--accent-primary)] hover:opacity-90 text-white text-xs font-bold font-mono transition cursor-pointer disabled:opacity-50 shadow-xs shrink-0"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--accent-primary)] hover:opacity-90 text-white text-xs font-bold font-mono transition cursor-pointer disabled:opacity-50 shrink-0"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
             <span className="hidden sm:inline">{isLoading ? 'Syncing...' : 'Scan'}</span>
@@ -419,34 +219,33 @@ function WeaknessDashboardContent() {
         </form>
       </header>
 
-      {/* Main Container */}
-      <div className="w-full max-w-6xl mt-5 space-y-6 flex-1">
-        {/* Quick Demo Accounts Banner if no games */}
+      <div className="w-full max-w-4xl mt-5 space-y-5 flex-1">
+        {/* Cold start */}
         {games.length === 0 && !isLoading && !error && (
           <div className="p-8 rounded-3xl theme-surface border text-center space-y-4 max-w-xl mx-auto my-12 shadow-xl">
-            <div className="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-500/40 text-amber-800 dark:text-amber-400 flex items-center justify-center mx-auto shadow-md shadow-amber-500/10">
+            <div className="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-500/40 text-amber-800 dark:text-amber-400 flex items-center justify-center mx-auto">
               <LichessIcon className="w-6 h-6" />
             </div>
             <div className="space-y-1">
-              <h2 className="text-lg font-black theme-text-primary">Discover Where You Drop Points</h2>
+              <h2 className="text-lg font-black theme-text-primary">Find where you drop points</h2>
               <p className="text-xs theme-text-secondary max-w-md mx-auto">
-                Enter your Lichess username above to analyze your last 50 games. All evaluation math runs 100% in your browser.
+                Enter your Lichess username to scan your last 50 games. Every evaluation
+                runs in your browser.
               </p>
             </div>
-
             <div className="pt-3 border-t border-[var(--border-subtle)] space-y-2">
-              <span className="text-[11px] font-mono theme-text-muted">Or try sample grandmaster accounts:</span>
+              <span className="text-[11px] font-mono theme-text-muted">Or try a sample account:</span>
               <div className="flex items-center justify-center gap-2 flex-wrap">
-                {['thibault', 'DrNykterstein', 'nihalsarin2004'].map((userDemo) => (
+                {['thibault', 'DrNykterstein', 'nihalsarin2004'].map((demo) => (
                   <button
-                    key={userDemo}
+                    key={demo}
                     onClick={() => {
-                      setUsername(userDemo);
-                      loadDataForUser(userDemo);
+                      setUsername(demo);
+                      scan(demo);
                     }}
                     className="px-3 py-1.5 rounded-xl theme-surface-subtle theme-surface-hover border text-xs font-mono font-bold theme-text-primary transition cursor-pointer"
                   >
-                    @{userDemo}
+                    @{demo}
                   </button>
                 ))}
               </div>
@@ -454,26 +253,24 @@ function WeaknessDashboardContent() {
           </div>
         )}
 
-        {/* Loading Progress Card */}
         {isLoading && streamProgress && (
           <TransparentProgressBar
-            title={`Streaming Games for @${activeUsername}`}
-            phase={streamProgress.currentPhase === 'connecting' ? 'Connecting' : 'Streaming Games'}
+            title={`Scanning @${activeUsername}`}
+            phase={streamProgress.currentPhase === 'connecting' ? 'Connecting' : 'Reading games'}
             stepDetail={
               streamProgress.currentPhase === 'connecting'
-                ? 'Connecting to official Lichess NDJSON stream...'
-                : `Parsing Game ${streamProgress.gamesFetched} of 50 (${streamProgress.analyzedCount} with computer evals)...`
+                ? 'Opening the Lichess game stream...'
+                : `Game ${streamProgress.gamesFetched} of 50`
             }
             progressPercent={Math.min(100, Math.max(5, (streamProgress.gamesFetched / 50) * 100))}
             currentCount={streamProgress.gamesFetched}
             totalCount={50}
             unitLabel="games"
             allowPause={false}
-            tabTitlePrefix="ChessZ Stream"
+            tabTitlePrefix="ChessZ Scan"
           />
         )}
 
-        {/* Error Banner */}
         {error && (
           <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex items-center gap-3">
             <AlertTriangle className="w-5 h-5 shrink-0" />
@@ -481,60 +278,57 @@ function WeaknessDashboardContent() {
           </div>
         )}
 
-        {/* Aggregate Dashboard Content */}
         {aggregate && (
           <>
-            {/* Engine Analysis Banner if unanalyzed games exist */}
+            {/* Engine sweep */}
             {unanalyzedCount > 0 && (
-              <div className="p-4 rounded-3xl bg-linear-to-r from-amber-500/15 via-rose-500/10 to-transparent border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+              <div className="p-4 rounded-3xl bg-linear-to-r from-amber-500/15 via-rose-500/10 to-transparent border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-2xl bg-amber-100 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-500/40 text-amber-800 dark:text-amber-400 flex items-center justify-center shrink-0">
                     <Cpu className="w-5 h-5" />
                   </div>
                   <div>
                     <div className="text-xs font-bold theme-text-primary flex items-center gap-2">
-                      <span>{unanalyzedCount} Games Missing Stockfish Evaluation</span>
+                      <span>{unanalyzedCount} games not evaluated yet</span>
                       {isMobile && (
                         <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-200/90 dark:bg-amber-500/30 text-amber-950 dark:text-amber-100 font-extrabold border border-amber-300 dark:border-amber-500/40">
-                          Mobile: capped at {MOBILE_GAME_BATCH_CAP}
+                          Mobile: {MOBILE_GAME_BATCH_CAP} per run
                         </span>
                       )}
                     </div>
                     <p className="text-[11px] theme-text-secondary">
-                      Run deterministic in-browser Stockfish WASM (80k nodes sweep → 300k deep refinement)
+                      Sweep them with Stockfish here to find the mistakes inside them
                     </p>
                   </div>
                 </div>
-
                 <button
-                  onClick={handleRunBrowserEngine}
-                  className={`flex items-center justify-center gap-2 px-4 py-2 rounded-2xl text-xs font-bold transition cursor-pointer shrink-0 shadow-sm ${
+                  onClick={runEngine}
+                  className={`flex items-center justify-center gap-2 px-4 py-2 rounded-2xl text-xs font-bold transition cursor-pointer shrink-0 ${
                     isEngineRunning
                       ? 'bg-rose-500 hover:bg-rose-600 text-white'
                       : 'bg-amber-500 hover:bg-amber-600 text-black font-extrabold'
                   }`}
                 >
                   <Cpu className={`w-4 h-4 ${isEngineRunning ? 'animate-spin' : ''}`} />
-                  <span>{isEngineRunning ? 'Pause Engine' : 'Run In-Browser Stockfish'}</span>
+                  <span>{isEngineRunning ? 'Pause' : 'Find more mistakes'}</span>
                 </button>
               </div>
             )}
 
-            {/* Engine Progress Active Bar (0 to 100% Continuous) */}
             {(isEngineRunning || isEnginePaused) && engineProgress && (
               <TransparentProgressBar
-                title="Stockfish WASM Engine Analysis"
+                title="Stockfish sweep"
                 phase={isEnginePaused ? 'Paused' : `Pass ${engineProgress.pass}`}
                 stepDetail={
                   isEnginePaused
-                    ? `Paused at Game ${engineProgress.currentGame} of ${engineProgress.totalGames} • Click Continue to resume without loss`
-                    : `Evaluating Game ${engineProgress.currentGame} of ${engineProgress.totalGames} (Ply ${engineProgress.currentPly}/${engineProgress.totalPliesInGame}) • ${(engineProgress.totalNodesEvaluated / 1000).toFixed(0)}k nodes evaluated`
+                    ? `Paused at game ${engineProgress.currentGame} of ${engineProgress.totalGames} - click Continue to resume without loss`
+                    : `Game ${engineProgress.currentGame} of ${engineProgress.totalGames} (ply ${engineProgress.currentPly}/${engineProgress.totalPliesInGame}) - ${(engineProgress.totalNodesEvaluated / 1000).toFixed(0)}k nodes`
                 }
                 progressPercent={Math.min(
                   100,
                   Math.max(
                     2,
-                    (((engineProgress.currentGame - 1) +
+                    ((engineProgress.currentGame - 1 +
                       engineProgress.currentPly / Math.max(1, engineProgress.totalPliesInGame)) /
                       Math.max(1, engineProgress.totalGames)) *
                       100
@@ -544,435 +338,113 @@ function WeaknessDashboardContent() {
                 totalCount={engineProgress.totalGames}
                 unitLabel="games"
                 isPaused={isEnginePaused}
-                onTogglePause={() => {
-                  if (isEngineRunning) {
-                    pauseBrowserEngine();
-                  } else {
-                    handleRunBrowserEngine();
-                  }
-                }}
+                onTogglePause={() => (isEngineRunning ? pauseEngine() : runEngine())}
                 allowPause={true}
                 tabTitlePrefix="ChessZ Engine"
               />
             )}
 
-            {/* Section Tabs */}
-            <div className="flex items-center gap-1.5 border-b border-[var(--border-subtle)] pb-2 overflow-x-auto">
-              {[
-                { id: 'overview', label: 'Overview & Bleed', icon: BarChart3 },
-                { id: 'phases', label: 'Phase Diagnostics', icon: Layers },
-                { id: 'openings', label: 'Opening Repertoire', icon: Award },
-                { id: 'moments', label: `Critical Moments (${aggregate.criticalMoments.length})`, icon: Target },
-              ].map((tab) => {
-                const Icon = tab.icon;
-                const active = activeTab === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id as any)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition cursor-pointer shrink-0 ${
-                      active
-                        ? 'bg-[var(--accent-primary)] text-white shadow-xs'
-                        : 'theme-surface-subtle theme-text-muted hover:theme-text-primary'
-                    }`}
+            {/* The one sentence that used to be a tab */}
+            {phaseHeadline && (
+              <p className="text-sm theme-text-primary px-1">
+                You bleed most in the{' '}
+                <strong className="text-rose-500 dark:text-rose-400">{phaseHeadline.phase}</strong>
+                {' '}&mdash; {phaseHeadline.perMove}% win probability per move
+                {phaseHeadline.ratio && (
+                  <>
+                    , about <strong>{phaseHeadline.ratio.toFixed(1)}&times;</strong> the rest of your game
+                  </>
+                )}
+                {phaseHeadline.blunders > 0 && <> ({phaseHeadline.blunders} blunders there)</>}.
+              </p>
+            )}
+
+            {/* The queue */}
+            {moments.length > 0 ? (
+              <div className="space-y-2">
+                <div className="flex items-baseline justify-between px-1">
+                  <h2 className="text-sm font-bold theme-text-primary">
+                    {moments.length} positions to fix
+                  </h2>
+                  <span className="text-[11px] font-mono theme-text-muted">worst first</span>
+                </div>
+
+                {moments.slice(0, 30).map((m, idx) => (
+                  <div
+                    key={`${m.gameId}_${m.ply}`}
+                    className="p-3.5 rounded-2xl theme-surface border flex flex-col sm:flex-row sm:items-center gap-3 hover:border-[var(--border-focus)] transition"
                   >
-                    <Icon className="w-3.5 h-3.5" />
-                    <span>{tab.label}</span>
-                  </button>
-                );
-              })}
-            </div>
+                    <span className="text-lg font-black theme-text-muted font-mono w-7 shrink-0 tabular-nums">
+                      {idx + 1}
+                    </span>
 
-            {/* TAB 1: OVERVIEW */}
-            {activeTab === 'overview' && (
-              <div className="space-y-6">
-                {/* 1. Headline Win% Lost Per Phase Card */}
-                <div className="p-5 sm:p-6 rounded-3xl theme-surface border shadow-sm space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-sm sm:text-base font-black theme-text-primary flex items-center gap-2">
-                        <span>Win% Lost Per Phase</span>
-                        <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-rose-500/15 text-rose-400 font-bold border border-rose-500/30">
-                          Headline Bleed Metric
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm font-bold theme-text-primary font-mono">{m.san}</span>
+                        <span
+                          className={`text-[9px] font-mono uppercase px-1.5 py-0.5 rounded font-extrabold ${
+                            m.judgment === 'blunder'
+                              ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
+                              : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                          }`}
+                        >
+                          {m.judgment}
                         </span>
-                      </h3>
-                      <p className="text-xs theme-text-secondary">
-                        The exact average win percentage lost per move where you lose the advantage
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {[
-                      {
-                        name: 'Opening (Until Book Exit)',
-                        metric: aggregate.phaseMetrics.opening,
-                        color: 'from-cyan-500/20 to-blue-500/10',
-                        border: 'border-cyan-500/30',
-                        accent: 'text-cyan-400',
-                      },
-                      {
-                        name: 'Middlegame',
-                        metric: aggregate.phaseMetrics.middlegame,
-                        color: 'from-amber-500/20 to-orange-500/10',
-                        border: 'border-amber-500/30',
-                        accent: 'text-amber-400',
-                      },
-                      {
-                        name: 'Endgame (≤ 12 pieces)',
-                        metric: aggregate.phaseMetrics.endgame,
-                        color: 'from-rose-500/20 to-pink-500/10',
-                        border: 'border-rose-500/30',
-                        accent: 'text-rose-400',
-                      },
-                    ].map((phaseItem) => (
-                      <div
-                        key={phaseItem.name}
-                        className={`p-4 rounded-2xl bg-linear-to-br ${phaseItem.color} border ${phaseItem.border} space-y-3 flex flex-col justify-between`}
-                      >
-                        <div>
-                          <span className="text-[11px] font-mono font-bold uppercase theme-text-muted">
-                            {phaseItem.name}
-                          </span>
-                          <div className="text-2xl font-black theme-text-primary mt-1 flex items-baseline gap-1">
-                            <span className={phaseItem.accent}>
-                              {phaseItem.metric.avgWinPctLostPerMove}%
-                            </span>
-                            <span className="text-[11px] font-mono font-normal theme-text-muted">/move</span>
-                          </div>
-                        </div>
-
-                        <div className="pt-2 border-t border-[var(--border-subtle)] grid grid-cols-3 text-center text-[10px] font-mono">
-                          <div>
-                            <span className="theme-text-muted block">Inacc</span>
-                            <span className="font-bold text-amber-400">{phaseItem.metric.inaccuracies}</span>
-                          </div>
-                          <div>
-                            <span className="theme-text-muted block">Mistake</span>
-                            <span className="font-bold text-orange-400">{phaseItem.metric.mistakes}</span>
-                          </div>
-                          <div>
-                            <span className="theme-text-muted block">Blunder</span>
-                            <span className="font-bold text-rose-400">{phaseItem.metric.blunders}</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* 2. Tactical Alertness & Composure Metrics */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                  <div className="p-4 rounded-2xl theme-surface border space-y-1">
-                    <span className="text-[10px] font-mono uppercase theme-text-muted font-bold block">
-                      Conversion Failures
-                    </span>
-                    <div className="text-xl font-black text-rose-400">
-                      {aggregate.conversionFailuresCount} Games
-                    </div>
-                    <p className="text-[11px] theme-text-secondary">
-                      Reached ≥ +300 cp advantage but failed to win
-                    </p>
-                  </div>
-
-                  <div className="p-4 rounded-2xl theme-surface border space-y-1">
-                    <span className="text-[10px] font-mono uppercase theme-text-muted font-bold block">
-                      Rescues & Swindles
-                    </span>
-                    <div className="text-xl font-black text-emerald-400">
-                      {aggregate.rescuesCount} Games
-                    </div>
-                    <p className="text-[11px] theme-text-secondary">
-                      Fell to ≤ -300 cp but salvaged a draw or win
-                    </p>
-                  </div>
-
-                  <div className="p-4 rounded-2xl theme-surface border space-y-1">
-                    <span className="text-[10px] font-mono uppercase theme-text-muted font-bold block">
-                      Missed Punishments
-                    </span>
-                    <div className="text-xl font-black text-amber-400">
-                      {aggregate.missedPunishmentsTotal}
-                    </div>
-                    <p className="text-[11px] theme-text-secondary">
-                      Opponent lost ≥20% win% and wasn&apos;t punished
-                    </p>
-                  </div>
-
-                  <div className="p-4 rounded-2xl theme-surface border space-y-1">
-                    <span className="text-[10px] font-mono uppercase theme-text-muted font-bold block">
-                      Time Pressure Blunders
-                    </span>
-                    <div className="text-xl font-black text-pink-400">
-                      {aggregate.timePressureBlundersCount}
-                    </div>
-                    <p className="text-[11px] theme-text-secondary">
-                      Blunders played &lt; half avg time or under 30s
-                    </p>
-                  </div>
-                </div>
-
-                {/* 3. Record by Color & Speed */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Color Split */}
-                  <div className="p-4 rounded-2xl theme-surface border space-y-3">
-                    <span className="text-xs font-mono uppercase font-bold theme-text-muted block">
-                      Performance by Color
-                    </span>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="p-3 rounded-xl theme-surface-subtle border space-y-1">
-                        <div className="flex items-center justify-between text-xs font-bold theme-text-primary">
-                          <span>⚪ White</span>
-                          <span className="font-mono text-emerald-400">{aggregate.colorRecord.white.score}%</span>
-                        </div>
-                        <div className="text-[11px] font-mono theme-text-muted">
-                          {aggregate.colorRecord.white.wins}W / {aggregate.colorRecord.white.draws}D / {aggregate.colorRecord.white.losses}L ({aggregate.colorRecord.white.games} games)
-                        </div>
-                      </div>
-
-                      <div className="p-3 rounded-xl theme-surface-subtle border space-y-1">
-                        <div className="flex items-center justify-between text-xs font-bold theme-text-primary">
-                          <span>⚫ Black</span>
-                          <span className="font-mono text-emerald-400">{aggregate.colorRecord.black.score}%</span>
-                        </div>
-                        <div className="text-[11px] font-mono theme-text-muted">
-                          {aggregate.colorRecord.black.wins}W / {aggregate.colorRecord.black.draws}D / {aggregate.colorRecord.black.losses}L ({aggregate.colorRecord.black.games} games)
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Judgments per 100 Moves */}
-                  <div className="p-4 rounded-2xl theme-surface border space-y-3">
-                    <span className="text-xs font-mono uppercase font-bold theme-text-muted block">
-                      Mistakes per 100 Moves
-                    </span>
-                    <div className="grid grid-cols-3 gap-2 text-center">
-                      <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20">
-                        <span className="text-[10px] font-mono uppercase theme-text-muted block">Inaccuracies</span>
-                        <span className="text-lg font-black text-amber-400">
-                          {aggregate.judgmentCountsPer100.inaccuracies}
+                        <span className="text-[11px] font-mono text-rose-400">
+                          &minus;{m.winPctLost.toFixed(0)}% win prob
                         </span>
                       </div>
-                      <div className="p-2.5 rounded-xl bg-orange-500/10 border border-orange-500/20">
-                        <span className="text-[10px] font-mono uppercase theme-text-muted block">Mistakes</span>
-                        <span className="text-lg font-black text-orange-400">
-                          {aggregate.judgmentCountsPer100.mistakes}
+                      <div className="text-[11px] theme-text-muted font-mono mt-0.5 flex items-center gap-2 flex-wrap">
+                        <span>
+                          move {m.moveNumber} as {m.color}
                         </span>
-                      </div>
-                      <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20">
-                        <span className="text-[10px] font-mono uppercase theme-text-muted block">Blunders</span>
-                        <span className="text-lg font-black text-rose-400">
-                          {aggregate.judgmentCountsPer100.blunders}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* TAB 2: PHASES */}
-            {activeTab === 'phases' && (
-              <div className="p-5 rounded-3xl theme-surface border space-y-5">
-                <div className="space-y-1">
-                  <h3 className="text-base font-bold theme-text-primary">Phase Loss Detailed Breakdown</h3>
-                  <p className="text-xs theme-text-secondary">
-                    Comparative tactical errors and win percentage decay across Opening, Middlegame, and Endgame
-                  </p>
-                </div>
-
-                <div className="space-y-4">
-                  {[
-                    { title: 'Opening Phase', desc: 'Book theory and initial piece mobilization (up to the Lichess book-exit ply, else ply 16)', data: aggregate.phaseMetrics.opening, color: 'bg-cyan-500' },
-                    { title: 'Middlegame Phase', desc: 'Tactical clash, king safety and piece coordination', data: aggregate.phaseMetrics.middlegame, color: 'bg-amber-500' },
-                    { title: 'Endgame Phase', desc: 'Simplified positions (≤ 12 pieces), king activity and pawn promotion', data: aggregate.phaseMetrics.endgame, color: 'bg-rose-500' },
-                  ].map((p) => (
-                    <div key={p.title} className="p-4 rounded-2xl theme-surface-subtle border space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="text-xs font-bold theme-text-primary">{p.title}</div>
-                          <div className="text-[11px] theme-text-secondary">{p.desc}</div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-base font-black theme-text-primary">
-                            {p.data.avgWinPctLostPerMove}% <span className="text-[10px] font-normal theme-text-muted">lost/ply</span>
-                          </div>
-                          <div className="text-[10px] font-mono theme-text-muted">
-                            {p.data.movesCount} total plies evaluated
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="w-full h-2 rounded-full bg-[var(--surface-muted)] overflow-hidden">
-                        <div
-                          className={`h-full ${p.color} transition-all duration-500`}
-                          style={{ width: `${Math.min(100, p.data.avgWinPctLostPerMove * 10)}%` }}
-                        />
-                      </div>
-
-                      <div className="flex items-center justify-between text-[11px] font-mono theme-text-muted pt-1">
-                        <span>Inaccuracies: <strong className="text-amber-400">{p.data.inaccuracies}</strong></span>
-                        <span>Mistakes: <strong className="text-orange-400">{p.data.mistakes}</strong></span>
-                        <span>Blunders: <strong className="text-rose-400">{p.data.blunders}</strong></span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* TAB 3: OPENING REPERTOIRE */}
-            {activeTab === 'openings' && (
-              <div className="p-5 rounded-3xl theme-surface border space-y-4">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <div>
-                    <h3 className="text-base font-bold theme-text-primary">Opening Repertoire & Wilson Intervals</h3>
-                    <p className="text-xs theme-text-secondary">
-                      Statistically sound performance grouped by ECO family with 95% confidence bounds
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-2 text-xs font-mono">
-                    <span className="theme-text-muted">Min games:</span>
-                    <button
-                      onClick={() => setMinOpeningGames(minOpeningGames === 1 ? 4 : 1)}
-                      className="px-2.5 py-1 rounded-lg border theme-surface-subtle theme-text-primary transition cursor-pointer"
-                    >
-                      {minOpeningGames === 1 ? 'Showing All (≥1)' : 'Strict (≥4 only)'}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead>
-                      <tr className="border-b border-[var(--border-subtle)] text-[10px] font-mono uppercase theme-text-muted">
-                        <th className="py-2.5 px-3">ECO</th>
-                        <th className="py-2.5 px-3">Opening Name</th>
-                        <th className="py-2.5 px-3">Color</th>
-                        <th className="py-2.5 px-3 text-center">Record</th>
-                        <th className="py-2.5 px-3 text-center">Score %</th>
-                        <th className="py-2.5 px-3 text-center">Wilson 95% Interval</th>
-                        <th className="py-2.5 px-3 text-right">Avg Loss (Plies 1-16)</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[var(--border-subtle)] font-mono">
-                      {aggregate.openings
-                        .filter((op) => op.totalGames >= minOpeningGames)
-                        .map((op) => (
-                          <tr key={`${op.color}_${op.eco}_${op.name}`} className="hover:bg-black/5 transition">
-                            <td className="py-2.5 px-3 font-bold text-[var(--accent-primary)]">{op.eco}</td>
-                            <td className="py-2.5 px-3 font-sans font-medium theme-text-primary max-w-xs truncate">
-                              {op.name}
-                            </td>
-                            <td className="py-2.5 px-3">
-                              <span className="text-[10px] px-1.5 py-0.5 rounded uppercase font-bold border">
-                                {op.color === 'white' ? '⚪ White' : '⚫ Black'}
-                              </span>
-                            </td>
-                            <td className="py-2.5 px-3 text-center theme-text-muted">
-                              {op.wins}W / {op.draws}D / {op.losses}L
-                            </td>
-                            <td className="py-2.5 px-3 text-center font-bold text-emerald-400">
-                              {op.score}%
-                            </td>
-                            <td className="py-2.5 px-3 text-center theme-text-secondary">
-                              [{op.wilsonLower}% – {op.wilsonUpper}%]
-                            </td>
-                            <td className="py-2.5 px-3 text-right font-bold text-rose-400">
-                              {op.avgWinPctLostFirst16 > 0 ? `-${op.avgWinPctLostFirst16}` : '0'}%
-                            </td>
-                          </tr>
-                        ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-
-            {/* TAB 4: CRITICAL MOMENTS */}
-            {activeTab === 'moments' && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-base font-bold theme-text-primary">
-                      Top Critical Moments ({aggregate.criticalMoments.length})
-                    </h3>
-                    <p className="text-xs theme-text-secondary">
-                      Your sharpest evaluation drops capped at 10 worst moves per game with deep links
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {aggregate.criticalMoments.slice(0, 30).map((m) => (
-                    <div
-                      key={`${m.gameId}_${m.ply}`}
-                      className="p-4 rounded-2xl theme-surface border flex flex-col justify-between space-y-3 hover:border-[var(--border-focus)] transition shadow-xs"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold theme-text-primary">
-                              Move {m.moveNumber} ({m.color})
-                            </span>
-                            <span
-                              className={`text-[9px] font-mono uppercase px-2 py-0.2 rounded font-extrabold ${
-                                m.judgment === 'blunder'
-                                  ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
-                                  : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
-                              }`}
-                            >
-                              {m.judgment}
-                            </span>
-                          </div>
-                          <div className="text-xs font-mono text-rose-400 mt-1">
-                            Played: <strong>{m.san}</strong> (-{m.winPctLost.toFixed(1)}% win prob)
-                          </div>
-                        </div>
-
+                        <span>&middot;</span>
+                        <span>{m.phase}</span>
                         {m.clockRemaining !== undefined && (
-                          <div className="flex items-center gap-1 text-[10px] font-mono theme-text-muted">
-                            <Clock className="w-3 h-3" />
-                            <span>{formatClock(m.clockRemaining)}</span>
-                          </div>
+                          <>
+                            <span>&middot;</span>
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {formatClock(m.clockRemaining)}
+                            </span>
+                          </>
                         )}
                       </div>
-
-                      <div className="pt-2 border-t border-[var(--border-subtle)] flex items-center justify-between gap-2">
-                        <span className="text-[10px] font-mono uppercase theme-text-muted">
-                          {m.phase} phase
-                        </span>
-
-                        <div className="flex items-center gap-2">
-                          <a
-                            href={m.deepLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-1.5 text-[11px] font-mono text-zinc-400 hover:text-white px-2 py-1 rounded-lg border theme-surface-subtle transition cursor-pointer"
-                          >
-                            <LichessIcon className="w-3 h-3 text-amber-700 dark:text-amber-400" />
-                            <span>Lichess</span>
-                            <ExternalLink className="w-3 h-3" />
-                          </a>
-
-                          <button
-                            type="button"
-                            onClick={() => handleTrainBlunderInArena(m)}
-                            className="flex items-center gap-1 text-[11px] font-mono font-bold bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-lg transition cursor-pointer"
-                          >
-                            <Play className="w-3 h-3" />
-                            <span>Train in Arena</span>
-                          </button>
-                        </div>
-                      </div>
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
 
+                    <div className="flex items-center gap-2 shrink-0">
+                      <a
+                        href={m.deepLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 text-[11px] font-mono theme-text-muted hover:theme-text-primary px-2 py-1.5 rounded-lg border theme-surface-subtle transition"
+                        title="Open this game on Lichess"
+                      >
+                        <LichessIcon className="w-3 h-3 text-amber-700 dark:text-amber-400" />
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => handleTrainInArena(m)}
+                        className="flex items-center gap-1.5 text-xs font-bold bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 px-3 py-1.5 rounded-lg transition cursor-pointer"
+                      >
+                        <Play className="w-3.5 h-3.5" />
+                        <span>Fix it</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              unanalyzedCount === 0 && (
+                <div className="p-8 rounded-2xl theme-surface-subtle border text-center space-y-2">
+                  <p className="text-sm font-bold theme-text-primary">Nothing to fix right now</p>
+                  <p className="text-xs theme-text-secondary max-w-sm mx-auto">
+                    No blunders or mistakes in the games we scanned. Play some more and scan again.
+                  </p>
+                </div>
+              )
+            )}
           </>
         )}
       </div>
@@ -980,19 +452,17 @@ function WeaknessDashboardContent() {
   );
 }
 
-export default function WeaknessDashboardPage() {
+export default function WeaknessStudioPage() {
   return (
     <React.Suspense
       fallback={
         <div className="min-h-screen theme-canvas flex flex-col items-center justify-center space-y-3">
           <div className="w-8 h-8 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin" />
-          <span className="text-xs font-mono font-bold theme-text-secondary">
-            Loading Weakness Studio...
-          </span>
+          <span className="text-xs font-mono font-bold theme-text-secondary">Loading...</span>
         </div>
       }
     >
-      <WeaknessDashboardContent />
+      <WeaknessStudioContent />
     </React.Suspense>
   );
 }
