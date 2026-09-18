@@ -65,6 +65,9 @@ function WeaknessDashboardContent() {
   const engineAbortControllerRef = useRef<AbortController | null>(null);
   const streamAbortControllerRef = useRef<AbortController | null>(null);
   const hasLoadedInitialRef = useRef<boolean>(false);
+  // Mirrors activeUsername so loadDataForUser can compare against it without
+  // taking it as a dependency (the callback is intentionally stable).
+  const activeUsernameRef = useRef<string>('');
 
   // View tabs: 'overview' | 'phases' | 'openings' | 'moments' | 'maia'
   const [activeTab, setActiveTab] = useState<'overview' | 'phases' | 'openings' | 'moments' | 'maia'>('overview');
@@ -88,13 +91,22 @@ function WeaknessDashboardContent() {
     const abortCtrl = new AbortController();
     streamAbortControllerRef.current = abortCtrl;
 
+    // Switching accounts: drop the previous user's games immediately so a
+    // failed or empty scan can never render one account's data under another
+    // account's name (and so an engine run can't save it under the new user).
+    if (activeUsernameRef.current.toLowerCase() !== clean.toLowerCase()) {
+      setGames([]);
+    }
+    activeUsernameRef.current = clean;
     setActiveUsername(clean);
     setError(null);
 
     // 1. Try local cache first for 0ms render
+    let cachedGames: GameDerivedStats[] = [];
     if (!forceRefresh) {
       const cached = await loadCachedGameStats(clean);
       if (cached.games.length > 0) {
+        cachedGames = cached.games;
         setGames(cached.games);
       }
     }
@@ -110,19 +122,49 @@ function WeaknessDashboardContent() {
         throw new Error(valData.error || 'User not found on Lichess');
       }
 
-      // 3. Stream games incrementally
-      const streamed = await streamUserGames(clean, {
+      // If Lichess returned canonical casing, update displayed username
+      const canonicalUser = valData.user?.username || clean;
+      if (canonicalUser !== clean) {
+        setUsername(canonicalUser);
+        setActiveUsername(canonicalUser);
+      }
+
+      // 3. Stream games up to 50
+      const streamed = await streamUserGames(canonicalUser, {
         max: 50,
         signal: abortCtrl.signal,
         onProgress: (p) => setStreamProgress(p),
       });
 
       if (streamed.length === 0) {
-        setError(`No recent standard games found for @${clean}.`);
+        if (cachedGames.length === 0) {
+          setError(`No recent standard games found for @${canonicalUser}.`);
+        }
       } else {
-        setGames(streamed);
+        // Merge streamed games with cached games
+        // Preserve locally computed Stockfish engine evals if already run
+        const cachedMap = new Map(cachedGames.map((g) => [g.gameId, g]));
+        const merged: GameDerivedStats[] = streamed.map((sg) => {
+          const prev = cachedMap.get(sg.gameId);
+          if (prev && prev.evalSource === 'local' && sg.evalSource === 'none') {
+            return prev;
+          }
+          return sg;
+        });
+
+        const streamedIds = new Set(streamed.map((g) => g.gameId));
+        for (const cg of cachedGames) {
+          if (!streamedIds.has(cg.gameId)) {
+            merged.push(cg);
+          }
+        }
+
+        merged.sort((a, b) => b.playedAt - a.playedAt);
+        const finalGames = merged.slice(0, 50);
+
+        setGames(finalGames);
         // Checkpoint to localStorage & Supabase
-        await saveGameStatsBatch(clean, streamed);
+        await saveGameStatsBatch(canonicalUser, finalGames);
       }
     } catch (err: unknown) {
       if (err instanceof Error && err.name !== 'AbortError') {
@@ -139,12 +181,12 @@ function WeaknessDashboardContent() {
   // Auto-detect username on mount once
   useEffect(() => {
     if (hasLoadedInitialRef.current) return;
-    const cached = initialUser || connectedLichessUser?.username || (typeof window !== 'undefined' ? localStorage.getItem('chessz_last_username') : '') || '';
-    if (cached) {
+    const targetUser = initialUser || connectedLichessUser?.username || (typeof window !== 'undefined' ? localStorage.getItem('chessz_last_username') : '') || '';
+    if (targetUser) {
       hasLoadedInitialRef.current = true;
       const timer = setTimeout(() => {
-        setUsername(cached);
-        loadDataForUser(cached);
+        setUsername(targetUser);
+        loadDataForUser(targetUser);
       }, 0);
       return () => {
         clearTimeout(timer);
@@ -154,7 +196,7 @@ function WeaknessDashboardContent() {
     return () => {
       streamAbortControllerRef.current?.abort();
     };
-  }, [connectedLichessUser, initialUser, loadDataForUser]);
+  }, [connectedLichessUser?.username, initialUser, loadDataForUser]);
 
   // Run in-browser Stockfish on unanalyzed games
   const handleRunBrowserEngine = async () => {

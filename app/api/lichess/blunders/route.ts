@@ -130,17 +130,17 @@ export async function GET(request: NextRequest) {
         }
 
         const moves = g.moves.split(/\s+/).filter(Boolean);
-        const isWhite =
-          g.players.white?.user?.name?.toLowerCase() === lowerUsername;
-        const isBlack =
-          g.players.black?.user?.name?.toLowerCase() === lowerUsername;
+        const whiteName = (g.players.white?.user?.name || g.players.white?.user?.id || '').toLowerCase();
+        const blackName = (g.players.black?.user?.name || g.players.black?.user?.id || '').toLowerCase();
+        const isWhite = whiteName === lowerUsername;
+        const isBlack = blackName === lowerUsername;
 
         if (!isWhite && !isBlack) continue;
 
         const userColor: 'white' | 'black' = isWhite ? 'white' : 'black';
         const opponentName = isWhite
-          ? g.players.black?.user?.name || 'Anonymous'
-          : g.players.white?.user?.name || 'Anonymous';
+          ? g.players.black?.user?.name || g.players.black?.user?.id || 'Anonymous'
+          : g.players.white?.user?.name || g.players.white?.user?.id || 'Anonymous';
         const opponentRating = isWhite
           ? g.players.black?.rating || 1500
           : g.players.white?.rating || 1500;

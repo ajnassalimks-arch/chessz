@@ -171,8 +171,8 @@ export function deriveGameStats(
   targetUsername: string
 ): GameDerivedStats | null {
   const normTarget = targetUsername.toLowerCase().trim();
-  const whiteName = rawGame.players?.white?.user?.name?.toLowerCase() || '';
-  const blackName = rawGame.players?.black?.user?.name?.toLowerCase() || '';
+  const whiteName = (rawGame.players?.white?.user?.name || rawGame.players?.white?.user?.id || '').toLowerCase().trim();
+  const blackName = (rawGame.players?.black?.user?.name || rawGame.players?.black?.user?.id || '').toLowerCase().trim();
 
   let userColor: Color = 'white';
   if (whiteName === normTarget) {
@@ -214,8 +214,8 @@ export function deriveGameStats(
   // Filter moves by player color
   const userMoves = analyzedMoves.filter((m) => m.color === userColor);
 
-  // Check if evals exist
-  const hasEvals = analyzedMoves.some((m) => m.evalAfter.cp !== undefined || m.evalAfter.mate !== undefined);
+  // Check if real computer evaluations exist in the PGN tokens
+  const hasEvals = parsedPgn.moves.some((m) => m.eval !== undefined);
   const evalSource: 'lichess' | 'local' | 'none' = hasEvals
     ? 'lichess'
     : 'none';

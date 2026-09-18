@@ -24,6 +24,7 @@ export async function streamUserGames(
   options: {
     max?: number;
     since?: number;
+    incremental?: boolean;
     signal?: AbortSignal;
     onGame?: OnGameReceivedCallback;
     onProgress?: (progress: StreamProgress) => void;
@@ -49,8 +50,13 @@ export async function streamUserGames(
     });
   }
 
-  // Get since parameter if available
-  const since = options.since || (typeof window !== 'undefined' ? parseInt(localStorage.getItem(storageKey) || '0', 10) : 0);
+  // Only use since parameter if explicitly passed or incremental sync is requested
+  let since = 0;
+  if (typeof options.since === 'number' && options.since > 0) {
+    since = options.since;
+  } else if (options.incremental && typeof window !== 'undefined') {
+    since = parseInt(localStorage.getItem(storageKey) || '0', 10);
+  }
 
   const queryParams = new URLSearchParams({
     max: max.toString(),
@@ -130,6 +136,9 @@ export async function streamUserGames(
         const rawMsg = errorJson?.error || (await fallbackRes.text().catch(() => ''));
         if (fallbackRes.status === 429 || rawMsg.includes('1 request')) {
           throw new Error('Lichess is finishing a previous export. Please wait a few seconds and click Scan again.');
+        }
+        if (fallbackRes.status === 404) {
+          throw new Error(`Lichess user "${cleanUsername}" was not found. Please check spelling.`);
         }
         throw new Error(rawMsg || `Failed to stream games: ${fallbackRes.statusText}`);
       }

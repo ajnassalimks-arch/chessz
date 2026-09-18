@@ -35,10 +35,26 @@ export async function saveGameStatsBatch(
   // 1. Always checkpoint locally for instant client-side cache load
   try {
     const key = `${LOCAL_STORAGE_KEY_PREFIX}${username.toLowerCase()}`;
-    // Store only minimal representation without heavy move arrays
     const sanitized = games.map((g) => ({
       ...g,
-      moves: [], // Strip heavy move objects to stay well below localStorage 5MB limit
+      // Preserve essential move data so in-browser Stockfish engine can replay moves
+      moves: (g.moves || []).map((m) => ({
+        ply: m.ply,
+        moveNumber: m.moveNumber,
+        color: m.color,
+        san: m.san,
+        evalBefore: m.evalBefore,
+        evalAfter: m.evalAfter,
+        winPctBefore: m.winPctBefore,
+        winPctAfter: m.winPctAfter,
+        winPctLost: m.winPctLost,
+        judgment: m.judgment,
+        accuracy: m.accuracy,
+        phase: m.phase,
+        pieceCount: m.pieceCount,
+        clockRemaining: m.clockRemaining,
+        timeSpentSeconds: m.timeSpentSeconds,
+      })),
     }));
     localStorage.setItem(key, JSON.stringify(sanitized));
     localStorage.setItem(`${key}_timestamp`, Date.now().toString());
