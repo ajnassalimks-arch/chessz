@@ -1325,7 +1325,7 @@ export default function Home() {
                     🎯 Bluff or Sure?
                   </span>
                   <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/25 font-semibold">
-                    👑 Adaptive Scale (600–2150+)
+                    👑 Adaptive Scale (600–1850)
                   </span>
                 </div>
 
@@ -1392,7 +1392,7 @@ export default function Home() {
                     💥 Blunder Extraction
                   </span>
                   <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25 font-semibold">
-                    🔄 Live Rating Sync
+                    🔄 Refresh Anytime
                   </span>
                 </div>
 
@@ -1576,10 +1576,10 @@ export default function Home() {
                   <Swords className="w-4 h-4" />
                 </div>
                 <h3 className="text-xs font-bold theme-text-primary uppercase tracking-wide mb-1 font-display">
-                  2. Computer Claps Back
+                  2. No Free Passes
                 </h3>
                 <p className="text-[11px] theme-text-secondary leading-relaxed">
-                  Ever wonder &quot;why can&apos;t I just play this?&quot; The engine immediately plays the winning counter-punch right on your board.
+                  No engine on your first try &mdash; you calculate it yourself. Miss it, and you can try again or see exactly what the engine would&apos;ve played and why.
                 </p>
               </div>
 
