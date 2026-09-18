@@ -126,8 +126,15 @@ function WeaknessDashboardContent() {
       const canonicalUser = valData.user?.username || clean;
       if (canonicalUser !== clean) {
         setUsername(canonicalUser);
+        activeUsernameRef.current = canonicalUser;
         setActiveUsername(canonicalUser);
       }
+
+      // Only remember a username that Lichess actually resolved, so a typo or
+      // an offline scan doesn't become the account auto-loaded on next visit.
+      try {
+        localStorage.setItem('chessz_last_username', canonicalUser);
+      } catch {}
 
       // 3. Stream games up to 50
       const streamed = await streamUserGames(canonicalUser, {
@@ -184,14 +191,13 @@ function WeaknessDashboardContent() {
     const targetUser = initialUser || connectedLichessUser?.username || (typeof window !== 'undefined' ? localStorage.getItem('chessz_last_username') : '') || '';
     if (targetUser) {
       hasLoadedInitialRef.current = true;
-      const timer = setTimeout(() => {
-        setUsername(targetUser);
-        loadDataForUser(targetUser);
-      }, 0);
-      return () => {
-        clearTimeout(timer);
-        streamAbortControllerRef.current?.abort();
-      };
+      setUsername(targetUser);
+      loadDataForUser(targetUser);
+      // Deliberately no cleanup here: cancelling the initial load whenever this
+      // effect re-runs (the Lichess session resolving, or a dev re-mount) left
+      // the ref guard set, so the load was dropped and never retried.
+      // loadDataForUser already aborts a stream it supersedes.
+      return;
     }
     return () => {
       streamAbortControllerRef.current?.abort();
@@ -586,7 +592,7 @@ function WeaknessDashboardContent() {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {[
                       {
-                        name: 'Opening (Plies 1-16)',
+                        name: 'Opening (Until Book Exit)',
                         metric: aggregate.phaseMetrics.opening,
                         color: 'from-cyan-500/20 to-blue-500/10',
                         border: 'border-cyan-500/30',
@@ -765,7 +771,7 @@ function WeaknessDashboardContent() {
 
                 <div className="space-y-4">
                   {[
-                    { title: 'Opening Phase', desc: 'Book theory and initial piece mobilization (plies 1-16)', data: aggregate.phaseMetrics.opening, color: 'bg-cyan-500' },
+                    { title: 'Opening Phase', desc: 'Book theory and initial piece mobilization (up to the Lichess book-exit ply, else ply 16)', data: aggregate.phaseMetrics.opening, color: 'bg-cyan-500' },
                     { title: 'Middlegame Phase', desc: 'Tactical clash, king safety and piece coordination', data: aggregate.phaseMetrics.middlegame, color: 'bg-amber-500' },
                     { title: 'Endgame Phase', desc: 'Simplified positions (≤ 12 pieces), king activity and pawn promotion', data: aggregate.phaseMetrics.endgame, color: 'bg-rose-500' },
                   ].map((p) => (
@@ -862,7 +868,7 @@ function WeaknessDashboardContent() {
                               [{op.wilsonLower}% – {op.wilsonUpper}%]
                             </td>
                             <td className="py-2.5 px-3 text-right font-bold text-rose-400">
-                              -{op.avgWinPctLostFirst16}%
+                              {op.avgWinPctLostFirst16 > 0 ? `-${op.avgWinPctLostFirst16}` : '0'}%
                             </td>
                           </tr>
                         ))}
@@ -909,7 +915,7 @@ function WeaknessDashboardContent() {
                             </span>
                           </div>
                           <div className="text-xs font-mono text-rose-400 mt-1">
-                            Played: <strong>{m.san}</strong> (-{m.winPctLost}% win prob)
+                            Played: <strong>{m.san}</strong> (-{m.winPctLost.toFixed(1)}% win prob)
                           </div>
                         </div>
 
@@ -1015,7 +1021,7 @@ function WeaknessDashboardContent() {
                                   : 'theme-surface-subtle theme-text-primary hover:border-purple-500/50'
                               }`}
                             >
-                              Move {moment.moveNumber} ({moment.san}) -{moment.winPctLost}%
+                              Move {moment.moveNumber} ({moment.san}) -{moment.winPctLost.toFixed(1)}%
                             </button>
                           );
                         })}

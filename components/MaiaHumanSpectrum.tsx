@@ -284,7 +284,16 @@ export function MaiaHumanSpectrum({
       }
     }
 
-    return list;
+    // react-chessboard keys arrows by their squares, so two arrows on the same
+    // from/to (the oracle move and the top human move agreeing, for instance)
+    // collide on one key. Keep the first, which is the higher-priority arrow.
+    const seen = new Set<string>();
+    return list.filter((a) => {
+      const key = `${a.startSquare}-${a.endSquare}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
   }, [
     fen,
     effectiveStockfishBestMoveSan,

@@ -113,9 +113,17 @@ c:\ChessZ\chessz-app\
 - **Primary Responsibility**: Full-page analytics studio scanning up to 50 recent Lichess games.
 - **Key Capabilities**:
   - Dual-mode game streaming: tries direct browser fetch to `https://lichess.org/api/games/user/...` with backoff retry, falling back to `/api/lichess/games/stream` if CORS or rate limits occur.
-  - Parses PGN comments to extract Lichess server evaluations (`[%eval +3.4]`).
+  - Smart Game Merging: Preserves previously computed client-side Stockfish evaluations (`evalSource: 'local'`) across syncs without losing 50-game history.
+  - Multi-pass in-browser Stockfish WASM sweep (80k nodes pass 1 ➔ 300k nodes pass 2 refinement) for games lacking Lichess computer evals (`evalSource: 'none'`).
   - Classifies critical turning points into Opening, Middlegame, and Endgame phases.
   - Provides direct deep links to review the game on Lichess (`m.deepLink`).
+
+### D. Route 4: Study Terms & Master Lexicon (`/terms` ➔ `app/terms/page.tsx`)
+- **Primary Responsibility**: Interactive pedagogical encyclopedia featuring 18 real master historical positions (e.g. Greek Gift, Smothered Mate, Légal's Trap, Noah's Ark, Anastasia's Corridor).
+- **Key Capabilities**:
+  - Full board replay of master lines and candidate moves with historical citations and annotations.
+  - Maia Human-AI Intelligence spectrum (`components/MaiaHumanSpectrum.tsx`), comparing human decision tendencies from 1100 up to 1900 rating levels.
+  - Quick hover preview cards (`components/TermHoverCard.tsx`) embedded throughout the app.
 
 ---
 
@@ -181,13 +189,13 @@ Classifies blunders using the 3-tier x 5-category matrix defined in `TIER_CATEGO
 The test suite is located in `tests/` and executes using Node's native runner via `tsx`:
 
 ```bash
-# Run all automated tests (36 tests in 7 suites)
+# Run all automated tests (48 tests in 8 suites)
 npm test
 
 # Run TypeScript type check (must exit 0 with zero errors)
 npx tsc --noEmit
 
-# Run Next.js production build (Turbopack, must generate 17/17 pages)
+# Run Next.js production build (Turbopack, must generate all 20 routes)
 npm run build
 ```
 
@@ -196,4 +204,5 @@ npm run build
 2. **Always test responsive mobile viewports**: headers use `hidden md:flex` for tabs; ensure mobile actions stay accessible.
 3. **Preserve WASM Stockfish Lifecycle**: Always stop the engine (`stopAnalysis()`) when changing positions or unmounting.
 4. **Never commit broken SVGs**: The Lichess logo must use the official 24×24 vector (`LichessIcon`).
-5. **Zero-Yapping Protocol**: Keep user communication concise, direct, high-signal, and free of fluff.
+5. **Zero Server Compute Invariant**: Keep all heavy chess calculations strictly in client Web Workers or browser threads.
+6. **Zero-Yapping Protocol**: Keep user communication concise, direct, high-signal, and free of fluff.

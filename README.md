@@ -16,6 +16,7 @@
 * **Production Deployment:** [https://chesszapp.vercel.app/](https://chesszapp.vercel.app/)
 * **Interactive Skill Diagnosis:** [https://chesszapp.vercel.app/diagnose](https://chesszapp.vercel.app/diagnose)
 * **Weakness Studio:** [https://chesszapp.vercel.app/weakness](https://chesszapp.vercel.app/weakness)
+* **Study Terms (Lexicon):** [https://chesszapp.vercel.app/terms](https://chesszapp.vercel.app/terms)
 * **GitHub Repository:** [https://github.com/ajnassalimks-arch/chessz](https://github.com/ajnassalimks-arch/chessz)
 
 ---
@@ -30,21 +31,21 @@ Commercial chess platforms restrict free players to **3 puzzles a day** and char
 
 ---
 
-## 🧭 The 3 Core Routes
+## 🧭 The 4 Core Routes
 
-ChessZ is organized around a unified three-view navigation hierarchy:
+ChessZ is organized around a unified four-view navigation hierarchy:
 
 ```
-                  ┌───────────────────────────────┐
-                  │          ChessZ App           │
-                  └──────────────┬────────────────┘
-         ┌───────────────────────┼───────────────────────┐
-         ▼                       ▼                       ▼
-   Train (`/`)          Skill Test (`/diagnose`)   Weakness Studio (`/weakness`)
-• Tactical Arena        • 3-Puzzle Benchmark       • 50-Game NDJSON Stream
-• 5-Tier Lobby          • Millisecond Telemetry    • 5-Pillar Blunder Taxonomy
-• 5-Puzzle Curriculum   • Psychological Conviction • Critical Phase Turning Points
-• Stockfish Auto-Eval   • Cognitive Dossier        • Direct Lichess Deep Links
+                      ┌───────────────────────────────────────────────┐
+                      │                  ChessZ App                   │
+                      └───────────────────────┬───────────────────────┘
+         ┌─────────────────────────┬──────────┴──────────────┬─────────────────────────┐
+         ▼                         ▼                         ▼                         ▼
+   Train (`/`)            Skill Test (`/diagnose`)   Weakness (`/weakness`)     Study Terms (`/terms`)
+• Tactical Arena          • 5-Puzzle Benchmark       • 50-Game NDJSON Stream    • 18 Historical Studies
+• 4-Tier Lobby            • Millisecond Telemetry    • Phase Loss Metrics       • Interactive Board Replay
+• Blunder Trainer         • Conviction Tracking      • In-Browser Stockfish     • Maia AI Move Spectrum
+• Stockfish Auto-Eval     • Cognitive Dossier        • Critical Moments         • Coach Definitions & Tips
 ```
 
 ---
