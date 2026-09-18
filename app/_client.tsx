@@ -517,6 +517,8 @@ export default function Home() {
     loadPuzzle(puzzle);
     // User must calculate first! Never spoil the solution with engine arrows on open.
     setEngineEnabled(false);
+    // Start background engine calculation immediately so engineBestMove evaluates refutation
+    startAnalysis(puzzle.initialFen);
   };
 
   // Hydrate Blunder from Weakness Studio if navigated via ?mode=blunder
@@ -569,6 +571,32 @@ export default function Home() {
       }
     }
   }, [searchParams]);
+
+  // Synchronize Stockfish best move into blunder puzzles lacking predefined solutions
+  useEffect(() => {
+    if (
+      currentPuzzle &&
+      currentPuzzle.solutionMoves.length === 0 &&
+      engineBestMove &&
+      puzzleStatus === "solving"
+    ) {
+      setCurrentPuzzle((prev) => {
+        if (!prev || prev.solutionMoves.length > 0) return prev;
+        return {
+          ...prev,
+          solutionMoves: [
+            {
+              from: engineBestMove.from,
+              to: engineBestMove.to,
+              san: engineBestMove.san,
+              promotion: engineBestMove.promotion,
+              explanation: `${engineBestMove.san}! Stockfish's optimal continuation that refutes the blunder.`,
+            },
+          ],
+        };
+      });
+    }
+  }, [currentPuzzle, engineBestMove, puzzleStatus]);
 
   // Advance to next puzzle in the 5-puzzle curriculum
   const handleAdvanceCurriculum = () => {
@@ -660,7 +688,9 @@ export default function Home() {
       targetSolution.to === targetSquare &&
       targetSolution.promotion
         ? targetSolution.promotion
-        : "q";
+        : (engineBestMove?.from === sourceSquare && engineBestMove?.to === targetSquare && engineBestMove?.promotion
+            ? engineBestMove.promotion
+            : "q");
 
     const testChess = new Chess(game.fen());
     let moveResult = null;
@@ -690,8 +720,14 @@ export default function Home() {
 
     setLastMove({ from: sourceSquare, to: targetSquare });
 
-    // 2. Check winning solution move
-    const isCorrect = sourceSquare === targetSolution.from && targetSquare === targetSolution.to;
+    // 2. Check winning solution move:
+    // If targetSolution exists, match against targetSolution.
+    // If targetSolution is not provided (e.g. ad-hoc blunder position), match against Stockfish's best move!
+    const isCorrect = targetSolution
+      ? sourceSquare === targetSolution.from && targetSquare === targetSolution.to
+      : engineBestMove
+      ? sourceSquare === engineBestMove.from && targetSquare === engineBestMove.to
+      : false;
 
     if (isCorrect) {
       setGame(testChess);
@@ -741,39 +777,51 @@ export default function Home() {
       const ref = currentPuzzle.defaultRefutation;
       let refutationApplied = false;
 
-      try {
-        const refutingChess = new Chess(testChess.fen());
-        const refResult = refutingChess.move({
-          from: ref.from,
-          to: ref.to,
-          promotion: ref.promotion || "q",
-        });
-        if (refResult) {
-          refutationApplied = true;
-          setGame(refutingChess);
-          setLastMove({ from: ref.from, to: ref.to });
-          if (refutingChess.inCheck()) {
-            sounds.playCheck();
-          } else if (refResult.captured) {
-            sounds.playCapture();
-          } else {
-            sounds.playRefutation();
+      if (ref && ref.from && ref.to) {
+        try {
+          const refutingChess = new Chess(testChess.fen());
+          const refResult = refutingChess.move({
+            from: ref.from,
+            to: ref.to,
+            promotion: ref.promotion || "q",
+          });
+          if (refResult) {
+            refutationApplied = true;
+            setGame(refutingChess);
+            setLastMove({ from: ref.from, to: ref.to });
+            if (refutingChess.inCheck()) {
+              sounds.playCheck();
+            } else if (refResult.captured) {
+              sounds.playCapture();
+            } else {
+              sounds.playRefutation();
+            }
           }
+        } catch (err) {
+          console.error(
+            `[ChessZ] defaultRefutation is illegal for puzzle "${currentPuzzle.id}" ` +
+              `(${ref.from}->${ref.to}, san "${ref.san}") at FEN "${testChess.fen()}". ` +
+              `Suppressing the coach explanation so it cannot describe a move that was never played.`,
+            err
+          );
         }
-      } catch (err) {
-        console.error(
-          `[ChessZ] defaultRefutation is illegal for puzzle "${currentPuzzle.id}" ` +
-            `(${ref.from}->${ref.to}, san "${ref.san}") at FEN "${testChess.fen()}". ` +
-            `Suppressing the coach explanation so it cannot describe a move that was never played.`,
-          err
-        );
       }
 
-      // Only surface the coach explanation when the move it describes actually landed.
-      setRefutationInfo(refutationApplied ? ref : null);
+      // Check if user replayed the exact blunder from their game
+      const playedBlunder = ref?.san && moveResult.san === ref.san;
+      const coachMsg = playedBlunder
+        ? `In your game you played ${ref.san}, which was the critical tactical blunder! Calculate the winning alternative instead.`
+        : ref?.coachExplanation || `Not the best move. Keep calculating to find Stockfish's top refutation!`;
+
+      setRefutationInfo({
+        from: ref?.from || "",
+        to: ref?.to || "",
+        san: ref?.san || moveResult.san,
+        coachExplanation: coachMsg,
+      });
       setPuzzleStatus("failed");
       setStreak(0);
-      setStatus(refutationApplied ? "Refuted by opponent!" : "Not the best move");
+      setStatus(playedBlunder ? "Original Blunder Repeated!" : (refutationApplied ? "Refuted by opponent!" : "Not the best move"));
       refutationTimeoutRef.current = null;
     }, 650);
 
@@ -918,7 +966,8 @@ export default function Home() {
 
   const triggerHint = () => {
     if (!game || !currentPuzzle || puzzleStatus !== "solving") return;
-    const keyPieceSquare = currentPuzzle.solutionMoves[0].from;
+    const keyPieceSquare = currentPuzzle.solutionMoves[0]?.from || engineBestMove?.from;
+    if (!keyPieceSquare) return;
     setHintSquare(keyPieceSquare);
     setSelectedSquare(keyPieceSquare);
     const moves = game.moves({ square: keyPieceSquare as any, verbose: true });
