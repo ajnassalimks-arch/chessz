@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://chesszapp.vercel.app"),
@@ -127,7 +128,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col selection:bg-neutral-300 dark:selection:bg-neutral-700">
-        {children}
+        <ThemeProvider>{children}</ThemeProvider>
         {process.env.VERCEL ? <Analytics /> : null}
       </body>
     </html>

@@ -6,8 +6,10 @@ import { useRouter } from "next/navigation";
 import { Chess } from "chess.js";
 import { Chessboard, defaultArrowOptions } from "react-chessboard";
 import { ChessboardFrame } from "@/components/ChessboardFrame";
+import { AnnotationPalette, AnnotationColor, ANNOTATION_COLORS } from "@/components/AnnotationPalette";
 import { sounds } from "@/lib/sounds";
-import { THEME_BOARD_COLORS, ThemePalette, ThemeMode } from "@/components/ThemeSwitcher";
+import { THEME_BOARD_COLORS } from "@/components/themeTokens";
+import { useTheme } from "@/components/ThemeProvider";
 import { SettingsModal } from "@/components/SettingsModal";
 import { ConfidenceModal } from "@/components/ConfidenceModal";
 import {
@@ -79,49 +81,19 @@ export default function DiagnosePage() {
   const [showStudyModal, setShowStudyModal] = useState<boolean>(false);
 
   // Theme synchronization
-  const [themePalette, setThemePalette] = useState<ThemePalette>("periwinkle");
-  const [themeMode, setThemeMode] = useState<ThemeMode>("light");
+  // Theme comes from ThemeProvider; these pages used to hold their own copy and
+  // stay in step by listening for window events.
+  const { theme: themePalette, mode: themeMode } = useTheme();
+
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
 
   useEffect(() => {
     try {
-      const savedTheme = (localStorage.getItem("chessz_theme") as ThemePalette) || "periwinkle";
-      const savedMode = (localStorage.getItem("chessz_mode") as ThemeMode) || "light";
       const savedMute = localStorage.getItem("chessz_muted") === "true";
-
-      setThemePalette(savedTheme);
-      setThemeMode(savedMode);
       setIsMuted(savedMute);
       sounds.setMuted(savedMute);
     } catch {}
-
-    const handleThemeEvent = (e: Event) => {
-      const customEvt = e as CustomEvent<{ theme: ThemePalette; mode: ThemeMode }>;
-      if (customEvt.detail) {
-        if (customEvt.detail.theme) setThemePalette(customEvt.detail.theme);
-        if (customEvt.detail.mode) setThemeMode(customEvt.detail.mode);
-      }
-    };
-
-    const handleSettingsEvent = (e: Event) => {
-      const customEvt = e as CustomEvent<{
-        theme?: ThemePalette;
-        mode?: ThemeMode;
-        wallpaper?: boolean;
-      }>;
-      if (customEvt.detail) {
-        if (customEvt.detail.theme) setThemePalette(customEvt.detail.theme);
-        if (customEvt.detail.mode) setThemeMode(customEvt.detail.mode);
-      }
-    };
-
-    window.addEventListener("chessz-theme-changed", handleThemeEvent);
-    window.addEventListener("chessz-settings-changed", handleSettingsEvent);
-    return () => {
-      window.removeEventListener("chessz-theme-changed", handleThemeEvent);
-      window.removeEventListener("chessz-settings-changed", handleSettingsEvent);
-    };
   }, []);
 
   const currentBoardColors =
@@ -174,7 +146,7 @@ export default function DiagnosePage() {
   const diagnosticQuintetRef = useRef<(ChessPuzzle & { numericRating: number })[] | null>(null);
   const analysisTimersRef = useRef<(NodeJS.Timeout | number)[]>([]);
 
-  // Engine, Novelty Verification & Grandmaster Crucible State
+  // Engine & novelty verification state
   const stockfishRef = useRef<BrowserStockfishEngine | null>(null);
   const [hasBookMemoryFlag, setHasBookMemoryFlag] = useState<boolean>(false);
   const [noveltyVerified, setNoveltyVerified] = useState<boolean>(false);
@@ -244,9 +216,9 @@ export default function DiagnosePage() {
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
   const [hintSquare, setHintSquare] = useState<string | null>(null);
   const [annotatedSquares, setAnnotatedSquares] = useState<
-    Record<string, { bg: string; border: string; type: "green" | "red" | "cyan" | "yellow" }>
+    Record<string, { bg: string; border: string; type: AnnotationColor }>
   >({});
-  const [activeAnnotationColor, setActiveAnnotationColor] = useState<"green" | "red" | "cyan" | "yellow" | null>(null);
+  const [activeAnnotationColor, setActiveAnnotationColor] = useState<AnnotationColor | null>(null);
   const [pendingMove, setPendingMove] = useState<{
     from: string;
     to: string;
@@ -357,23 +329,14 @@ export default function DiagnosePage() {
     const isShift = lastRightClickModifiersRef.current.shift || activeModifiersRef.current.shift;
     const isCtrl = lastRightClickModifiersRef.current.ctrl || activeModifiersRef.current.ctrl;
 
-    let colorType: "green" | "red" | "cyan" | "yellow" = "green";
-    let bg = "rgba(16, 185, 129, 0.40)";
-    let border = "#10b981";
-
-    if (isAlt) {
-      colorType = "yellow";
-      bg = "rgba(245, 158, 11, 0.42)";
-      border = "#f59e0b";
-    } else if (isShift) {
-      colorType = "cyan";
-      bg = "rgba(2, 132, 199, 0.40)";
-      border = "#0284c7";
-    } else if (isCtrl) {
-      colorType = "red";
-      bg = "rgba(239, 68, 68, 0.40)";
-      border = "#ef4444";
-    }
+    const colorType: AnnotationColor = isAlt
+      ? "yellow"
+      : isShift
+      ? "cyan"
+      : isCtrl
+      ? "red"
+      : "green";
+    const { bg, border } = ANNOTATION_COLORS[colorType];
 
     setAnnotatedSquares((prev) => {
       const next = { ...prev };
@@ -392,18 +355,7 @@ export default function DiagnosePage() {
 
     // 1. If user has active touch annotation tool selected -> toggle square annotation
     if (activeAnnotationColor) {
-      let bg = "rgba(16, 185, 129, 0.40)";
-      let border = "#10b981";
-      if (activeAnnotationColor === "red") {
-        bg = "rgba(239, 68, 68, 0.40)";
-        border = "#ef4444";
-      } else if (activeAnnotationColor === "cyan") {
-        bg = "rgba(2, 132, 199, 0.40)";
-        border = "#0284c7";
-      } else if (activeAnnotationColor === "yellow") {
-        bg = "rgba(245, 158, 11, 0.42)";
-        border = "#f59e0b";
-      }
+      const { bg, border } = ANNOTATION_COLORS[activeAnnotationColor];
 
       setAnnotatedSquares((prev) => {
         const next = { ...prev };
@@ -1427,6 +1379,18 @@ export default function DiagnosePage() {
                 </ChessboardFrame>
               </div>
             )}
+
+            {/* Square marking, reachable by tap as well as by modifier. */}
+            {puzzleStatus === "solving" && game && (
+              <div className="w-full mt-2 flex justify-center overflow-x-auto">
+                <AnnotationPalette
+                  active={activeAnnotationColor}
+                  onSelect={setActiveAnnotationColor}
+                  onClear={() => setAnnotatedSquares({})}
+                  hasMarks={Object.keys(annotatedSquares).length > 0}
+                />
+              </div>
+            )}
           </div>
 
           {/* Right Column: Dynamic Diagnosis Console */}
@@ -1693,32 +1657,41 @@ export default function DiagnosePage() {
               <div className="md:col-span-6 lg:col-span-5 theme-surface-subtle rounded-3xl p-5 sm:p-6 border border-[var(--border-focus)]/50 shadow-sm flex flex-col justify-between relative overflow-hidden group">
                 <div>
                   <span className="text-[11px] uppercase tracking-widest font-mono font-semibold theme-text-muted block mb-1">
-                    Diagnosed Level
+                    Train this next
                   </span>
                   <h1 className="text-2xl sm:text-3xl font-black tracking-tight theme-text-primary font-display">
-                    {currentLevelInfo.levelName}
+                    {detectedPattern.weakness}
                   </h1>
+                  <p className="text-xs theme-text-secondary leading-relaxed mt-2">
+                    {detectedPattern.insight}
+                  </p>
 
-                  <div className="mt-4 p-4 rounded-2xl bg-[var(--surface-muted)] border border-[var(--border-subtle)] flex items-center justify-between">
+                  <div className="mt-4 p-3.5 rounded-2xl bg-[var(--surface-muted)] border border-[var(--border-subtle)] flex items-center justify-between gap-3">
                     <div>
                       <span className="text-[10px] font-mono uppercase tracking-wider theme-text-muted block">
-                        Calculated Rating
+                        Starting estimate
                       </span>
-                      <span className="text-3xl sm:text-4xl font-black font-mono text-[var(--accent-primary)] tracking-tight">
+                      <span className="text-xl font-black font-mono text-[var(--accent-primary)] tracking-tight">
                         ~{currentRating}
                       </span>
-                      <span className="text-xs font-mono theme-text-muted ml-1.5">Elo</span>
+                      <span className="text-[11px] font-mono theme-text-muted ml-1">
+                        Elo &middot; {currentLevelInfo.levelName}
+                      </span>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right shrink-0">
                       <span className="text-[10px] font-mono uppercase tracking-wider theme-text-muted block">
-                        Accuracy
+                        Clean moves
                       </span>
                       <span className="text-lg font-bold font-mono text-emerald-500">
                         {attempts.filter((a) => a.status === "best").length} / {attempts.length}
                       </span>
-                      <span className="text-[10px] theme-text-muted block">Clean Moves</span>
                     </div>
                   </div>
+
+                  <p className="text-[10px] theme-text-muted mt-2 leading-relaxed">
+                    Five puzzles is a starting point, not a rating. Your own games
+                    measure you far better &mdash; scan them from the board.
+                  </p>
 
                   {/* Calculation & Master Badges */}
                   {noveltyVerified && (

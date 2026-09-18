@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { Chess } from "chess.js";
 import { Chessboard, defaultArrowOptions } from "react-chessboard";
 import { ChessboardFrame } from "@/components/ChessboardFrame";
+import { AnnotationPalette, AnnotationColor, ANNOTATION_COLORS } from "@/components/AnnotationPalette";
 import {
   Zap,
   RotateCcw,
@@ -47,7 +48,8 @@ import {
 import { sounds } from "@/lib/sounds";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { ChessZMark } from "@/components/ChessZLogo";
-import { THEME_BOARD_COLORS, ThemePalette, ThemeMode } from "@/components/ThemeSwitcher";
+import { THEME_BOARD_COLORS } from "@/components/themeTokens";
+import { useTheme } from "@/components/ThemeProvider";
 import { SettingsModal } from "@/components/SettingsModal";
 import { useLichess } from "@/lib/useLichess";
 import { LichessModal, LichessIcon } from "@/components/LichessModal";
@@ -248,9 +250,9 @@ export default function Home() {
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
   const [hintSquare, setHintSquare] = useState<string | null>(null);
   const [annotatedSquares, setAnnotatedSquares] = useState<
-    Record<string, { bg: string; border: string; type: "green" | "red" | "cyan" | "yellow" }>
+    Record<string, { bg: string; border: string; type: AnnotationColor }>
   >({});
-  const [activeAnnotationColor, setActiveAnnotationColor] = useState<"green" | "red" | "cyan" | "yellow" | null>(null);
+  const [activeAnnotationColor, setActiveAnnotationColor] = useState<AnnotationColor | null>(null);
   const [boardKey, setBoardKey] = useState<number>(0);
 
   // Lichess Rating & Smart Tier Recommendation
@@ -317,52 +319,9 @@ export default function Home() {
   const [savedDiagnosisProfile, setSavedDiagnosisProfile] = useState<any>(null);
 
   // Live Theme State & Board Synchronization
-  const [themePalette, setThemePalette] = useState<ThemePalette>("periwinkle");
-  const [themeMode, setThemeMode] = useState<ThemeMode>("light");
-
-  useEffect(() => {
-    try {
-      const savedTheme = (localStorage.getItem("chessz_theme") as ThemePalette) || "periwinkle";
-      const savedMode = (localStorage.getItem("chessz_mode") as ThemeMode) || "light";
-
-      setThemePalette(savedTheme);
-      setThemeMode(savedMode);
-    } catch {}
-
-    const handleThemeEvent = (e: Event) => {
-      const customEvt = e as CustomEvent<{ theme: ThemePalette; mode: ThemeMode }>;
-      if (customEvt.detail) {
-        if (customEvt.detail.theme) setThemePalette(customEvt.detail.theme);
-        if (customEvt.detail.mode) setThemeMode(customEvt.detail.mode);
-      }
-    };
-
-    const handleSettingsEvent = (e: Event) => {
-      const customEvt = e as CustomEvent<{
-        theme?: ThemePalette;
-        mode?: ThemeMode;
-        wallpaper?: boolean;
-      }>;
-      if (customEvt.detail) {
-        if (customEvt.detail.theme) setThemePalette(customEvt.detail.theme);
-        if (customEvt.detail.mode) setThemeMode(customEvt.detail.mode);
-      }
-    };
-
-    window.addEventListener("chessz-theme-changed", handleThemeEvent);
-    window.addEventListener("chessz-settings-changed", handleSettingsEvent);
-    return () => {
-      window.removeEventListener("chessz-theme-changed", handleThemeEvent);
-      window.removeEventListener("chessz-settings-changed", handleSettingsEvent);
-    };
-  }, []);
-
-  // Synchronize Stockfish analysis with current board position when enabled
-  useEffect(() => {
-    if (engineEnabled && game) {
-      startAnalysis(game.fen());
-    }
-  }, [game, engineEnabled, startAnalysis]);
+  // Theme comes from ThemeProvider; these pages used to hold their own copy and
+  // stay in step by listening for window events.
+  const { theme: themePalette, mode: themeMode } = useTheme();
 
   const currentBoardColors =
     THEME_BOARD_COLORS[themePalette]?.[themeMode] || THEME_BOARD_COLORS.periwinkle.light;
@@ -829,12 +788,7 @@ export default function Home() {
 
     // 0. If mobile touch annotation color is active, mark the square directly
     if (activeAnnotationColor) {
-      const palette = {
-        green: { bg: "rgba(16, 185, 129, 0.40)", border: "#10b981" },
-        red: { bg: "rgba(239, 68, 68, 0.40)", border: "#ef4444" },
-        cyan: { bg: "rgba(2, 132, 199, 0.40)", border: "#0284c7" },
-        yellow: { bg: "rgba(245, 158, 11, 0.42)", border: "#f59e0b" },
-      }[activeAnnotationColor];
+      const palette = ANNOTATION_COLORS[activeAnnotationColor];
 
       setAnnotatedSquares((prev) => {
         const next = { ...prev };
@@ -927,23 +881,14 @@ export default function Home() {
     const isShift = lastRightClickModifiersRef.current.shift || activeModifiersRef.current.shift;
     const isCtrl = lastRightClickModifiersRef.current.ctrl || activeModifiersRef.current.ctrl;
 
-    let colorType: "green" | "red" | "cyan" | "yellow" = "green";
-    let bg = "rgba(16, 185, 129, 0.40)";
-    let border = "#10b981";
-
-    if (isAlt) {
-      colorType = "yellow";
-      bg = "rgba(245, 158, 11, 0.42)";
-      border = "#f59e0b";
-    } else if (isShift) {
-      colorType = "cyan";
-      bg = "rgba(2, 132, 199, 0.40)";
-      border = "#0284c7";
-    } else if (isCtrl) {
-      colorType = "red";
-      bg = "rgba(239, 68, 68, 0.40)";
-      border = "#ef4444";
-    }
+    const colorType: AnnotationColor = isAlt
+      ? "yellow"
+      : isShift
+      ? "cyan"
+      : isCtrl
+      ? "red"
+      : "green";
+    const { bg, border } = ANNOTATION_COLORS[colorType];
 
     setAnnotatedSquares((prev) => {
       const next = { ...prev };
@@ -1697,6 +1642,19 @@ export default function Home() {
             </div>
           </div>
 
+          {/* Mobile Only: square marking. The right-click modifiers desktop uses
+              have no touch equivalent, so the colours get explicit controls. */}
+          {puzzleStatus === "solving" && (
+            <div className="w-full flex md:hidden mb-1.5 px-1 overflow-x-auto">
+              <AnnotationPalette
+                active={activeAnnotationColor}
+                onSelect={setActiveAnnotationColor}
+                onClear={clearAllAnnotations}
+                hasMarks={Object.keys(annotatedSquares).length > 0}
+              />
+            </div>
+          )}
+
           {/* Chessboard Column (Left / Center) with Exterior ChessBase Bezel */}
           <div className="flex flex-col items-center justify-center shrink-0">
             {/* Setup Moves Lead-up Stepper for Blunder Review */}
@@ -2049,8 +2007,15 @@ export default function Home() {
                     Your Turn
                   </span>
                   <p className="text-[11px] theme-text-muted leading-relaxed">
-                    Find the best continuation. Drag pieces or click squares to move. Right-click any square to mark tactical annotations.
+                    Find the best continuation. Drag pieces or tap squares to move.
                   </p>
+                  <AnnotationPalette
+                    className="mt-2.5 justify-center"
+                    active={activeAnnotationColor}
+                    onSelect={setActiveAnnotationColor}
+                    onClear={clearAllAnnotations}
+                    hasMarks={Object.keys(annotatedSquares).length > 0}
+                  />
                 </div>
               )}
 

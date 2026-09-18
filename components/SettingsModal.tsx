@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { Sun, Moon, Volume2, VolumeX, Sparkles, X, Check, HelpCircle, Image as ImageIcon } from "lucide-react";
-import { ThemePalette, ThemeMode, THEME_BOARD_COLORS, THEME_NAMES } from "./ThemeSwitcher";
+import { ThemePalette, ThemeMode, THEME_BOARD_COLORS, THEME_NAMES } from "./themeTokens";
+import { useTheme } from "@/components/ThemeProvider";
 import { sounds } from "@/lib/sounds";
 
 interface SettingsModalProps {
@@ -12,26 +13,16 @@ interface SettingsModalProps {
 }
 
 export function SettingsModal({ isOpen, onClose, onThemeChange }: SettingsModalProps) {
-  const [theme, setTheme] = useState<ThemePalette>("periwinkle");
-  const [mode, setMode] = useState<ThemeMode>("light");
+  // Theme lives in ThemeProvider now; this modal is one of its consumers rather
+  // than a fourth copy kept in step by window events.
+  const { theme, mode, wallpaperEnabled, setTheme, setMode, setWallpaperEnabled } = useTheme();
   const [isMuted, setIsMuted] = useState(false);
-  const [wallpaperEnabled, setWallpaperEnabled] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      try {
-        const savedTheme = (localStorage.getItem("chessz_theme") as ThemePalette) || "periwinkle";
-        const savedMode = (localStorage.getItem("chessz_mode") as ThemeMode) || "light";
-        const savedMute = localStorage.getItem("chessz_muted");
-        const savedWallpaper = localStorage.getItem("chessz_wallpaper");
-
-        setTheme(savedTheme);
-        setMode(savedMode);
-        if (savedMute !== null) setIsMuted(JSON.parse(savedMute));
-        if (savedWallpaper !== null) setWallpaperEnabled(JSON.parse(savedWallpaper));
-      } catch {}
-    }, 0);
-    return () => clearTimeout(timer);
+    try {
+      const savedMute = localStorage.getItem("chessz_muted");
+      if (savedMute !== null) setIsMuted(JSON.parse(savedMute));
+    } catch {}
   }, [isOpen]);
 
   useEffect(() => {
@@ -44,56 +35,21 @@ export function SettingsModal({ isOpen, onClose, onThemeChange }: SettingsModalP
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
-  const dispatchSettingsChanged = (
-    newTheme: ThemePalette,
-    newMode: ThemeMode,
-    newWallpaper: boolean
-  ) => {
-    if (typeof window !== "undefined") {
-      const event = new CustomEvent("chessz-settings-changed", {
-        detail: {
-          theme: newTheme,
-          mode: newMode,
-          wallpaper: newWallpaper,
-        },
-      });
-      window.dispatchEvent(event);
-    }
-  };
-
-  const applyTheme = (newTheme: ThemePalette, newMode: ThemeMode) => {
+  // The wallpaper flag is a document attribute the stylesheet reads.
+  useEffect(() => {
     if (typeof document !== "undefined") {
-      document.documentElement.setAttribute("data-theme", newTheme);
-      document.documentElement.setAttribute("data-mode", newMode);
       document.documentElement.setAttribute("data-wallpaper", String(wallpaperEnabled));
-      if (newMode === "dark") {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-      }
-      localStorage.setItem("chessz_theme", newTheme);
-      localStorage.setItem("chessz_mode", newMode);
-
-      const event = new CustomEvent("chessz-theme-changed", {
-        detail: { theme: newTheme, mode: newMode },
-      });
-      window.dispatchEvent(event);
-      dispatchSettingsChanged(newTheme, newMode, wallpaperEnabled);
-
-      if (onThemeChange) {
-        onThemeChange(newTheme, newMode);
-      }
     }
-  };
+  }, [wallpaperEnabled]);
 
   const handleSelectTheme = (newTheme: ThemePalette) => {
     setTheme(newTheme);
-    applyTheme(newTheme, mode);
+    onThemeChange?.(newTheme, mode);
   };
 
   const handleToggleMode = (newMode: ThemeMode) => {
     setMode(newMode);
-    applyTheme(theme, newMode);
+    onThemeChange?.(theme, newMode);
   };
 
   const handleToggleMute = () => {
@@ -106,15 +62,7 @@ export function SettingsModal({ isOpen, onClose, onThemeChange }: SettingsModalP
   };
 
   const handleToggleWallpaper = () => {
-    const nextVal = !wallpaperEnabled;
-    setWallpaperEnabled(nextVal);
-    if (typeof document !== "undefined") {
-      document.documentElement.setAttribute("data-wallpaper", String(nextVal));
-    }
-    try {
-      localStorage.setItem("chessz_wallpaper", JSON.stringify(nextVal));
-    } catch {}
-    dispatchSettingsChanged(theme, mode, nextVal);
+    setWallpaperEnabled(!wallpaperEnabled);
   };
 
   if (!isOpen) return null;
