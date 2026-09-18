@@ -162,47 +162,79 @@ export function useStockfish() {
 
     if (typeof window === 'undefined') return;
 
-    try {
-      const wasmSupported =
-        typeof WebAssembly === 'object' &&
-        typeof WebAssembly.validate === 'function' &&
-        WebAssembly.validate(
-          Uint8Array.of(0x0, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00)
-        );
+    let isInitialized = false;
+    let fallbackTimeout: NodeJS.Timeout | null = null;
 
-      const workerPath = wasmSupported
-        ? '/stockfish/stockfish.wasm.js'
-        : '/stockfish/stockfish.js';
-
-      const worker = new Worker(workerPath);
-      workerRef.current = worker;
-
-      worker.onmessage = (event: MessageEvent) => {
-        if (!isMountedRef.current) return;
-        const line = typeof event.data === 'string' ? event.data : '';
-
-        if (line.includes('uciok')) {
-          worker.postMessage('isready');
-        } else if (line.includes('readyok')) {
-          setIsReady(true);
-        } else if (line.startsWith('info') && line.includes('score')) {
-          parseInfoLineRef.current(line);
-        } else if (line.startsWith('bestmove')) {
-          parseBestMoveLineRef.current(line);
+    const setupWorker = (path: string, isFallback = false) => {
+      try {
+        if (workerRef.current) {
+          try {
+            workerRef.current.terminate();
+          } catch {}
+          workerRef.current = null;
         }
-      };
 
-      worker.onerror = (err) => {
-        console.warn('Stockfish worker notice (using fallback):', err);
-      };
+        const worker = new Worker(path);
+        workerRef.current = worker;
 
-      worker.postMessage('uci');
-    } catch (e) {
-      console.warn('Failed to initialize Stockfish worker:', e);
-    }
+        if (!isFallback) {
+          fallbackTimeout = setTimeout(() => {
+            if (!isInitialized && isMountedRef.current) {
+              console.warn('Stockfish WASM worker startup timed out; falling back to JS worker');
+              setupWorker('/stockfish/stockfish.js', true);
+            }
+          }, 2500);
+        }
+
+        worker.onmessage = (event: MessageEvent) => {
+          if (!isMountedRef.current) return;
+          const line = typeof event.data === 'string' ? event.data : '';
+
+          if (line.includes('uciok')) {
+            worker.postMessage('isready');
+          } else if (line.includes('readyok')) {
+            isInitialized = true;
+            if (fallbackTimeout) clearTimeout(fallbackTimeout);
+            setIsReady(true);
+          } else if (line.startsWith('info') && line.includes('score')) {
+            parseInfoLineRef.current(line);
+          } else if (line.startsWith('bestmove')) {
+            parseBestMoveLineRef.current(line);
+          }
+        };
+
+        worker.onerror = (err) => {
+          if (!isInitialized && !isFallback && isMountedRef.current) {
+            console.warn('Stockfish worker error; attempting JS fallback:', err);
+            if (fallbackTimeout) clearTimeout(fallbackTimeout);
+            setupWorker('/stockfish/stockfish.js', true);
+          } else {
+            console.warn('Stockfish worker notice:', err);
+          }
+        };
+
+        worker.postMessage('uci');
+      } catch (e) {
+        if (!isFallback && isMountedRef.current) {
+          setupWorker('/stockfish/stockfish.js', true);
+        } else {
+          console.warn('Failed to initialize Stockfish worker:', e);
+        }
+      }
+    };
+
+    const wasmSupported =
+      typeof WebAssembly === 'object' &&
+      typeof WebAssembly.validate === 'function' &&
+      WebAssembly.validate(
+        Uint8Array.of(0x0, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00)
+      );
+
+    setupWorker(wasmSupported ? '/stockfish/stockfish.wasm.js' : '/stockfish/stockfish.js');
 
     return () => {
       isMountedRef.current = false;
+      if (fallbackTimeout) clearTimeout(fallbackTimeout);
       if (workerRef.current) {
         try {
           workerRef.current.postMessage('quit');

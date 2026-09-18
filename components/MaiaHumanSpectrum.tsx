@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Chess } from 'chess.js';
 import { Chessboard, defaultArrowOptions } from 'react-chessboard';
 import type { Arrow, PieceDropHandlerArgs } from 'react-chessboard';
@@ -19,6 +19,7 @@ import {
   Clock,
   Eye,
   EyeOff,
+  Loader2,
 } from 'lucide-react';
 import {
   fetchMaiaAnalysis,
@@ -26,6 +27,7 @@ import {
   MaiaAnalysisResult,
   MaiaCandidateMove,
 } from '@/lib/engine/maiaClient';
+import { BrowserStockfishEngine } from '@/lib/engine/browserStockfish';
 
 interface MaiaHumanSpectrumProps {
   fen: string;
@@ -45,17 +47,42 @@ const RATING_TIERS: { tier: MaiaRatingTier; label: string; desc: string }[] = [
   { tier: 1900, label: '1900', desc: 'Expert / Tactical Depth' },
 ];
 
-function moveSanToSquares(fen: string, san: string): { from: string; to: string } | null {
+function moveSanToSquares(fen: string, moveStr: string): { from: string; to: string } | null {
   try {
     const chess = new Chess(fen);
-    const m = chess.move(san);
-    if (m) {
-      return { from: m.from, to: m.to };
+    try {
+      const m = chess.move(moveStr);
+      if (m) {
+        return { from: m.from, to: m.to };
+      }
+    } catch {}
+
+    if (moveStr.length >= 4) {
+      const from = moveStr.slice(0, 2);
+      const to = moveStr.slice(2, 4);
+      const promotion = moveStr.length > 4 ? moveStr.slice(4, 5) : undefined;
+      const m2 = chess.move({ from, to, promotion });
+      if (m2) {
+        return { from: m2.from, to: m2.to };
+      }
     }
   } catch {
-    // Ignore invalid SAN
+    // Ignore invalid SAN / UCI
   }
   return null;
+}
+
+function uciToSan(fen: string, uci: string): string | null {
+  try {
+    const c = new Chess(fen);
+    const from = uci.slice(0, 2);
+    const to = uci.slice(2, 4);
+    const promotion = uci.length > 4 ? uci.slice(4, 5) : undefined;
+    const move = c.move({ from, to, promotion });
+    return move ? move.san : null;
+  } catch {
+    return null;
+  }
 }
 
 export function MaiaHumanSpectrum({
@@ -71,6 +98,15 @@ export function MaiaHumanSpectrum({
   const [analysis, setAnalysis] = useState<MaiaAnalysisResult | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
+  // Local Stockfish evaluation state
+  const [computedStockfishMove, setComputedStockfishMove] = useState<string | null>(null);
+  const [computedStockfishEval, setComputedStockfishEval] = useState<string | null>(null);
+  const [isEngineCalculating, setIsEngineCalculating] = useState<boolean>(false);
+  const engineRef = useRef<BrowserStockfishEngine | null>(null);
+
+  const effectiveStockfishBestMoveSan = stockfishBestMoveSan || computedStockfishMove || undefined;
+  const effectiveStockfishEval = stockfishEval || computedStockfishEval || undefined;
+
   // Visual arrow states
   const [showOracleArrow, setShowOracleArrow] = useState<boolean>(true);
   const [showHumanArrow, setShowHumanArrow] = useState<boolean>(true);
@@ -82,6 +118,82 @@ export function MaiaHumanSpectrum({
   const [refutationStatus, setRefutationStatus] = useState<'prompt' | 'success' | 'fail'>('prompt');
   const [refutationFeedback, setRefutationFeedback] = useState<string | null>(null);
   const [expectedRefutationSan, setExpectedRefutationSan] = useState<string | null>(null);
+
+  // Terminate engine worker on unmount
+  useEffect(() => {
+    return () => {
+      if (engineRef.current) {
+        engineRef.current.terminate();
+        engineRef.current = null;
+      }
+    };
+  }, []);
+
+  // Run local Stockfish evaluation when stockfishBestMoveSan is not supplied
+  useEffect(() => {
+    if (stockfishBestMoveSan) {
+      setComputedStockfishMove(null);
+      setComputedStockfishEval(null);
+      setIsEngineCalculating(false);
+      return;
+    }
+
+    if (!fen) return;
+
+    let isCancelled = false;
+    setIsEngineCalculating(true);
+    setComputedStockfishMove(null);
+    setComputedStockfishEval(null);
+
+    async function evaluate() {
+      try {
+        if (!engineRef.current) {
+          engineRef.current = new BrowserStockfishEngine();
+        }
+        await engineRef.current.init();
+        if (isCancelled) return;
+
+        // Run evaluation with Stockfish worker (80,000 nodes is quick & tactical)
+        const res = await engineRef.current.evaluatePosition(fen, 80000);
+        if (isCancelled) return;
+
+        if (res.bestMove) {
+          const san = uciToSan(fen, res.bestMove);
+          if (san && !isCancelled) {
+            setComputedStockfishMove(san);
+          }
+        }
+
+        try {
+          const c = new Chess(fen);
+          const isBlack = c.turn() === 'b';
+          let evalStr = '+0.0';
+          if (res.mate !== undefined) {
+            const mate = isBlack ? -res.mate : res.mate;
+            evalStr = mate > 0 ? `+M${mate}` : `-M${Math.abs(mate)}`;
+          } else if (res.cp !== undefined) {
+            const score = isBlack ? -res.cp : res.cp;
+            evalStr = `${score > 0 ? '+' : ''}${(score / 100).toFixed(1)}`;
+          }
+          if (!isCancelled) {
+            setComputedStockfishEval(evalStr);
+          }
+        } catch {}
+      } catch (err) {
+        console.warn('MaiaHumanSpectrum Stockfish eval failed:', err);
+      } finally {
+        if (!isCancelled) {
+          setIsEngineCalculating(false);
+        }
+      }
+    }
+
+    evaluate();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [fen, stockfishBestMoveSan]);
 
   // Load Maia Analysis
   useEffect(() => {
@@ -97,7 +209,7 @@ export function MaiaHumanSpectrum({
       setActiveHighlightedMove(null);
 
       try {
-        const res = await fetchMaiaAnalysis(fen, selectedTier, stockfishBestMoveSan);
+        const res = await fetchMaiaAnalysis(fen, selectedTier, effectiveStockfishBestMoveSan);
         if (!isCancelled) {
           setAnalysis(res);
         }
@@ -114,7 +226,7 @@ export function MaiaHumanSpectrum({
     return () => {
       isCancelled = true;
     };
-  }, [fen, selectedTier, stockfishBestMoveSan]);
+  }, [fen, selectedTier, effectiveStockfishBestMoveSan]);
 
   // Determine board orientation
   const orientation = useMemo(() => {
@@ -134,8 +246,8 @@ export function MaiaHumanSpectrum({
     const list: Arrow[] = [];
 
     // 1. Stockfish Oracle Arrow (Green)
-    if (showOracleArrow && stockfishBestMoveSan) {
-      const sq = moveSanToSquares(fen, stockfishBestMoveSan);
+    if (showOracleArrow && effectiveStockfishBestMoveSan) {
+      const sq = moveSanToSquares(fen, effectiveStockfishBestMoveSan);
       if (sq) {
         list.push({
           startSquare: sq.from,
@@ -161,7 +273,7 @@ export function MaiaHumanSpectrum({
     }
 
     // 3. User's Blunder Move (Red Ghost Arrow)
-    if (playedMoveSan && playedMoveSan !== stockfishBestMoveSan) {
+    if (playedMoveSan && playedMoveSan !== effectiveStockfishBestMoveSan) {
       const sq = moveSanToSquares(fen, playedMoveSan);
       if (sq) {
         list.push({
@@ -175,7 +287,7 @@ export function MaiaHumanSpectrum({
     return list;
   }, [
     fen,
-    stockfishBestMoveSan,
+    effectiveStockfishBestMoveSan,
     showOracleArrow,
     showHumanArrow,
     activeHighlightedMove,
@@ -199,7 +311,7 @@ export function MaiaHumanSpectrum({
       const nextTurnChess = new Chess(chess.fen());
       const legalMoves = nextTurnChess.moves();
       // Use stockfish best response or fallback to first tactical capture/check
-      const refutation = stockfishBestMoveSan || legalMoves[0] || '';
+      const refutation = effectiveStockfishBestMoveSan || legalMoves[0] || '';
 
       setRefutationGame(chess);
       setExpectedRefutationSan(refutation);
@@ -464,15 +576,22 @@ export function MaiaHumanSpectrum({
                   <Cpu className="w-3.5 h-3.5" />
                   <span>Stockfish Oracle (Truth)</span>
                 </div>
-                {stockfishEval && (
+                {effectiveStockfishEval && (
                   <span className="text-[10px] font-mono font-extrabold px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300">
-                    {stockfishEval}
+                    {effectiveStockfishEval}
                   </span>
                 )}
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-xl font-black font-mono text-emerald-300">
-                  {stockfishBestMoveSan || 'Calculating...'}
+                <span className="text-xl font-black font-mono text-emerald-300 flex items-center gap-1.5">
+                  {isEngineCalculating && !effectiveStockfishBestMoveSan ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
+                      <span className="text-sm font-sans font-medium text-emerald-400">Calculating...</span>
+                    </>
+                  ) : (
+                    effectiveStockfishBestMoveSan || 'N/A'
+                  )}
                 </span>
                 <span className="text-[10px] theme-text-muted">optimal engine move</span>
               </div>

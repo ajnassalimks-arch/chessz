@@ -18,45 +18,78 @@ export class BrowserStockfishEngine implements ChessEngine {
     if (typeof window === 'undefined') return false;
     if (this.worker && this.ready) return true;
 
-    return new Promise((resolve) => {
-      try {
-        const wasmSupported =
-          typeof WebAssembly === 'object' &&
-          typeof WebAssembly.validate === 'function' &&
-          WebAssembly.validate(
-            Uint8Array.of(0x0, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00)
-          );
+    const startWorker = (path: string): Promise<boolean> => {
+      return new Promise((resolve) => {
+        try {
+          const w = new Worker(path);
+          let resolved = false;
 
-        const workerPath = wasmSupported
-          ? '/stockfish/stockfish.wasm.js'
-          : '/stockfish/stockfish.js';
+          const timeout = setTimeout(() => {
+            if (!resolved) {
+              resolved = true;
+              try {
+                w.terminate();
+              } catch {}
+              resolve(false);
+            }
+          }, 2500);
 
-        this.worker = new Worker(workerPath);
+          w.onmessage = (e: MessageEvent) => {
+            const line = typeof e.data === 'string' ? e.data : '';
 
-        this.worker.onmessage = (e: MessageEvent) => {
-          const line = typeof e.data === 'string' ? e.data : '';
+            if (line.includes('uciok')) {
+              w.postMessage('isready');
+            } else if (line.includes('readyok')) {
+              if (!resolved) {
+                resolved = true;
+                clearTimeout(timeout);
+                this.worker = w;
+                this.ready = true;
+                w.onmessage = (ev: MessageEvent) => {
+                  const l = typeof ev.data === 'string' ? ev.data : '';
+                  if (l.startsWith('info') && l.includes('score')) {
+                    this.handleInfoLine(l);
+                  } else if (l.startsWith('bestmove')) {
+                    this.handleBestMoveLine(l);
+                  }
+                };
+                resolve(true);
+              }
+            }
+          };
 
-          if (line.includes('uciok')) {
-            this.worker?.postMessage('isready');
-          } else if (line.includes('readyok')) {
-            this.ready = true;
-            resolve(true);
-          } else if (line.startsWith('info') && line.includes('score')) {
-            this.handleInfoLine(line);
-          } else if (line.startsWith('bestmove')) {
-            this.handleBestMoveLine(line);
-          }
-        };
+          w.onerror = () => {
+            if (!resolved) {
+              resolved = true;
+              clearTimeout(timeout);
+              try {
+                w.terminate();
+              } catch {}
+              resolve(false);
+            }
+          };
 
-        this.worker.onerror = () => {
+          w.postMessage('uci');
+        } catch {
           resolve(false);
-        };
+        }
+      });
+    };
 
-        this.worker.postMessage('uci');
-      } catch {
-        resolve(false);
-      }
-    });
+    const wasmSupported =
+      typeof WebAssembly === 'object' &&
+      typeof WebAssembly.validate === 'function' &&
+      WebAssembly.validate(
+        Uint8Array.of(0x0, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00)
+      );
+
+    if (wasmSupported) {
+      const ok = await startWorker('/stockfish/stockfish.wasm.js');
+      if (ok) return true;
+    }
+
+    const fallbackOk = await startWorker('/stockfish/stockfish.js');
+    return fallbackOk;
   }
 
   private handleInfoLine(line: string) {
@@ -131,7 +164,29 @@ export class BrowserStockfishEngine implements ChessEngine {
     return new Promise((resolve) => {
       this.isSearching = true;
       this.currentEval = { nodes: 0, depth: 0 };
-      this.activeResolver = { seq, resolve };
+
+      const searchTimer = setTimeout(() => {
+        if (this.activeResolver?.seq === seq) {
+          this.isSearching = false;
+          const { resolve: res } = this.activeResolver;
+          this.activeResolver = null;
+          res({
+            cp: this.currentEval.cp || 0,
+            mate: this.currentEval.mate,
+            depth: this.currentEval.depth || 1,
+            nodes: this.currentEval.nodes || 0,
+            bestMove: undefined,
+          });
+        }
+      }, 5000);
+
+      this.activeResolver = {
+        seq,
+        resolve: (val) => {
+          clearTimeout(searchTimer);
+          resolve(val);
+        },
+      };
 
       this.worker?.postMessage(`position fen ${fen}`);
       this.worker?.postMessage(`go nodes ${nodes}`);

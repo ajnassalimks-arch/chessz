@@ -1068,7 +1068,7 @@ function WeaknessDashboardContent() {
                   stockfishEval={
                     activeMaiaMoment
                       ? `${activeMaiaMoment.evalBefore > 0 ? '+' : ''}${(activeMaiaMoment.evalBefore / 100).toFixed(1)}`
-                      : '+0.6'
+                      : undefined
                   }
                   clockRemaining={activeMaiaMoment?.clockRemaining}
                   playerColor={activeMaiaMoment?.color}
