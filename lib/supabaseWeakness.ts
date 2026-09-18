@@ -175,7 +175,12 @@ export async function saveGameStatsBatch(
     }
 
     if (momentRows.length > 0) {
-      await supabase.from('critical_moments').insert(momentRows);
+      // Upsert, not insert: this runs on every scan and after every engine
+      // sweep, so a plain insert appended a fresh copy of every moment each
+      // time. (game_id, ply) identifies a moment uniquely.
+      await supabase
+        .from('critical_moments')
+        .upsert(momentRows, { onConflict: 'game_id,ply' });
     }
 
     return { savedToSupabase: true, count: games.length };

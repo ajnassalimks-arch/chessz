@@ -10,25 +10,27 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 # ChessZ AI Agent Engineering Guide
 
-> **Important**: Read `ARCHITECTURE_AND_AGENT_GUIDE.md` for complete codebase architecture, math models, and routing topologies before making any modifications.
+> Read `CLAUDE.md` for the architecture, the data pipeline and the invariants
+> before changing anything.
 
-## 1. Quick Verification Commands
-Always verify your changes with these commands before finishing:
+## 1. Verification
 ```bash
-# 1. Run full automated test suite (all 48 tests across 8 suites must pass)
-npm test
-
-# 2. Strict TypeScript type check (must exit 0 with 0 errors)
-npx tsc --noEmit
-
-# 3. Next.js 16 Turbopack production build (must generate all 20 routes cleanly)
-npm run build
+npm test            # 52 tests across 7 suites
+npx tsc --noEmit    # must exit 0 with zero errors
+npm run build       # Turbopack production build, 17 routes
 ```
 
-## 2. Core Operational Rules
-1. **Header Consistency**: The 4 main pages (`/`, `/diagnose`, `/weakness`, `/terms`) share a single unified header with the ChessZ mark. Never duplicate buttons. The action button order is strictly: `[Connect Lichess]` ➔ `[Volume]` ➔ `[Settings]` ➔ `[Save/Exit]`.
-2. **Lichess Logo**: Always use `LichessIcon` from `@/components/LichessModal` (`viewBox="0 0 24 24"`). Never introduce arbitrary or corrupted SVG paths.
-3. **Stockfish WASM Lifecycle**: When transitioning between puzzles, always call `stopAnalysis()` and `setEngineEnabled(false)` to prevent analysis leaks.
-4. **Pedagogical Integrity**: Maintain the blunder taxonomy in `lib/mistakeClassifier.ts` (`TIER_CATEGORY_DEFINITIONS`: 3 skill tiers x 5 tactical/strategic categories).
-5. **Zero Server Compute Invariant**: All chess calculation runs strictly in client Web Workers or browser threads.
-6. **Zero-Yapping Protocol**: Keep answers and summaries direct, high-signal, and free of fluff.
+## 2. Rules
+1. **One pipeline.** `lib/useWeaknessScan.ts` is the only source of weakness
+   data. A second path behind `/api/lichess/blunders` was deleted because it
+   silently ignored games Lichess had not pre-analyzed. Do not add another.
+2. **Lichess logo**: always `LichessIcon` from `@/components/LichessModal`
+   (`viewBox="0 0 24 24"`).
+3. **Engine lifecycle**: `stopAnalysis()` and `setEngineEnabled(false)` when
+   changing position or unmounting; drain an abandoned search before the next.
+4. **Blunder taxonomy**: keep `TIER_CATEGORY_DEFINITIONS` in
+   `lib/mistakeClassifier.ts` at 3 tiers x 5 categories.
+5. **Zero server compute**: engines and replay loops stay in the browser.
+6. **No invented numbers**: a figure shown as a measurement must be computed
+   from data.
+7. **Be direct**: concise, concrete, no filler.

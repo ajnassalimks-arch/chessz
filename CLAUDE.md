@@ -1,199 +1,196 @@
-# ChessZ — Claude Code Architecture & Operational Guide
+# ChessZ — Architecture & Operational Guide
 
-Welcome to **ChessZ**. This guide gives Claude Code complete technical context, architecture specifications, operational invariants, verification commands, and system invariants.
+ChessZ turns a player's own losses into training material: it scans their recent
+Lichess games, finds the exact positions where they dropped the most win
+probability, and puts them back on the board to play again.
+
+Everything else in this repo exists to serve that loop.
 
 ---
 
-## 1. Quick Verification Commands
+## 1. Verification
 
-Always run these commands before finalizing any changes:
+Run all three before finishing any change. All must be clean.
 
 ```bash
-# 1. Run all 48 automated tests across 8 suites
-npm test
-
-# 2. Strict TypeScript type check (must exit with code 0 and zero errors)
-npx tsc --noEmit
-
-# 3. Next.js 16 Turbopack production build (must compile all 20 routes cleanly)
-npm run build
-
-# 4. Local development server
-npm run dev
+npm test            # 52 tests across 7 suites
+npx tsc --noEmit    # must exit 0 with zero errors
+npm run build       # Turbopack production build, 17 routes
+npm run dev         # local dev server on :3000
 ```
 
 ---
 
-## 2. Technology Stack & Environment
+## 2. Stack
 
-- **Framework**: Next.js 16.3.4 (App Router, Turbopack)
-- **UI / Core**: React 19.2.8, Tailwind CSS v4, Lucide React icons
-- **Language**: TypeScript 5 (strict mode enabled)
-- **Chess Logic**: `chess.js` (v0.13.4), `react-chessboard` (v4.7.2)
-- **In-Browser Engine**: Stockfish 16 WASM executing in client-side Web Worker (`/public/stockfish/stockfish.wasm.js` and `/public/stockfish/stockfish.wasm`)
-- **Sound Engine**: Procedural Web Audio API synthesizer (`lib/sounds.ts`, zero external audio files)
-- **Auth & External API**: Lichess OAuth 2.0 PKCE (`/api/auth/lichess/*`), NDJSON games streaming (`/api/lichess/games/stream`), user validation (`/api/lichess/user/validate`)
-- **Persistence**: Dual-layer architecture — Supabase client (`lib/supabaseWeakness.ts`) with immediate zero-latency `localStorage` caching
-- **Test Runner**: Node.js native test runner (`node:test` + `node:assert`) executed via `tsx`
-
----
-
-## 3. Four Core Routes & Features
-
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│                              CHESSZ APP                                │
-└──────────────┬───────────────────┬───────────────────┬─────────────────┘
-               ▼                   ▼                   ▼                 ▼
-          Train (`/`)      Skill Test (`/diagnose`) Weakness (`/weakness`) Terms (`/terms`)
-      Tactical Arena       5-Puzzle Benchmark       50-Game Scanner       Mastery Lexicon
-      500-Puzzle Loop      Adaptive Calibration     Phase Loss Metrics    18 Historical Studies
-      Blunder Trainer      Cognitive Archetypes     Stockfish WASM Sweep  Interactive Boards
-      Stockfish Auto-Eval  Conviction Telemetry     Critical Moments      Maia AI Spectrum
-```
-
-1. **Tactical Arena (`/` ➔ `app/_client.tsx`)**:
-   - Curated 500-puzzle loop across 4 skill tiers (Beginner to Advanced).
-   - Custom tournament bezel (`components/ChessboardFrame.tsx`) with coordinate rails, check radial glow, and right-click annotations.
-   - Auto-reveal Stockfish WASM evaluation bar upon puzzle completion.
-   - In-arena Blunder Trainer modal (`components/WeaknessDashboard.tsx`) with preceding 2-move stepper (`setupMoves`).
-
-2. **Skill Test (`/diagnose` ➔ `app/diagnose/_client.tsx`)**:
-   - 5-puzzle benchmark (+1 optional Grandmaster Crucible trial with $K=260$).
-   - Millisecond calculation speed telemetry, mistake refutation trees, and psychological conviction prompt (*"Sure"*, *"Think so"*, *"Guessing"*).
-   - Generates calibrated Elo and Cognitive Archetype dossier.
-
-3. **Weakness Studio (`/weakness` ➔ `app/weakness/_client.tsx`)**:
-   - Streams up to 50 recent rated games from Lichess via client-side NDJSON reader with server proxy fallback.
-   - Calculates Opening, Middlegame, and Endgame win% loss per move, blunder counts, and critical moments.
-   - If games lack Lichess server evaluations (`evalSource: 'none'`), an in-browser Stockfish WASM sweep (80k nodes pass 1 ➔ 300k nodes pass 2 refinement) analyzes positions deterministically in the client.
-
-4. **Study Terms (`/terms` ➔ `app/terms/_client.tsx`)**:
-   - 18 historical master positions covering Greek Gift, Smothered Mate, Légal's Trap, Noah's Ark, etc.
-   - Interactive move player, coach explanations, and Maia Human-AI intelligence prediction spectrum.
+- **Framework**: Next.js 16.3.4 (App Router, Turbopack), React 19.2.8
+- **Language**: TypeScript 5, strict
+- **Styling**: Tailwind CSS v4 with `@theme` tokens in `app/globals.css`
+- **Chess**: `chess.js` ^1.4.0, `react-chessboard` ^5.12.1
+- **Engine**: `stockfish.js` ^10.0.2 (niklasf's multi-variant build), run in a
+  browser Web Worker from `/public/stockfish/`
+- **Sound**: procedural Web Audio synthesizer, `lib/sounds.ts`, no audio assets
+- **Lichess**: OAuth 2.0 PKCE (`/api/auth/lichess/*`), NDJSON game streaming
+- **Persistence**: `localStorage` first, Supabase when configured
+- **Tests**: `node:test` via `tsx`
 
 ---
 
-## 4. Key Directory & File Layout
+## 3. The loop
 
 ```
-c:\ChessZ\chessz-app\
+Lichess games ──> useWeaknessScan ──> critical moments ──> blunderAdapter ──> Arena board
+                        │                                                         │
+                        └── Stockfish WASM sweep for games Lichess never analyzed ─┘
+```
+
+**`lib/useWeaknessScan.ts` is the single source of weakness data.** Both the
+`/weakness` page and the in-arena `WeaknessDashboard` modal mount it. There used
+to be a second pipeline behind `/api/lichess/blunders` that only worked on games
+Lichess had already analyzed server-side; it was deleted. Do not reintroduce a
+second path.
+
+### Routes
+
+1. **`/` — the board** (`app/_client.tsx`). Curated 500-puzzle pool across 4
+   tiers, plus blunder-fix mode. When a puzzle arrives with `solutionMoves: []`
+   (every real blunder does), the Arena derives the answer from the in-browser
+   engine rather than being handed one.
+2. **`/weakness` — your mistakes** (`app/weakness/_client.tsx`). One screen:
+   worst phase in a sentence, then the positions ranked worst first, each with
+   one button into the board.
+3. **`/diagnose` — 5-puzzle benchmark** (`app/diagnose/_client.tsx`). A starting
+   point for players with no connected account. Produces a bounded rating
+   estimate and a training focus.
+4. **`/terms` — the lexicon** (`app/terms/TermsClient.tsx`). 21 historical master
+   positions. Also surfaces contextually through `TermHoverCard` wherever a rule
+   is named.
+
+---
+
+## 4. Layout
+
+```
+chessz-app/
 ├── app/
-│   ├── _client.tsx               # Tactical Arena client component
-│   ├── diagnose/_client.tsx       # 5-Puzzle diagnostic benchmark
-│   ├── terms/_client.tsx          # Study terms lexicon
-│   ├── weakness/_client.tsx       # Weakness Studio client component
+│   ├── _client.tsx                 # the board
+│   ├── diagnose/_client.tsx        # 5-puzzle benchmark
+│   ├── terms/TermsClient.tsx       # lexicon
+│   ├── weakness/_client.tsx        # the mistake queue
 │   ├── api/
-│   │   ├── auth/lichess/          # Lichess OAuth 2.0 PKCE (login, callback, me, logout)
-│   │   ├── lichess/blunders/      # Blunder extraction endpoint with setupMoves
-│   │   ├── lichess/games/stream/  # Streaming NDJSON proxy with zero CPU buffering
-│   │   └── lichess/user/validate/ # Lichess username lookup & validation
-│   └── globals.css                # Tailwind CSS v4 root tokens & dark variant
+│   │   ├── auth/lichess/           # OAuth PKCE: login, callback, me, logout, link
+│   │   ├── cron/keepalive/         # daily Supabase free-tier anti-pause ping
+│   │   └── lichess/
+│   │       ├── games/stream/       # NDJSON proxy, body piped, no buffering
+│   │       └── user/validate/      # username lookup
+│   ├── error.tsx                   # themed route error boundary
+│   └── globals.css                 # Tailwind v4 tokens, 4 palettes, dark variant
 ├── components/
-│   ├── ChessboardFrame.tsx       # Outer bezel, coordinate rails, check radial glow
-│   ├── ChessZLogo.tsx            # Official vector brandmark (tight, square, lockup)
-│   ├── LichessModal.tsx          # Lichess login modal + official LichessIcon SVG
-│   ├── MaiaHumanSpectrum.tsx     # Maia 1100-1900 human move prediction component
-│   ├── SettingsModal.tsx         # Theme switcher, piece style, sound volume
-│   ├── TermHoverCard.tsx         # Interactive hover definition cards
-│   ├── TransparentProgressBar.tsx # High-contrast glass progress bar
-│   └── WeaknessDashboard.tsx     # Blunder trainer modal with 2-move stepper
+│   ├── ChessboardFrame.tsx         # bezel, coordinate rails, check glow
+│   ├── CoachStudyModal.tsx         # move-by-move review of a puzzle set
+│   ├── ConfidenceModal.tsx         # conviction prompt (keys 1/2/3, Esc)
+│   ├── EngineAnalysisBar.tsx       # eval readout for the Arena
+│   ├── LichessModal.tsx            # identity only + the official LichessIcon
+│   ├── SettingsModal.tsx           # palette, light/dark, sound, wallpaper
+│   ├── TermHoverCard.tsx           # inline study popover
+│   ├── TransparentProgressBar.tsx  # scan and sweep progress
+│   └── WeaknessDashboard.tsx       # in-arena trainer, 5-pillar grouping
 ├── lib/
-│   ├── chessMetrics/             # Pure math & PGN parsing engine
-│   │   ├── gameParser.ts         # PGN tokenizer, phase detection, eval extraction
-│   │   ├── math.ts               # Centipawns-to-win% curve, accuracy formula, Wilson score
-│   │   └── types.ts              # GameDerivedStats, MoveAnalysis, CriticalMoment
-│   ├── engine/                   # Stockfish Web Worker & analysis runner
-│   │   ├── browserStockfish.ts   # Multi-pass batch Stockfish evaluator
-│   │   └── types.ts              # ChessEngine, EngineEvalResult, EngineProgress
-│   ├── lichessStream.ts          # Incremental NDJSON stream reader
-│   ├── mistakeClassifier.ts      # 3-tier x 5-category blunder taxonomy
-│   ├── puzzles.ts                # 500 authentic Lichess puzzles + benchmark pool
-│   ├── sounds.ts                 # Web Audio zero-latency procedural synthesizer
-│   ├── supabaseWeakness.ts       # Supabase and localStorage persistence
-│   ├── useLichess.ts             # Auth hook for session and user state
-│   └── useStockfish.ts           # Single-position Stockfish WASM hook
-├── public/
-│   ├── stockfish/                # stockfish.js, stockfish.wasm, stockfish.wasm.js
-│   ├── pieces/lichess/           # Staunton piece SVGs
-│   └── wallpapers/               # Background wallpapers
-└── tests/
-    ├── chessMetrics.test.ts      # Pure math, winPct curve, PGN tokenization
-    ├── diagnosticEnhancements.test.ts # Rules, velocity heuristic, master ceiling
-    ├── maiaAnalysis.test.ts      # Maia probability calculations & psychology
-    ├── puzzleIntegrity.test.ts   # Validates all 500 FENs, solutions, and refutations
-    ├── qaStress.test.ts          # Boundary conditions & edge cases
-    └── studyTermsIntegrity.test.ts # Historical terms, legal moves, citations
+│   ├── chessMetrics/               # pure math and PGN parsing
+│   │   ├── gameParser.ts           # phase detection, critical moments
+│   │   ├── math.ts                 # win% curve, accuracy, Wilson
+│   │   ├── tokenizer.ts            # PGN tokenizer, [%eval] and [%clk]
+│   │   └── types.ts                # the shared data shapes
+│   ├── engine/
+│   │   ├── browserStockfish.ts     # UCI worker + two-pass batch sweep
+│   │   └── types.ts
+│   ├── blunderAdapter.ts           # critical moment -> trainable puzzle
+│   ├── useWeaknessScan.ts          # THE scan pipeline
+│   ├── diagnosisEngine.ts          # benchmark pool, Elo estimate, patterns
+│   ├── lichessStream.ts            # incremental NDJSON reader
+│   ├── mistakeClassifier.ts        # 3 tiers x 5 categories
+│   ├── puzzles.ts                  # 500 Lichess puzzles, 16 rule titles
+│   ├── studyTerms.ts               # 21 historical terms
+│   ├── supabaseWeakness.ts         # localStorage + Supabase persistence
+│   └── useStockfish.ts             # single-position engine hook
+└── tests/                          # 7 suites
+    ├── chessMetrics.test.ts        # win% curve, tokenizer, phases
+    ├── diagnosticEnhancements.test.ts # rules, velocity, rating bounds
+    ├── puzzleIntegrity.test.ts     # all 500 FENs, solutions, refutations
+    ├── qaStress.test.ts            # boundaries and edge cases
+    ├── studyTermsIntegrity.test.ts # terms, legal master lines, rule mapping
+    └── weaknessPipeline.test.ts    # the seams: parse -> sweep -> adapt
 ```
 
 ---
 
-## 5. Architectural Invariants & Critical Rules
+## 5. Invariants
 
-### Invariant 1: Zero Server Compute
-All chess computation is strictly client-side:
-- Stockfish WASM runs exclusively in a browser Web Worker (`new Worker('/stockfish/stockfish.wasm.js')`).
-- API routes are strictly I/O streaming proxies (`TransformStream` or raw body piping). **Never** run Stockfish or heavy CPU loops in Next.js route handlers.
+### 1. Zero server compute
+Stockfish runs only in a browser Web Worker. API routes are I/O only — they
+proxy, validate or authenticate. Never run an engine or a replay loop in a route
+handler.
 
-### Invariant 2: PGN Evaluation Detection
-Most Lichess games do NOT have server evaluations.
-- In `lib/chessMetrics/gameParser.ts`:
-  ```typescript
-  const hasEvals = parsedPgn.moves.some((m) => m.eval !== undefined);
-  const evalSource = hasEvals ? 'lichess' : 'none';
-  ```
-- **Never** check `m.evalAfter.cp !== undefined` to determine if evaluations exist, because moves default `lastEval` to `{ cp: 15 }`. Always check the raw PGN token `m.eval !== undefined`.
-- When `evalSource === 'none'`, the app renders the Stockfish WASM banner so the user can run browser analysis.
+### 2. Eval detection reads the raw PGN token
+```ts
+const hasEvals = parsedPgn.moves.some((m) => m.eval !== undefined);
+```
+Never test `m.evalAfter.cp !== undefined`: moves default `lastEval` to
+`{ cp: 15 }`, so that is always true. When `evalSource === 'none'` the UI offers
+the local sweep.
 
-### Invariant 3: Lichess Username & ID Attribution
-Lichess usernames are case-insensitive, and API responses often provide `user.id` (lowercase) instead of `user.name`.
-- Always normalize and check:
-  ```typescript
-  const whiteName = (rawGame.players?.white?.user?.name || rawGame.players?.white?.user?.id || '').toLowerCase().trim();
-  const blackName = (rawGame.players?.black?.user?.name || rawGame.players?.black?.user?.id || '').toLowerCase().trim();
-  ```
+### 3. Evals are stored from White's perspective
+`evalBefore` / `evalAfter` on a `CriticalMoment` are always White's view. Flip
+them before showing them to a Black player, and compute swing with
+`evalSwingForPlayer()`. Getting this wrong is silent — the numbers still look
+plausible.
 
-### Invariant 4: Scoped Dark Mode & Theme Isolation
-In Tailwind CSS v4, the default `dark:` variant responds to `@media (prefers-color-scheme: dark)`. To prevent OS dark mode from bleeding into the user's selected Light mode, `app/globals.css` defines:
+### 4. Lichess identity may arrive as `id`, not `name`
+```ts
+const name = (player?.user?.name || player?.user?.id || '').toLowerCase().trim();
+```
+
+### 5. Scoped dark mode
+`app/globals.css` defines the variant so OS dark mode cannot override a chosen
+light theme:
 ```css
 @custom-variant dark (&:where([data-mode="dark"], [data-mode="dark"] *, .dark, .dark *));
 ```
-Always use semantic theme classes (`theme-surface`, `theme-text-primary`, `theme-text-secondary`) and WCAG AAA amber tokens:
-- Light Mode: `bg-amber-100 text-amber-950 border-amber-300`
-- Dark Mode: `dark:bg-amber-950/40 dark:text-amber-200 dark:border-amber-500/40`
+Use semantic classes (`theme-surface`, `theme-text-primary`, `theme-canvas`)
+rather than raw colors, including in error and empty states.
 
-### Invariant 5: Stockfish WASM Lifecycle
-When switching between puzzles or unmounting:
-```typescript
-stopAnalysis();
-setEngineEnabled(false);
-```
-Always drain the terminating `bestmove` line to prevent UCI message sequence corruption.
+### 6. Engine lifecycle
+Call `stopAnalysis()` and `setEngineEnabled(false)` when changing position or
+unmounting. On a search timeout the abandoned search must be drained before the
+next one starts, or its `info` lines leak into the next position's result.
 
-### Invariant 6: Move Array Persistence
-When saving scanned games to `localStorage` in `lib/supabaseWeakness.ts`:
-- **Never** strip `moves: []`.
-- Always store essential move fields (`ply`, `san`, `color`, `evalBefore`, `evalAfter`, `winPctLost`, `judgment`, `accuracy`, `phase`, `clockRemaining`, `timeSpentSeconds`) so in-browser Stockfish can replay moves and extract FENs even after page reloads.
+### 7. Positions must survive persistence
+`saveGameStatsBatch` stores each move's `fen`, and the engine sweep restores it
+from replay. Anything that carries a position — critical moments, setup steppers
+— must keep it through a save and a reload, or the trainer has no board.
 
-### Invariant 7: Lichess Stream Sync
-In `lib/lichessStream.ts`:
-- Never send `since` parameter on manual user scans unless `options.incremental === true` is explicitly passed. Sending an automatic `since` causes Lichess to return 0 or 1 game, truncating the user's historical set.
+### 8. Move numbers
+A move number is `Math.ceil(ply / 2)`. Plies 1 and 2 are both move 1.
+`floor(ply/2)+1` numbers Black's move as the next move.
 
----
+### 9. Manual scans never send `since`
+In `lib/lichessStream.ts`, only send `since` when `options.incremental === true`.
+Sending it on a full scan makes Lichess return 0 or 1 game.
 
-## 6. Recent Remediation & Bug Fix History
-
-1. **Weakness Studio 1-Game Truncation**: Fixed `streamUserGames` passing `since` from localStorage on full scans, and implemented smart game merging in `app/weakness/_client.tsx`.
-2. **False-Positive Evaluation Tagging**: Changed `hasEvals` in `deriveGameStats` to inspect `parsedPgn.moves.some(m => m.eval !== undefined)`.
-3. **Player Attribution as Black**: Added `user?.name || user?.id` fallback across `gameParser.ts` and `app/api/lichess/blunders/route.ts`.
-4. **Move Preservation**: Fixed `saveGameStatsBatch` stripping moves, enabling offline and cached in-browser Stockfish evaluation.
-5. **Dark Mode / Light Mode Amber Contrast**: Replaced low-contrast yellow text with WCAG AAA amber tokens and scoped dark variants.
-6. **Harmonized Global Navigation**: Added unified top nav across all 4 pages (`Train`, `Skill Test`, `Weakness Studio`, `Study Terms`).
+### 10. Do not invent numbers
+Anything shown as a measurement must be derived from data. A statistic with no
+computation behind it does not ship, however plausible it reads.
 
 ---
 
-## 7. Operational Guidelines for Claude Code
+## 6. Working here
 
-1. **Verify Before Declaring Complete**: Always run `npm test`, `npx tsc --noEmit`, and `npm run build` to guarantee zero regressions.
-2. **Preserve Integrity**: Do not remove existing comments, docstrings, or test assertions.
-3. **Be Direct**: Provide concise, high-signal explanations and actionable solutions.
+1. **Verify before claiming done.** All three commands, clean.
+2. **Look for the second copy.** Duplication is this codebase's failure mode —
+   the same capability built twice, with the weaker one on the path users take.
+   Before adding a surface, check whether one already exists.
+3. **Test the seams.** The modules are individually sound; the defects live in
+   the handoffs. `tests/weaknessPipeline.test.ts` is the model.
+4. **Delete rather than disable.** If a feature is switched off, remove it —
+   `PieceSets2D.tsx` sat unreachable for months because it was only disabled.
+5. **Be direct.** Short, concrete, no padding.

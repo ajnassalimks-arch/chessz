@@ -186,3 +186,23 @@ create index if not exists idx_game_stats_user_id_played_at on public.game_stats
 create index if not exists idx_critical_moments_game_id on public.critical_moments(game_id);
 create index if not exists idx_critical_moments_user_id on public.critical_moments(user_id);
 
+
+-- ==============================================================================
+-- 11. Critical Moments De-duplication
+-- ==============================================================================
+-- saveGameStatsBatch runs on every scan and after every engine sweep, and used a
+-- plain insert, so re-scanning the same 50 games appended a fresh copy of every
+-- moment each time. A game and ply identify a moment uniquely; the client now
+-- upserts on that key.
+delete from public.critical_moments a
+  using public.critical_moments b
+  where a.ctid < b.ctid
+    and a.game_id = b.game_id
+    and a.ply = b.ply;
+
+alter table public.critical_moments
+  add constraint critical_moments_game_ply_key unique (game_id, ply);
+
+create policy "Users can update own critical moments"
+  on public.critical_moments for update
+  using (auth.uid() = user_id);

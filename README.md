@@ -42,20 +42,20 @@ ChessZ is organized around a unified four-view navigation hierarchy:
          ┌─────────────────────────┬──────────┴──────────────┬─────────────────────────┐
          ▼                         ▼                         ▼                         ▼
    Train (`/`)            Skill Test (`/diagnose`)   Weakness (`/weakness`)     Study Terms (`/terms`)
-• Tactical Arena          • 5-Puzzle Benchmark       • 50-Game NDJSON Stream    • 18 Historical Studies
+• Tactical Arena          • 5-Puzzle Benchmark       • 50-Game NDJSON Stream    • 21 Historical Studies
 • 4-Tier Lobby            • Millisecond Telemetry    • Phase Loss Metrics       • Interactive Board Replay
-• Blunder Trainer         • Conviction Tracking      • In-Browser Stockfish     • Maia AI Move Spectrum
+• Blunder Trainer         • Conviction Tracking      • In-Browser Stockfish     • Contextual Study Terms
 • Stockfish Auto-Eval     • Cognitive Dossier        • Critical Moments         • Coach Definitions & Tips
 ```
 
 ---
 
-## 🧠 Interactive 3-Puzzle Level Diagnosis (`/diagnose`)
+## 🧠 Interactive 5-Puzzle Level Diagnosis (`/diagnose`)
 
 The diagnostic engine benchmarks a player's tactical vision, calculation speed, and psychological conviction in ~2.5 minutes:
 
-### 1. Curated 10-Puzzle Benchmark Pool
-Instead of static quizzes, `/diagnose` dynamically samples 3 balanced, non-repeating puzzles across ratings 850 to 1750:
+### 1. Curated 16-Puzzle Benchmark Pool
+Instead of static quizzes, `/diagnose` dynamically samples 5 balanced, non-repeating puzzles across ratings 850 to 1750:
 1. **Opening Benchmark**: Légal's Counter-Trap (850)
 2. **Central Fork**: Double-Threat Geometry (950)
 3. **Corridor Benchmark**: Back-Rank Overload Decoy (1100)
@@ -153,7 +153,7 @@ Players can tailor the board to their preferred study environment via **Settings
 | :--- | :--- | :--- |
 | **Framework** | Next.js 16 (App Router, Turbopack, React 19) | Vercel Hobby |
 | **Styling** | Tailwind CSS v4 with custom `@theme` tokens | Client-Side |
-| **Chess Engine** | Single-Threaded Stockfish WASM + `chess.js` | In-Browser Web Worker |
+| **Chess Engine** | Stockfish.js (single-threaded WASM) + `chess.js` v1 | In-Browser Web Worker |
 | **Typography** | Space Grotesk + Inter + JetBrains Mono | Google Fonts CDN (OFL) |
 | **OAuth** | Lichess OAuth 2.0 PKCE (`/api/auth/lichess/*`) | Vercel Serverless |
 | **Streaming** | Browser ReadableStream + NDJSON Parser | Client-Side |
@@ -167,7 +167,7 @@ Players can tailor the board to their preferred study environment via **Settings
 ChessZ features an automated test suite verifying pure mathematical formulas, game parsing, phase detection, puzzle integrity, and edge-case boundary conditions:
 
 ```bash
-# Run 36 automated tests
+# Run 52 automated tests across 7 suites
 npm test
 
 # Run TypeScript type check (0 errors required)

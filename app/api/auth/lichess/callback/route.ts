@@ -68,8 +68,10 @@ export async function GET(request: NextRequest) {
 
     const response = NextResponse.redirect(destinationUrl.toString());
 
-    // 1 Year session duration
+    // Token lives a year; the public profile mirror is refreshed on use, so
+    // it only needs to outlive a session.
     const oneYear = 60 * 60 * 24 * 365;
+    const thirtyDays = 60 * 60 * 24 * 30;
 
     // Secure token cookie
     response.cookies.set('chessz_lichess_token', tokenResult.access_token, {
@@ -86,7 +88,7 @@ export async function GET(request: NextRequest) {
       secure: isProd,
       sameSite: 'lax',
       path: '/',
-      maxAge: oneYear,
+      maxAge: thirtyDays,
     });
 
     // Clear temp cookies

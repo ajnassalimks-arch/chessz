@@ -10,7 +10,7 @@
 
 ### Core Differentiators
 1. **100% Free Tactical Arena**: Unlimited curated tactical puzzles across 4 skill tiers (Beginner to Advanced).
-2. **Interactive 5-Puzzle Diagnostic Benchmark (`/diagnose`)**: Calibrates accurate Elo in 5 trials (+1 optional Grandmaster Crucible) using millisecond move telemetry, psychological conviction tracking (*"Sure"*, *"Think so"*, *"Guessing"*), and behavioral archetypes.
+2. **Interactive 5-Puzzle Diagnostic Benchmark (`/diagnose`)**: A starting estimate from 5 trials using move-time telemetry and conviction tracking (*"Sure"*, *"Think so"*, *"Guessing"*). No single trial may move the estimate by more than `MAX_TRIAL_SWING` (120 points), because 5 puzzles is a small sample.
 3. **Weakness Studio (`/weakness`) & Blunder Trainer**: Connects to any player's Lichess account (via OAuth PKCE or public username) to stream and parse their recent games, extract exact blunder positions, and categorize them into actionable pedagogical categories.
 4. **Client-Side Stockfish WASM**: Single-threaded in-browser engine running in a Web Worker with 0ms server latency and zero server compute cost. Auto-reveals real-time evaluation and top 4 continuation moves upon puzzle completion.
 5. **Tournament-Grade Board Engine**: `react-chessboard` + `chess.js` wrapped in a custom bezel (`ChessboardFrame.tsx`) with right-click tactical annotations, outside coordinates, check radial glow, and Web Audio API synthesized sounds.
@@ -27,7 +27,6 @@ c:\ChessZ\chessz-app\
 │   │   ├── auth/lichess/      # Lichess OAuth 2.0 PKCE flow (login, callback, me, logout)
 │   │   ├── cron/keepalive/    # Vercel cron heartbeat for serverless warm-up
 │   │   └── lichess/
-│   │       ├── blunders/route.ts # Extracts blunder puzzles with setupMoves from games
 │   │       ├── games/stream/  # Streaming NDJSON proxy with browser fallback
 │   │       └── user/validate/ # Lichess username lookup & validation
 │   ├── diagnose/
@@ -48,10 +47,12 @@ c:\ChessZ\chessz-app\
 │   └── WeaknessDashboard.tsx  # Modal blunder trainer with 2-move stepper (BlunderCardItem)
 ├── lib/
 │   ├── chessMetrics/          # Pure TypeScript math engine
+│   ├── blunderAdapter.ts      # critical moment -> trainable puzzle
+│   ├── useWeaknessScan.ts     # THE scan pipeline (page + modal share it)
 │   │   ├── gameParser.ts      # PGN tokenizer, phase detection, eval extraction
 │   │   ├── math.ts            # Centipawns-to-win% curve, accuracy formula, Wilson score
 │   │   └── types.ts           # Data interfaces for games, plies, stats, and critical moments
-│   ├── diagnosisEngine.ts     # 13-puzzle historical benchmark pool, adaptive selector, classifiers
+│   ├── diagnosisEngine.ts     # 16-puzzle benchmark pool, adaptive selector, bounded Elo
 │   ├── lichess.ts             # Lichess user interfaces & API helpers
 │   ├── lichessStream.ts       # Client-side streaming reader for NDJSON games
 │   ├── mistakeClassifier.ts   # 3-tier x 5-category blunder taxonomy (TIER_CATEGORY_DEFINITIONS)
@@ -112,17 +113,17 @@ c:\ChessZ\chessz-app\
 ### C. Route 3: Deep Weakness Studio (`/weakness` ➔ `app/weakness/page.tsx`)
 - **Primary Responsibility**: Full-page analytics studio scanning up to 50 recent Lichess games.
 - **Key Capabilities**:
-  - Dual-mode game streaming: tries direct browser fetch to `https://lichess.org/api/games/user/...` with backoff retry, falling back to `/api/lichess/games/stream` if CORS or rate limits occur.
+  - A single pipeline (`lib/useWeaknessScan.ts`) shared with the in-arena trainer. Dual-mode game streaming: tries direct browser fetch to `https://lichess.org/api/games/user/...` with backoff retry, falling back to `/api/lichess/games/stream` if CORS or rate limits occur.
   - Smart Game Merging: Preserves previously computed client-side Stockfish evaluations (`evalSource: 'local'`) across syncs without losing 50-game history.
   - Multi-pass in-browser Stockfish WASM sweep (80k nodes pass 1 ➔ 300k nodes pass 2 refinement) for games lacking Lichess computer evals (`evalSource: 'none'`).
   - Classifies critical turning points into Opening, Middlegame, and Endgame phases.
   - Provides direct deep links to review the game on Lichess (`m.deepLink`).
 
 ### D. Route 4: Study Terms & Master Lexicon (`/terms` ➔ `app/terms/page.tsx`)
-- **Primary Responsibility**: Interactive pedagogical encyclopedia featuring 18 real master historical positions (e.g. Greek Gift, Smothered Mate, Légal's Trap, Noah's Ark, Anastasia's Corridor).
+- **Primary Responsibility**: Interactive pedagogical encyclopedia featuring 21 real master historical positions (e.g. Greek Gift, Smothered Mate, Légal's Trap, Noah's Ark, Anastasia's Corridor).
 - **Key Capabilities**:
   - Full board replay of master lines and candidate moves with historical citations and annotations.
-  - Maia Human-AI Intelligence spectrum (`components/MaiaHumanSpectrum.tsx`), comparing human decision tendencies from 1100 up to 1900 rating levels.
+  - Study terms also surface contextually on blunder cards via `TermHoverCard`, rather than only inside this route.
   - Quick hover preview cards (`components/TermHoverCard.tsx`) embedded throughout the app.
 
 ---
@@ -189,13 +190,13 @@ Classifies blunders using the 3-tier x 5-category matrix defined in `TIER_CATEGO
 The test suite is located in `tests/` and executes using Node's native runner via `tsx`:
 
 ```bash
-# Run all automated tests (48 tests in 8 suites)
+# Run all automated tests (52 tests in 7 suites)
 npm test
 
 # Run TypeScript type check (must exit 0 with zero errors)
 npx tsc --noEmit
 
-# Run Next.js production build (Turbopack, must generate all 20 routes)
+# Run Next.js production build (Turbopack, must generate all 17 routes)
 npm run build
 ```
 
