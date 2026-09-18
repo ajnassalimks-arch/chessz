@@ -10,7 +10,6 @@ import { sounds } from "@/lib/sounds";
 import { THEME_BOARD_COLORS, ThemePalette, ThemeMode } from "@/components/ThemeSwitcher";
 import { SettingsModal } from "@/components/SettingsModal";
 import { ConfidenceModal } from "@/components/ConfidenceModal";
-import { getPieceSet, PieceSetStyle } from "@/components/pieces/PieceSets2D";
 import {
   BENCHMARK_PUZZLE_POOL,
   HISTORICAL_BENCHMARKS_STAGE_1,
@@ -54,14 +53,12 @@ import {
   Activity,
   Clock,
   Brain,
-  Share2,
   BookOpen,
 } from "lucide-react";
 import { track } from "@vercel/analytics";
 import { useLichess } from "@/lib/useLichess";
 import { LichessModal, LichessIcon } from "@/components/LichessModal";
 import { ChessZMark } from "@/components/ChessZLogo";
-import { SocialShareModal } from "@/components/SocialShareModal";
 import { CoachStudyModal, CoachStudyItem } from "@/components/CoachStudyModal";
 import { TermHoverCard } from "@/components/TermHoverCard";
 
@@ -86,7 +83,6 @@ export default function DiagnosePage() {
   const [themeMode, setThemeMode] = useState<ThemeMode>("light");
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
-  const [pieceSet, setPieceSet] = useState<PieceSetStyle>("default");
 
   useEffect(() => {
     try {
@@ -96,8 +92,6 @@ export default function DiagnosePage() {
 
       setThemePalette(savedTheme);
       setThemeMode(savedMode);
-      setPieceSet("default");
-      localStorage.setItem("chessz_piece_set", "default");
       setIsMuted(savedMute);
       sounds.setMuted(savedMute);
     } catch {}
@@ -114,13 +108,11 @@ export default function DiagnosePage() {
       const customEvt = e as CustomEvent<{
         theme?: ThemePalette;
         mode?: ThemeMode;
-        pieceSet?: PieceSetStyle;
         wallpaper?: boolean;
       }>;
       if (customEvt.detail) {
         if (customEvt.detail.theme) setThemePalette(customEvt.detail.theme);
         if (customEvt.detail.mode) setThemeMode(customEvt.detail.mode);
-        if (customEvt.detail.pieceSet) setPieceSet(customEvt.detail.pieceSet);
       }
     };
 
@@ -177,7 +169,6 @@ export default function DiagnosePage() {
   const [displayElo, setDisplayElo] = useState<number>(1250);
   const [isFinalScreen, setIsFinalScreen] = useState<boolean>(false);
   const [showEloEstimate, setShowEloEstimate] = useState<boolean>(false);
-  const [showShareModal, setShowShareModal] = useState<boolean>(false);
 
   // Active Puzzle & Multi-Step Solution State
   const diagnosticQuintetRef = useRef<(ChessPuzzle & { numericRating: number })[] | null>(null);
@@ -1271,22 +1262,6 @@ export default function DiagnosePage() {
       {/* Coach Study Mode Data Memo */}
       {(() => null)()}
 
-      {/* Social Share Card Generator Modal */}
-      <SocialShareModal
-        isOpen={showShareModal}
-        onClose={() => setShowShareModal(false)}
-        diagnosedElo={currentRating}
-        levelName={currentLevelInfo.levelName}
-        patternName={detectedPattern.patternName}
-        insight={detectedPattern.insight}
-        strength={detectedPattern.strength}
-        weakness={detectedPattern.weakness}
-        attemptsCount={attempts.length}
-        correctCount={attempts.filter((a) => a.firstTryCorrect || a.status === "best").length}
-        noveltyVerified={noveltyVerified}
-        isCrucibleActive={isCrucibleActive}
-      />
-
       {/* Interactive Coach Study Mode Modal */}
       <CoachStudyModal
         isOpen={showStudyModal}
@@ -1294,7 +1269,6 @@ export default function DiagnosePage() {
         title="Diagnostic Benchmark Study Session"
         subtitle="Review your 5 tactical diagnostic positions move-by-move with private academy coach guidance."
         items={studyItems}
-        pieceSet={pieceSet}
       />
 
       {/* Grandmaster Crucible Modal (Trial 6 Bonus Challenge) */}
@@ -1504,7 +1478,6 @@ export default function DiagnosePage() {
                       boardOrientation: activePuzzle.playerColor,
                       squareStyles: getCustomSquareStyles(),
                       showNotation: false,
-                      pieces: getPieceSet(pieceSet),
                       allowDrawingArrows: true,
                       clearArrowsOnClick: true,
                       arrowOptions: {
@@ -1862,20 +1835,6 @@ export default function DiagnosePage() {
                   )}
                 </div>
 
-                {/* 1-Click Share Card Trigger */}
-                <div className="mt-4 pt-3.5 border-t border-[var(--border-subtle)] flex items-center justify-between gap-2">
-                  <span className="text-[11px] theme-text-muted font-mono">
-                    Share with your coach or club
-                  </span>
-                  <button
-                    onClick={() => setShowShareModal(true)}
-                    className="flex items-center gap-1.5 text-xs font-mono font-bold px-3 py-1.5 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 hover:bg-amber-500/25 transition cursor-pointer shrink-0 active:scale-95 shadow-xs"
-                    title="Generate shareable diagnostic card"
-                  >
-                    <Share2 className="w-3.5 h-3.5" />
-                    <span>Share Card</span>
-                  </button>
-                </div>
               </div>
 
               {/* Right Side Bento Column: Archetype + Live Platform Calibration */}
@@ -2135,14 +2094,6 @@ export default function DiagnosePage() {
               >
                 <span>Start Training</span>
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </button>
-
-              <button
-                onClick={() => setShowShareModal(true)}
-                className="w-full py-4 px-4 rounded-2xl theme-surface border border-amber-500/40 hover:border-amber-500 hover:bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-sm tracking-wide flex items-center justify-center gap-2 shadow-md transition cursor-pointer active:scale-[0.98]"
-              >
-                <Share2 className="w-4 h-4" />
-                <span>Share Diagnosis</span>
               </button>
             </div>
           </div>

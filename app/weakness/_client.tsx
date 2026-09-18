@@ -15,13 +15,11 @@ import {
   BarChart3,
   Cpu,
   Layers,
-  Brain,
   BookOpen,
 } from 'lucide-react';
 import { useLichess } from '@/lib/useLichess';
 import { LichessIcon } from '@/components/LichessModal';
 import { ChessZMark } from '@/components/ChessZLogo';
-import { MaiaHumanSpectrum } from '@/components/MaiaHumanSpectrum';
 import { streamUserGames, StreamProgress } from '@/lib/lichessStream';
 import { GameDerivedStats, UserAggregateStats, CriticalMoment } from '@/lib/chessMetrics/types';
 import { aggregateUserStats } from '@/lib/chessMetrics/gameParser';
@@ -41,14 +39,6 @@ import { TransparentProgressBar } from '@/components/TransparentProgressBar';
 function formatClock(totalSeconds: number): string {
   const safe = Math.max(0, Math.round(totalSeconds));
   return `${Math.floor(safe / 60)}m ${safe % 60}s`;
-}
-
-/**
- * Critical moment evals are stored from White's point of view. Flip them for a
- * Black player so the studio always shows the score the player actually faced.
- */
-function evalForPlayer(whiteCp: number, color: CriticalMoment['color']): number {
-  return color === 'black' ? -whiteCp : whiteCp;
 }
 
 function WeaknessDashboardContent() {
@@ -76,11 +66,8 @@ function WeaknessDashboardContent() {
   // taking it as a dependency (the callback is intentionally stable).
   const activeUsernameRef = useRef<string>('');
 
-  // View tabs: 'overview' | 'phases' | 'openings' | 'moments' | 'maia'
-  const [activeTab, setActiveTab] = useState<'overview' | 'phases' | 'openings' | 'moments' | 'maia'>('overview');
-  const [activeMaiaMoment, setActiveMaiaMoment] = useState<CriticalMoment | null>(null);
-  const [customMaiaFen, setCustomMaiaFen] = useState<string>('');
-  const [submittedMaiaFen, setSubmittedMaiaFen] = useState<string>('');
+  // View tabs: 'overview' | 'phases' | 'openings' | 'moments'
+  const [activeTab, setActiveTab] = useState<'overview' | 'phases' | 'openings' | 'moments'>('overview');
 
   // Filter openings threshold: show all or >= 4 games
   const [minOpeningGames, setMinOpeningGames] = useState<number>(1);
@@ -270,15 +257,6 @@ function WeaknessDashboardContent() {
   }, [games]);
 
   const isMobile = isMobileOrLowEndDevice();
-
-  // Falls back to the parent game's move list when a moment predates FEN
-  // retention, so selecting it can never leave the lens on a stale position.
-  const resolveMomentFen = useCallback(
-    (moment: CriticalMoment): string | undefined =>
-      moment.fen ||
-      games.find((g) => g.gameId === moment.gameId)?.moves?.find((pm) => pm.ply === moment.ply)?.fen,
-    [games]
-  );
 
   const handleTrainBlunderInArena = (moment: CriticalMoment) => {
     const parentGame = games.find((g) => g.gameId === moment.gameId);
@@ -585,7 +563,6 @@ function WeaknessDashboardContent() {
                 { id: 'phases', label: 'Phase Diagnostics', icon: Layers },
                 { id: 'openings', label: 'Opening Repertoire', icon: Award },
                 { id: 'moments', label: `Critical Moments (${aggregate.criticalMoments.length})`, icon: Target },
-                { id: 'maia', label: 'Maia Human Lens', icon: Brain },
               ].map((tab) => {
                 const Icon = tab.icon;
                 const active = activeTab === tab.id;
@@ -969,18 +946,6 @@ function WeaknessDashboardContent() {
                         </span>
 
                         <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => {
-                              setActiveMaiaMoment(m);
-                              setSubmittedMaiaFen(resolveMomentFen(m) || '');
-                              setActiveTab('maia');
-                            }}
-                            className="flex items-center gap-1 text-[11px] font-mono font-bold bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/30 px-2.5 py-1 rounded-lg transition cursor-pointer"
-                          >
-                            <Brain className="w-3 h-3" />
-                            <span>Maia Lens</span>
-                          </button>
-
                           <a
                             href={m.deepLink}
                             target="_blank"
@@ -1008,158 +973,6 @@ function WeaknessDashboardContent() {
               </div>
             )}
 
-            {/* TAB 5: MAIA HUMAN LENS & OPPONENT RADAR */}
-            {activeTab === 'maia' && (
-              <div className="space-y-5">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-                  <div>
-                    <h3 className="text-base font-bold theme-text-primary flex items-center gap-2">
-                      <span>Maia Human Lens & Opponent Radar</span>
-                      <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-400 font-bold border border-purple-500/30">
-                        Dual-Engine Studio
-                      </span>
-                    </h3>
-                    <p className="text-xs theme-text-secondary">
-                      Compare Stockfish’s mathematical oracle move against real human move probabilities across Elo 1100 to 1900
-                    </p>
-                  </div>
-                </div>
-
-                {/* Preset Benchmarks & Game Blunder Selector */}
-                <div className="p-4 rounded-2xl theme-surface border space-y-3">
-                  <div className="flex items-center justify-between flex-wrap gap-2">
-                    <span className="text-xs font-mono font-bold theme-text-primary">
-                      {aggregate.criticalMoments.length > 0
-                        ? 'Select a Blunder from Your Analyzed Games or a Benchmark'
-                        : 'Choose a Benchmark Position or Input Custom FEN'}
-                    </span>
-                  </div>
-
-                  {/* Blunder Quick Selector */}
-                  {aggregate.criticalMoments.length > 0 && (
-                    <div className="space-y-1.5">
-                      <span className="text-[10px] font-mono uppercase theme-text-muted block">
-                        Your Recent Critical Moments:
-                      </span>
-                      <div className="flex items-center gap-2 overflow-x-auto pb-1">
-                        {aggregate.criticalMoments.slice(0, 8).map((moment) => {
-                          const isSelected = activeMaiaMoment?.ply === moment.ply && activeMaiaMoment?.gameId === moment.gameId;
-                          return (
-                            <button
-                              key={`${moment.gameId}_${moment.ply}`}
-                              onClick={() => {
-                                setActiveMaiaMoment(moment);
-                                setSubmittedMaiaFen(resolveMomentFen(moment) || '');
-                              }}
-                              className={`px-2.5 py-1.5 rounded-xl text-xs font-mono shrink-0 transition cursor-pointer border ${
-                                isSelected
-                                  ? 'bg-purple-600 text-white border-purple-500 shadow-xs'
-                                  : 'theme-surface-subtle theme-text-primary hover:border-purple-500/50'
-                              }`}
-                            >
-                              Move {moment.moveNumber} ({moment.san}) -{moment.winPctLost.toFixed(1)}%
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Benchmark Presets */}
-                  <div className="space-y-1.5 pt-1 border-t border-[var(--border-subtle)]">
-                    <span className="text-[10px] font-mono uppercase theme-text-muted block">
-                      Curated Tactical & Psychological Presets:
-                    </span>
-                    <div className="flex flex-wrap items-center gap-2">
-                      {[
-                        {
-                          name: 'KiwiPete Tactical Crisis',
-                          fen: 'r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 10',
-                          eval: '+0.6',
-                        },
-                        {
-                          name: 'Sicilian Defense Pressure',
-                          fen: 'r1bqkb1r/pp2pppp/2np1n2/8/3NP3/2N5/PPP2PPP/R1BQKB1R w KQkq - 2 6',
-                          eval: '+0.4',
-                        },
-                        {
-                          name: 'French Defense Tension',
-                          fen: 'rnbqkbnr/pppp1ppp/4p3/8/3PP3/8/PPP2PPP/RNBQKBNR b KQkq - 0 2',
-                          eval: '+0.3',
-                        },
-                        {
-                          name: 'Queen\'s Pawn Imbalance',
-                          fen: 'rnbqkbnr/ppp1pppp/8/3p4/2PP4/8/PP2PPPP/RNBQKBNR b KQkq - 0 2',
-                          eval: '+0.3',
-                        },
-                      ].map((preset) => (
-                        <button
-                          key={preset.name}
-                          onClick={() => {
-                            setActiveMaiaMoment(null);
-                            setSubmittedMaiaFen(preset.fen);
-                          }}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-mono font-medium transition cursor-pointer border ${
-                            submittedMaiaFen === preset.fen
-                              ? 'bg-purple-600 text-white border-purple-500'
-                              : 'theme-surface-subtle theme-text-secondary hover:theme-text-primary'
-                          }`}
-                        >
-                          {preset.name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Custom FEN input bar */}
-                  <div className="pt-2 border-t border-[var(--border-subtle)] flex items-center gap-2">
-                    <input
-                      type="text"
-                      placeholder="Or paste any custom FEN position here..."
-                      value={customMaiaFen}
-                      onChange={(e) => setCustomMaiaFen(e.target.value)}
-                      className="flex-1 px-3 py-1.5 rounded-xl border text-xs font-mono theme-surface-subtle theme-text-primary placeholder:theme-text-muted focus:outline-hidden focus:border-purple-500"
-                    />
-                    <button
-                      onClick={() => {
-                        if (customMaiaFen.trim()) {
-                          setActiveMaiaMoment(null);
-                          setSubmittedMaiaFen(customMaiaFen.trim());
-                        }
-                      }}
-                      className="px-3.5 py-1.5 rounded-xl text-xs font-mono font-bold bg-purple-600 hover:bg-purple-700 text-white transition cursor-pointer shrink-0"
-                    >
-                      Analyze Position
-                    </button>
-                  </div>
-                </div>
-
-                {/* The Maia Human Spectrum Live Component */}
-                <MaiaHumanSpectrum
-                  fen={
-                    submittedMaiaFen ||
-                    activeMaiaMoment?.fen ||
-                    'r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 10'
-                  }
-                  playedMoveSan={activeMaiaMoment?.san}
-                  // A critical moment is by definition a move the player got
-                  // wrong, so it is never the engine's choice. Leaving this
-                  // undefined lets MaiaHumanSpectrum search the position and
-                  // report the real best move.
-                  stockfishBestMoveSan={undefined}
-                  stockfishEval={
-                    activeMaiaMoment
-                      ? (() => {
-                          const cp = evalForPlayer(activeMaiaMoment.evalBefore, activeMaiaMoment.color);
-                          return `${cp > 0 ? '+' : ''}${(cp / 100).toFixed(1)}`;
-                        })()
-                      : undefined
-                  }
-                  clockRemaining={activeMaiaMoment?.clockRemaining}
-                  playerColor={activeMaiaMoment?.color}
-                />
-              </div>
-            )}
           </>
         )}
       </div>

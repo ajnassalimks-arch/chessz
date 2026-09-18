@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { Sun, Moon, Volume2, VolumeX, Sparkles, X, Check, HelpCircle, Image as ImageIcon } from "lucide-react";
 import { ThemePalette, ThemeMode, THEME_BOARD_COLORS, THEME_NAMES } from "./ThemeSwitcher";
-import { PieceSetStyle } from "./pieces/PieceSets2D";
 import { sounds } from "@/lib/sounds";
 
 interface SettingsModalProps {
@@ -17,7 +16,6 @@ export function SettingsModal({ isOpen, onClose, onThemeChange }: SettingsModalP
   const [mode, setMode] = useState<ThemeMode>("light");
   const [isMuted, setIsMuted] = useState(false);
   const [wallpaperEnabled, setWallpaperEnabled] = useState(true);
-  const [pieceSet, setPieceSet] = useState<PieceSetStyle>("default");
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -29,8 +27,6 @@ export function SettingsModal({ isOpen, onClose, onThemeChange }: SettingsModalP
 
         setTheme(savedTheme);
         setMode(savedMode);
-        setPieceSet("default");
-        localStorage.setItem("chessz_piece_set", "default");
         if (savedMute !== null) setIsMuted(JSON.parse(savedMute));
         if (savedWallpaper !== null) setWallpaperEnabled(JSON.parse(savedWallpaper));
       } catch {}
@@ -51,7 +47,6 @@ export function SettingsModal({ isOpen, onClose, onThemeChange }: SettingsModalP
   const dispatchSettingsChanged = (
     newTheme: ThemePalette,
     newMode: ThemeMode,
-    newPieceSet: PieceSetStyle,
     newWallpaper: boolean
   ) => {
     if (typeof window !== "undefined") {
@@ -59,7 +54,6 @@ export function SettingsModal({ isOpen, onClose, onThemeChange }: SettingsModalP
         detail: {
           theme: newTheme,
           mode: newMode,
-          pieceSet: newPieceSet,
           wallpaper: newWallpaper,
         },
       });
@@ -84,7 +78,7 @@ export function SettingsModal({ isOpen, onClose, onThemeChange }: SettingsModalP
         detail: { theme: newTheme, mode: newMode },
       });
       window.dispatchEvent(event);
-      dispatchSettingsChanged(newTheme, newMode, pieceSet, wallpaperEnabled);
+      dispatchSettingsChanged(newTheme, newMode, wallpaperEnabled);
 
       if (onThemeChange) {
         onThemeChange(newTheme, newMode);
@@ -120,7 +114,7 @@ export function SettingsModal({ isOpen, onClose, onThemeChange }: SettingsModalP
     try {
       localStorage.setItem("chessz_wallpaper", JSON.stringify(nextVal));
     } catch {}
-    dispatchSettingsChanged(theme, mode, pieceSet, nextVal);
+    dispatchSettingsChanged(theme, mode, nextVal);
   };
 
   if (!isOpen) return null;

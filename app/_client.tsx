@@ -49,7 +49,6 @@ import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { ChessZMark } from "@/components/ChessZLogo";
 import { THEME_BOARD_COLORS, ThemePalette, ThemeMode } from "@/components/ThemeSwitcher";
 import { SettingsModal } from "@/components/SettingsModal";
-import { getPieceSet, PieceSetStyle } from "@/components/pieces/PieceSets2D";
 import { useLichess } from "@/lib/useLichess";
 import { LichessModal, LichessIcon } from "@/components/LichessModal";
 import { WeaknessDashboard } from "@/components/WeaknessDashboard";
@@ -320,7 +319,6 @@ export default function Home() {
   // Live Theme State & Board Synchronization
   const [themePalette, setThemePalette] = useState<ThemePalette>("periwinkle");
   const [themeMode, setThemeMode] = useState<ThemeMode>("light");
-  const [pieceSet, setPieceSet] = useState<PieceSetStyle>("default");
 
   useEffect(() => {
     try {
@@ -329,8 +327,6 @@ export default function Home() {
 
       setThemePalette(savedTheme);
       setThemeMode(savedMode);
-      setPieceSet("default");
-      localStorage.setItem("chessz_piece_set", "default");
     } catch {}
 
     const handleThemeEvent = (e: Event) => {
@@ -345,13 +341,11 @@ export default function Home() {
       const customEvt = e as CustomEvent<{
         theme?: ThemePalette;
         mode?: ThemeMode;
-        pieceSet?: PieceSetStyle;
         wallpaper?: boolean;
       }>;
       if (customEvt.detail) {
         if (customEvt.detail.theme) setThemePalette(customEvt.detail.theme);
         if (customEvt.detail.mode) setThemeMode(customEvt.detail.mode);
-        if (customEvt.detail.pieceSet) setPieceSet(customEvt.detail.pieceSet);
       }
     };
 
@@ -1824,7 +1818,6 @@ export default function Home() {
                       boardOrientation: currentPuzzle.playerColor,
                       squareStyles: getCustomSquareStyles(),
                       showNotation: false,
-                      pieces: getPieceSet(pieceSet),
                       allowDrawingArrows: true,
                       clearArrowsOnClick: true,
                       arrows: engineEnabled && engineArrow ? [engineArrow] : undefined,
@@ -2460,7 +2453,6 @@ export default function Home() {
         title="Curriculum Tactical Review"
         subtitle={`Step-by-step master breakdown of your 5 calibrated curriculum positions for ${coachDiagnosis?.leakName || "Tactical Precision"}.`}
         items={curriculumStudyItems}
-        pieceSet={pieceSet}
       />
     </main>
   );

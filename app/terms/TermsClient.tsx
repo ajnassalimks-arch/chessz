@@ -32,7 +32,6 @@ import {
 import { ChessZMark } from "@/components/ChessZLogo";
 import { ChessboardFrame } from "@/components/ChessboardFrame";
 import { SettingsModal } from "@/components/SettingsModal";
-import { getPieceSet, PieceSetStyle } from "@/components/pieces/PieceSets2D";
 import { sounds } from "@/lib/sounds";
 import {
   CHESS_STUDY_TERMS,
@@ -78,14 +77,11 @@ function TermsContent() {
 
   // Settings & Theme state
   const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
-  const [pieceSet, setPieceSet] = useState<PieceSetStyle>("default");
   const [isMuted, setIsMuted] = useState<boolean>(false);
 
   // Audio mute init
   useEffect(() => {
     setIsMuted(sounds.getMuted());
-    const savedSet = localStorage.getItem("chessz_piece_set") as PieceSetStyle;
-    if (savedSet) setPieceSet(savedSet);
   }, []);
 
   const toggleMute = () => {
@@ -588,7 +584,6 @@ function TermsContent() {
                     position: game.fen(),
                     boardOrientation: boardOrientation,
                     showNotation: false,
-                    pieces: getPieceSet(pieceSet),
                     allowDrawingArrows: true,
                     clearArrowsOnClick: true,
                     arrowOptions: {

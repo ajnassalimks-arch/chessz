@@ -4,7 +4,6 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Chess } from 'chess.js';
 import { Chessboard, defaultArrowOptions, type Arrow } from 'react-chessboard';
 import { ChessboardFrame } from '@/components/ChessboardFrame';
-import { getPieceSet, PieceSetStyle } from '@/components/pieces/PieceSets2D';
 import { sounds } from '@/lib/sounds';
 import { BrowserStockfishEngine } from '@/lib/engine/browserStockfish';
 import { EngineEvalResult } from '@/lib/engine/types';
@@ -55,7 +54,6 @@ interface CoachStudyModalProps {
   subtitle?: string;
   items: CoachStudyItem[];
   initialIndex?: number;
-  pieceSet?: PieceSetStyle;
 }
 
 export function CoachStudyModal({
@@ -65,7 +63,6 @@ export function CoachStudyModal({
   subtitle = 'Review your diagnostic puzzles move-by-move with private academy coach commentary.',
   items,
   initialIndex = 0,
-  pieceSet = 'default',
 }: CoachStudyModalProps) {
   const [selectedIdx, setSelectedIdx] = useState<number>(initialIndex);
   const [stepIdx, setStepIdx] = useState<number>(0);
@@ -387,7 +384,6 @@ export function CoachStudyModal({
                   options={{
                     position: currentFen,
                     boardOrientation: currentItem.playerColor,
-                    pieces: getPieceSet(pieceSet),
                     showNotation: true,
                     allowDrawingArrows: true,
                     clearArrowsOnClick: true,
