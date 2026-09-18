@@ -29,6 +29,18 @@ function formatClock(totalSeconds: number): string {
   return `${Math.floor(safe / 60)}m ${safe % 60}s`;
 }
 
+/** "Saved 3m ago" / "Saved just now" -- how long since this library was last synced. */
+function formatSyncAge(timestamp: number): string {
+  const seconds = Math.max(0, Math.round((Date.now() - timestamp) / 1000));
+  if (seconds < 60) return 'Saved just now';
+  const minutes = Math.round(seconds / 60);
+  if (minutes < 60) return `Saved ${minutes}m ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `Saved ${hours}h ago`;
+  const days = Math.round(hours / 24);
+  return `Saved ${days}d ago`;
+}
+
 function WeaknessStudioContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -47,6 +59,7 @@ function WeaknessStudioContent() {
     isLoading,
     streamProgress,
     error,
+    lastSyncedAt,
     isEngineRunning,
     isEnginePaused,
     engineProgress,
@@ -185,8 +198,19 @@ function WeaknessStudioContent() {
                 </span>
               )}
             </h1>
-            <p className="text-xs theme-text-secondary">
-              The exact positions where you lost the most, worst first
+            <p className="text-xs theme-text-secondary flex items-center gap-1.5">
+              <span>The exact positions where you lost the most, worst first</span>
+              {lastSyncedAt && (
+                <>
+                  <span className="theme-text-muted">&middot;</span>
+                  <span
+                    className="theme-text-muted font-mono text-[11px]"
+                    title={new Date(lastSyncedAt).toLocaleString()}
+                  >
+                    {formatSyncAge(lastSyncedAt)}
+                  </span>
+                </>
+              )}
             </p>
           </div>
         </div>

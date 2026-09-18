@@ -18,6 +18,9 @@ import { EngineProgress } from './engine/types';
  * mistakes. Both now read from here, where an unanalyzed game is simply a game
  * the browser engine has not swept yet.
  */
+/** Below this age, a visit serves the saved library and never touches Lichess. */
+export const SYNC_FRESHNESS_MS = 20 * 60 * 1000;
+
 export interface WeaknessScan {
   activeUsername: string;
   games: GameDerivedStats[];
@@ -28,6 +31,10 @@ export interface WeaknessScan {
   isLoading: boolean;
   streamProgress: StreamProgress | null;
   error: string | null;
+  /** When the current games were last pulled from Lichess, or null if never synced. */
+  lastSyncedAt: number | null;
+  /** True while scan() is serving the saved library without a network call. */
+  isServingCache: boolean;
 
   isEngineRunning: boolean;
   isEnginePaused: boolean;
@@ -46,6 +53,8 @@ export function useWeaknessScan(options: { autoUsername?: string; enabled?: bool
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [streamProgress, setStreamProgress] = useState<StreamProgress | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [lastSyncedAt, setLastSyncedAt] = useState<number | null>(null);
+  const [isServingCache, setIsServingCache] = useState<boolean>(false);
 
   const [isEngineRunning, setIsEngineRunning] = useState<boolean>(false);
   const [isEnginePaused, setIsEnginePaused] = useState<boolean>(false);
@@ -87,9 +96,24 @@ export function useWeaknessScan(options: { autoUsername?: string; enabled?: bool
       if (cached.games.length > 0) {
         cachedGames = cached.games;
         setGames(cached.games);
+        setLastSyncedAt(cached.lastSyncedAt);
+
+        // The saved library is recent enough to serve as-is. This is the fix
+        // for re-downloading the same 50 games on every visit: previously the
+        // cache only painted the first frame, and a full Lichess stream always
+        // followed it regardless of age.
+        const age = cached.lastSyncedAt ? Date.now() - cached.lastSyncedAt : Infinity;
+        if (age < SYNC_FRESHNESS_MS) {
+          setIsServingCache(true);
+          if (streamAbortControllerRef.current === abortCtrl) {
+            streamAbortControllerRef.current = null;
+          }
+          return;
+        }
       }
     }
 
+    setIsServingCache(false);
     setIsLoading(true);
     try {
       // 2. Validate the username
@@ -145,6 +169,7 @@ export function useWeaknessScan(options: { autoUsername?: string; enabled?: bool
 
         setGames(finalGames);
         await saveGameStatsBatch(canonicalUser, finalGames);
+        setLastSyncedAt(Date.now());
       }
     } catch (err: unknown) {
       if (err instanceof Error && err.name !== 'AbortError') {
@@ -207,6 +232,7 @@ export function useWeaknessScan(options: { autoUsername?: string; enabled?: bool
 
       setGames(enriched);
       await saveGameStatsBatch(activeUsernameRef.current, enriched);
+      setLastSyncedAt(Date.now());
 
       // A run that was paused keeps its paused state and its progress bar: the
       // aborted analysis still resolves normally, and clearing here is what used
@@ -245,6 +271,8 @@ export function useWeaknessScan(options: { autoUsername?: string; enabled?: bool
     isLoading,
     streamProgress,
     error,
+    lastSyncedAt,
+    isServingCache,
     isEngineRunning,
     isEnginePaused,
     engineProgress,

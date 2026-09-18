@@ -241,17 +241,33 @@ function readLocalGames(username: string): GameDerivedStats[] {
 }
 
 /**
+ * When this user's games were last written to localStorage, or null if never.
+ * Read by useWeaknessScan to decide whether a visit needs to hit Lichess again
+ * or can serve the saved library as-is.
+ */
+export function getLastSyncedAt(username: string): number | null {
+  try {
+    const key = `${LOCAL_STORAGE_KEY_PREFIX}${username.toLowerCase()}_timestamp`;
+    const raw = localStorage.getItem(key);
+    return raw ? parseInt(raw, 10) || null : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Loads cached game stats from Supabase or localStorage
  */
 export async function loadCachedGameStats(
   username: string
-): Promise<{ games: GameDerivedStats[]; fromSupabase: boolean }> {
+): Promise<{ games: GameDerivedStats[]; fromSupabase: boolean; lastSyncedAt: number | null }> {
   if (typeof window === 'undefined' || !username) {
-    return { games: [], fromSupabase: false };
+    return { games: [], fromSupabase: false, lastSyncedAt: null };
   }
 
   const localGames = readLocalGames(username);
   const localById = new Map(localGames.map((g) => [g.gameId, g]));
+  const lastSyncedAt = getLastSyncedAt(username);
 
   // 1. Try Supabase first if configured and authenticated
   if (isSupabaseConfigured && supabase) {
@@ -320,7 +336,7 @@ export async function loadCachedGameStats(
           }
           mapped.sort((a, b) => b.playedAt - a.playedAt);
 
-          return { games: mapped, fromSupabase: true };
+          return { games: mapped, fromSupabase: true, lastSyncedAt };
         }
       }
     } catch {}
@@ -328,8 +344,8 @@ export async function loadCachedGameStats(
 
   // 2. Fallback to localStorage
   if (localGames.length > 0) {
-    return { games: localGames, fromSupabase: false };
+    return { games: localGames, fromSupabase: false, lastSyncedAt };
   }
 
-  return { games: [], fromSupabase: false };
+  return { games: [], fromSupabase: false, lastSyncedAt: null };
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { track } from '@vercel/analytics';
 import { LichessUser } from './lichess';
+import { supabase, isSupabaseConfigured } from './supabase';
 
 const LOCAL_STORAGE_KEY = 'chessz_lichess_user_cache';
 
@@ -12,12 +13,43 @@ export function useLichess() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const isMountedRef = useRef<boolean>(true);
+  // Which Lichess username the Supabase session is currently linked to, so a
+  // second fetchSession (a tab focus, a refresh) doesn't re-request a session
+  // that's already correct.
+  const linkedUsernameRef = useRef<string | null>(null);
 
   useEffect(() => {
     isMountedRef.current = true;
     return () => {
       isMountedRef.current = false;
     };
+  }, []);
+
+  // Lichess IS the login: once a real OAuth connection is confirmed (not a
+  // public-username preview), silently bridge it into a Supabase session keyed
+  // to that Lichess identity. The player never sees an email or password --
+  // reconnecting Lichess on any device lands in the same Supabase user, so
+  // their saved blunder library follows the connection rather than the
+  // browser. If Supabase or the server-side secrets aren't configured, this is
+  // a no-op and saves simply stay local to the browser.
+  const linkSupabaseSession = useCallback(async (username: string) => {
+    if (!isSupabaseConfigured || !supabase) return;
+    const normalized = username.toLowerCase();
+    if (linkedUsernameRef.current === normalized) return;
+    try {
+      const res = await fetch('/api/auth/lichess/session', { method: 'POST' });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.linked && data.access_token && data.refresh_token) {
+        await supabase.auth.setSession({
+          access_token: data.access_token,
+          refresh_token: data.refresh_token,
+        });
+        linkedUsernameRef.current = normalized;
+      }
+    } catch (err) {
+      console.warn('Lichess-linked login skipped:', err);
+    }
   }, []);
 
   // Load from session API and fallback to localStorage cache
@@ -39,6 +71,11 @@ export function useLichess() {
           try {
             localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data.user));
           } catch {}
+          // Only a real OAuth connection logs in; a public-username preview
+          // (authenticated: false) never creates or claims an account.
+          if (data.authenticated && data.user.username) {
+            linkSupabaseSession(data.user.username);
+          }
           return;
         }
       }
@@ -69,7 +106,7 @@ export function useLichess() {
         setLoading(false);
       }
     }
-  }, []);
+  }, [linkSupabaseSession]);
 
   useEffect(() => {
     // Schedule initial session check asynchronously to avoid cascading renders
@@ -114,6 +151,12 @@ export function useLichess() {
       try {
         localStorage.removeItem(LOCAL_STORAGE_KEY);
       } catch {}
+      linkedUsernameRef.current = null;
+      if (isSupabaseConfigured && supabase) {
+        try {
+          await supabase.auth.signOut();
+        } catch {}
+      }
     } catch (err: unknown) {
       console.error('Failed to log out from Lichess:', err);
     } finally {
