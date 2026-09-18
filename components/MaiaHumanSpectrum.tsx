@@ -21,8 +21,7 @@ import {
   EyeOff,
   Loader2,
 } from 'lucide-react';
-import {
-  fetchMaiaAnalysis,
+import type {
   MaiaRatingTier,
   MaiaAnalysisResult,
   MaiaCandidateMove,
@@ -70,6 +69,19 @@ function moveSanToSquares(fen: string, moveStr: string): { from: string; to: str
     // Ignore invalid SAN / UCI
   }
   return null;
+}
+
+/**
+ * A FEN reaching this component can come straight from a user input box, so
+ * every consumer (board render, engine search, Maia lookup) must gate on this.
+ */
+function isValidFen(fen: string): boolean {
+  try {
+    new Chess(fen);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function uciToSan(fen: string, uci: string): string | null {
@@ -138,7 +150,15 @@ export function MaiaHumanSpectrum({
       return;
     }
 
-    if (!fen) return;
+    // Searching a malformed FEN makes Stockfish silently keep the previous
+    // position and answer with a move that belongs to it, so clear the last
+    // result rather than leaving it on screen beside an unreadable board.
+    if (!fen || !isValidFen(fen)) {
+      setComputedStockfishMove(null);
+      setComputedStockfishEval(null);
+      setIsEngineCalculating(false);
+      return;
+    }
 
     let isCancelled = false;
     setIsEngineCalculating(true);
@@ -200,6 +220,13 @@ export function MaiaHumanSpectrum({
     let isCancelled = false;
     async function loadData() {
       if (!fen) return;
+      if (!isValidFen(fen)) {
+        // Drop the previous position's analysis so the panel can't show one
+        // position's numbers next to another position's board.
+        setAnalysis(null);
+        setLoading(false);
+        return;
+      }
       setLoading(true);
       // Reset refutation state on FEN change
       setIsRefuting(false);
@@ -209,12 +236,22 @@ export function MaiaHumanSpectrum({
       setActiveHighlightedMove(null);
 
       try {
-        const res = await fetchMaiaAnalysis(fen, selectedTier, effectiveStockfishBestMoveSan);
+        // Routed through /api/maia rather than calling the explorer directly:
+        // the route's s-maxage cache absorbs repeat positions, and requests
+        // leave from one origin instead of every visitor's IP.
+        const params = new URLSearchParams({ fen, tier: String(selectedTier) });
+        if (effectiveStockfishBestMoveSan) {
+          params.set('bestMove', effectiveStockfishBestMoveSan);
+        }
+        const response = await fetch(`/api/maia?${params.toString()}`);
+        if (!response.ok) throw new Error(`Maia route returned ${response.status}`);
+        const res: MaiaAnalysisResult = await response.json();
         if (!isCancelled) {
           setAnalysis(res);
         }
       } catch (err) {
         console.error('Failed to fetch Maia analysis:', err);
+        if (!isCancelled) setAnalysis(null);
       } finally {
         if (!isCancelled) {
           setLoading(false);
@@ -327,7 +364,7 @@ export function MaiaHumanSpectrum({
       setIsRefuting(true);
       setRefutationStatus('prompt');
       setRefutationFeedback(
-        `Maia played ${trapMoveSan} (${analysis?.cognitiveDiagnosis.blunderCategory || 'Human Trap'}). Play the refutation!`
+        `Maia played ${trapMoveSan} (${analysis?.cognitiveDiagnosis?.blunderCategory || 'Human Trap'}). Play the refutation!`
       );
     } catch {
       // Fallback
@@ -393,6 +430,11 @@ export function MaiaHumanSpectrum({
   };
 
   const currentBot = lichessBotMap[selectedTier];
+
+  // react-chessboard throws while rendering pieces for a malformed position,
+  // and that escapes to the route error boundary and destroys the whole studio.
+  const isFenRenderable = useMemo(() => isValidFen(fen), [fen]);
+
   const displayFen = refutationGame ? refutationGame.fen() : fen;
 
   return (
@@ -466,29 +508,46 @@ export function MaiaHumanSpectrum({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* LEFT COLUMN: Chessboard with Visual Arrows & Refutation Sandbox */}
         <div className="lg:col-span-6 flex flex-col items-center justify-center space-y-3">
-          <ChessboardFrame
-            boardOrientation={orientation}
-            boardSize={320}
-            bezelSize={18}
-          >
-            <Chessboard
-              options={{
-                position: displayFen,
-                boardOrientation: orientation,
-                showNotation: true,
-                allowDrawingArrows: true,
-                clearArrowsOnClick: true,
-                arrows: arrows,
-                arrowOptions: {
-                  ...defaultArrowOptions,
-                  opacity: 0.9,
-                  arrowStartOffset: 0.15,
-                  arrowWidthDenominator: 5.5,
-                },
-                onPieceDrop: isRefuting ? handleRefutationDrop : undefined,
-              }}
-            />
-          </ChessboardFrame>
+          {isFenRenderable ? (
+            <ChessboardFrame
+              boardOrientation={orientation}
+              boardSize={320}
+              bezelSize={18}
+            >
+              <Chessboard
+                options={{
+                  position: displayFen,
+                  boardOrientation: orientation,
+                  showNotation: true,
+                  allowDrawingArrows: true,
+                  clearArrowsOnClick: true,
+                  arrows: arrows,
+                  arrowOptions: {
+                    ...defaultArrowOptions,
+                    opacity: 0.9,
+                    arrowStartOffset: 0.15,
+                    arrowWidthDenominator: 5.5,
+                  },
+                  onPieceDrop: isRefuting ? handleRefutationDrop : undefined,
+                }}
+              />
+            </ChessboardFrame>
+          ) : (
+            <div
+              className="w-[320px] h-[320px] rounded-2xl border border-dashed border-rose-500/40 bg-rose-500/5 flex flex-col items-center justify-center gap-2 text-center px-6"
+              role="status"
+            >
+              <AlertTriangle className="w-6 h-6 text-rose-400" />
+              <span className="text-xs font-bold theme-text-primary">
+                That FEN could not be read
+              </span>
+              <span className="text-[11px] theme-text-secondary font-mono">
+                A position needs six space-separated fields, for example
+                <br />
+                <code className="text-[10px]">rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1</code>
+              </span>
+            </div>
+          )}
 
           {/* Arrow Legend & Toggle Controls */}
           <div className="w-full max-w-[340px] flex items-center justify-between text-[11px] font-mono theme-text-muted px-1">
@@ -622,11 +681,15 @@ export function MaiaHumanSpectrum({
               <div className="flex items-baseline gap-2">
                 <span className="text-xl font-black font-mono text-purple-300">
                   {loading
-                    ? 'Predicting...'
-                    : analysis?.topHumanMove?.san || 'N/A'}
+                    ? 'Loading...'
+                    : analysis?.topHumanMove?.san || '—'}
                 </span>
                 <span className="text-[10px] theme-text-muted">
-                  {analysis?.isHumanTrap ? '⚠️ Common Human Trap' : 'dominant human move'}
+                  {!analysis?.hasData
+                    ? 'no games recorded'
+                    : analysis.isHumanTrap
+                    ? '⚠️ Common Human Trap'
+                    : 'most played move'}
                 </span>
               </div>
             </div>
@@ -635,15 +698,24 @@ export function MaiaHumanSpectrum({
           {/* Candidate Moves Probability Spectrum */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-[11px] font-mono theme-text-muted">
-              <span>Human Move Probabilities ({selectedTier} Elo)</span>
+              <span>Human Move Frequency ({selectedTier} Elo)</span>
               <span>Click move to preview arrow</span>
             </div>
+
+            {analysis?.hasData && (
+              <div className="text-[10px] font-mono theme-text-muted">
+                {analysis.totalGames.toLocaleString()} Lichess games in this rating band
+                {analysis.coveragePercent < 100 && (
+                  <> · top moves cover {analysis.coveragePercent}% of them</>
+                )}
+              </div>
+            )}
 
             {loading ? (
               <div className="py-8 flex flex-col items-center justify-center space-y-2">
                 <div className="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
                 <span className="text-[10px] font-mono theme-text-muted">
-                  Sampling Maia policy distribution...
+                  Querying Lichess games at this rating band...
                 </span>
               </div>
             ) : analysis?.candidateMoves && analysis.candidateMoves.length > 0 ? (
@@ -704,8 +776,30 @@ export function MaiaHumanSpectrum({
                 })}
               </div>
             ) : (
-              <div className="p-4 rounded-xl theme-surface-subtle border text-center text-xs theme-text-muted">
-                No alternative human move data available for this position.
+              <div className="p-4 rounded-xl theme-surface-subtle border border-[var(--border-subtle)] text-center space-y-1">
+                {analysis?.source === 'unavailable' ? (
+                  <>
+                    <p className="text-xs font-bold theme-text-secondary">
+                      Lichess explorer unreachable
+                    </p>
+                    <p className="text-[11px] theme-text-muted leading-relaxed">
+                      The human game database could not be reached right now, so there are no
+                      move frequencies to show. This is a temporary service issue, not a
+                      property of the position.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-xs font-bold theme-text-secondary">
+                      No human games recorded here
+                    </p>
+                    <p className="text-[11px] theme-text-muted leading-relaxed">
+                      This position has never appeared in the Lichess database at {selectedTier} Elo,
+                      so there is no move distribution to show. Try a neighbouring rating band, or
+                      step back to an earlier position in the game.
+                    </p>
+                  </>
+                )}
               </div>
             )}
           </div>
@@ -719,7 +813,7 @@ export function MaiaHumanSpectrum({
                   <span>Cognitive Trap: {analysis.cognitiveDiagnosis.blunderCategory}</span>
                 </div>
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-extrabold">
-                  {analysis.cognitiveDiagnosis.humanTrapRate}% of {selectedTier}s fall for this
+                  {analysis.cognitiveDiagnosis.humanTrapRate}% of {selectedTier}s played this
                 </span>
               </div>
               <p className="text-xs theme-text-secondary leading-relaxed">

@@ -5,9 +5,9 @@ export type MaiaRatingTier = 1100 | 1300 | 1500 | 1700 | 1900;
 export interface MaiaCandidateMove {
   san: string;
   uci: string;
-  probability: number; // Percentage 0 - 100
+  probability: number; // Share of games in this rating band, 0 - 100
   gamesCount?: number;
-  winRate?: number;    // Estimated win rate 0 - 100
+  winRate?: number;    // Empirical win rate for the side to move, 0 - 100
   isStockfishBest?: boolean;
   judgment?: 'best' | 'good' | 'inaccuracy' | 'mistake' | 'blunder';
   psychologicalTag?: string;
@@ -22,18 +22,36 @@ export interface MiaiDilemma {
 export interface CognitiveDiagnosis {
   blunderCategory?: 'Greed Trap' | 'Tunnel Vision' | 'Ghost Threat' | 'Prophylactic Blindness' | 'Time Panic' | 'Passive Waiting';
   explanation: string;
-  humanTrapRate: number; // e.g. 74% of players at this tier fall into this
+  /**
+   * Share of games in this rating band that actually played the diagnosed move.
+   * Measured from the Lichess explorer sample, never estimated.
+   */
+  humanTrapRate: number;
 }
 
 export interface MaiaAnalysisResult {
   fen: string;
   ratingTier: MaiaRatingTier;
+  /**
+   * False when the explorer has no games for this position at this rating band.
+   * Consumers must render an empty state rather than inventing a distribution.
+   */
+  hasData: boolean;
+  /** Total games in the explorer sample for this position + rating band. */
+  totalGames: number;
+  /** Share of those games covered by the returned candidate moves. */
+  coveragePercent: number;
   candidateMoves: MaiaCandidateMove[];
-  topHumanMove: MaiaCandidateMove;
+  topHumanMove: MaiaCandidateMove | null;
   isHumanTrap: boolean;
   miaiDilemma: MiaiDilemma;
-  cognitiveDiagnosis: CognitiveDiagnosis;
-  source: 'lichess_explorer' | 'neural_heuristic';
+  cognitiveDiagnosis: CognitiveDiagnosis | null;
+  /**
+   * 'no_data'     - explorer answered, but has no games for this position.
+   * 'unavailable' - explorer could not be reached (network, timeout, non-200).
+   * These are different facts and the UI must not conflate them.
+   */
+  source: 'lichess_explorer' | 'no_data' | 'unavailable';
 }
 
 /**
@@ -56,12 +74,17 @@ function getLichessRatingsForTier(tier: MaiaRatingTier): string {
 }
 
 /**
- * Analyzes candidate moves and classifies psychological patterns
+ * Describes *why* a move is attractive to human players at this tier.
+ *
+ * This is a qualitative label only. The quantitative part of the diagnosis
+ * (`humanTrapRate`) is always the measured share of games from the explorer
+ * sample, passed in by the caller - it is never estimated here.
  */
 export function diagnosePsychology(
   chess: InstanceType<typeof Chess>,
   playedSan: string,
-  tier: MaiaRatingTier
+  tier: MaiaRatingTier,
+  measuredRate: number
 ): CognitiveDiagnosis {
   try {
     const isCapture = playedSan.includes('x');
@@ -73,7 +96,7 @@ export function diagnosePsychology(
       return {
         blunderCategory: 'Tunnel Vision',
         explanation: 'Impulsive 1-ply check without evaluating opponent escaping square or counter-attack.',
-        humanTrapRate: tier === 1100 ? 76 : 58,
+        humanTrapRate: measuredRate,
       };
     }
 
@@ -82,7 +105,7 @@ export function diagnosePsychology(
       return {
         blunderCategory: 'Greed Trap',
         explanation: 'Attracted by free or hanging material while neglecting king safety and opponent tactical counter-punches.',
-        humanTrapRate: tier <= 1300 ? 82 : tier <= 1500 ? 64 : 45,
+        humanTrapRate: measuredRate,
       };
     }
 
@@ -91,7 +114,7 @@ export function diagnosePsychology(
       return {
         blunderCategory: 'Tunnel Vision',
         explanation: 'Premature queen sortie in the opening, inviting minor piece tempo attacks.',
-        humanTrapRate: tier <= 1300 ? 69 : 42,
+        humanTrapRate: measuredRate,
       };
     }
 
@@ -100,7 +123,7 @@ export function diagnosePsychology(
       return {
         blunderCategory: 'Passive Waiting',
         explanation: 'Relieving tension with a slow flank pawn push when concrete central action was required.',
-        humanTrapRate: tier <= 1500 ? 61 : 38,
+        humanTrapRate: measuredRate,
       };
     }
 
@@ -108,13 +131,13 @@ export function diagnosePsychology(
     return {
       blunderCategory: 'Prophylactic Blindness',
       explanation: 'Executing own tactical idea without anticipating the opponent’s concrete next move.',
-      humanTrapRate: tier <= 1500 ? 55 : 35,
+      humanTrapRate: measuredRate,
     };
   } catch {
     return {
       blunderCategory: 'Prophylactic Blindness',
       explanation: 'Tactical oversight common under time pressure or calculation fatigue.',
-      humanTrapRate: 50,
+      humanTrapRate: measuredRate,
     };
   }
 }
@@ -129,7 +152,7 @@ export function detectMiaiDilemma(
   try {
     const chess = new Chess(fen);
     const legalMoves = chess.moves({ verbose: true });
-    
+
     // Check for multiple distinct threats (e.g. checkmate threat + fork/capture threat)
     const checks = legalMoves.filter(m => m.san.includes('+') || m.san.includes('#'));
     const captures = legalMoves.filter(m => m.captured);
@@ -161,76 +184,34 @@ export function detectMiaiDilemma(
   }
 }
 
-/**
- * Generates heuristic candidate move distributions for positions beyond opening explorer
- */
-function generateHeuristicDistribution(
+function emptyResult(
   fen: string,
   tier: MaiaRatingTier,
-  stockfishBestMove?: string
-): MaiaCandidateMove[] {
-  const chess = new Chess(fen);
-  const moves = chess.moves({ verbose: true });
-  if (moves.length === 0) return [];
-
-  // Score candidate moves based on human psychological saliency at this tier
-  const scored = moves.map((m) => {
-    let score = 10;
-    const isCapture = Boolean(m.captured);
-    const isCheck = m.san.includes('+') || m.san.includes('#');
-    const isCentral = ['d4', 'e4', 'd5', 'e5', 'c4', 'c5', 'f4', 'f5'].includes(m.to);
-    const isQueenMove = m.piece === 'q';
-
-    if (tier === 1100) {
-      // 1100s prioritize immediate checks, queen moves, and captures heavily
-      if (isCheck) score += 60;
-      if (isCapture) score += 45;
-      if (isQueenMove) score += 25;
-      if (isCentral) score += 15;
-    } else if (tier === 1500) {
-      // 1500s balance development, center control, and tactical threats
-      if (isCheck) score += 30;
-      if (isCapture) score += 40;
-      if (isCentral) score += 35;
-      if (m.piece === 'n' || m.piece === 'b') score += 25; // Piece activity
-    } else {
-      // 1900s prioritize harmony, king safety, and structural moves
-      if (isCentral) score += 40;
-      if (isCapture) score += 30;
-      if (m.piece === 'n' || m.piece === 'b') score += 35;
-      if (m.san.startsWith('O-O')) score += 30; // Castling
-    }
-
-    // Slight bias toward Stockfish move if 1900, less if 1100
-    if (stockfishBestMove && (m.san === stockfishBestMove || m.lan === stockfishBestMove)) {
-      score += tier === 1900 ? 50 : tier === 1500 ? 25 : 10;
-    }
-
-    return {
-      san: m.san,
-      uci: m.from + m.to + (m.promotion ? m.promotion : ''),
-      rawScore: score,
-    };
-  });
-
-  // Sort and pick top 5
-  scored.sort((a, b) => b.rawScore - a.rawScore);
-  const topMoves = scored.slice(0, 5);
-  const totalScore = topMoves.reduce((acc, cur) => acc + cur.rawScore, 0);
-
-  return topMoves.map((m) => {
-    const prob = Math.round((m.rawScore / totalScore) * 100);
-    return {
-      san: m.san,
-      uci: m.uci,
-      probability: Math.max(2, prob),
-      isStockfishBest: stockfishBestMove ? m.san === stockfishBestMove || m.uci === stockfishBestMove : false,
-    };
-  });
+  source: 'no_data' | 'unavailable'
+): MaiaAnalysisResult {
+  return {
+    fen,
+    ratingTier: tier,
+    hasData: false,
+    totalGames: 0,
+    coveragePercent: 0,
+    candidateMoves: [],
+    topHumanMove: null,
+    isHumanTrap: false,
+    miaiDilemma: detectMiaiDilemma(fen, []),
+    cognitiveDiagnosis: null,
+    source,
+  };
 }
 
 /**
- * Primary function to fetch Maia-like human move probability distribution
+ * Fetches the empirical human move distribution for a position at a given
+ * rating band, from the Lichess opening explorer.
+ *
+ * When the explorer has no games for the position, this returns an empty
+ * result (`hasData: false`). It deliberately does not synthesise a fallback
+ * distribution: once a guessed distribution reaches the UI it is
+ * indistinguishable from a measured one.
  */
 export async function fetchMaiaAnalysis(
   fen: string,
@@ -240,97 +221,68 @@ export async function fetchMaiaAnalysis(
   const chess = new Chess(fen);
   const ratings = getLichessRatingsForTier(tier);
 
-  try {
-    // 1. Query Lichess Explorer for empirical human distribution at this exact rating tier
-    const url = `https://explorer.lichess.ovh/lichess?fen=${encodeURIComponent(
-      fen
-    )}&ratings=${ratings}&speeds=bullet,blitz,rapid,classical&moves=6`;
+  const url = `https://explorer.lichess.ovh/lichess?fen=${encodeURIComponent(
+    fen
+  )}&ratings=${ratings}&speeds=bullet,blitz,rapid,classical&moves=6`;
 
+  let data: {
+    white?: number;
+    draws?: number;
+    black?: number;
+    moves?: { san: string; uci: string; white: number; draws: number; black: number }[];
+  };
+
+  try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 2500);
-
     const res = await fetch(url, { signal: controller.signal });
     clearTimeout(timeout);
 
-    if (res.ok) {
-      const data = await res.json();
-      const rawMoves = data?.moves || [];
-
-      if (rawMoves.length > 0) {
-        const totalGames = rawMoves.reduce(
-          (acc: number, cur: { white: number; draws: number; black: number }) =>
-            acc + (cur.white + cur.draws + cur.black),
-          0
-        );
-
-        const candidateMoves: MaiaCandidateMove[] = rawMoves.map(
-          (m: {
-            san: string;
-            uci: string;
-            white: number;
-            draws: number;
-            black: number;
-          }) => {
-            const games = m.white + m.draws + m.black;
-            const prob = totalGames > 0 ? Math.round((games / totalGames) * 100) : 0;
-            const winRate =
-              games > 0
-                ? Math.round(
-                    ((chess.turn() === 'w' ? m.white : m.black) + 0.5 * m.draws) /
-                      games *
-                      100
-                  )
-                : 50;
-
-            const isBest = stockfishBestMove
-              ? m.san === stockfishBestMove || m.uci === stockfishBestMove
-              : false;
-
-            return {
-              san: m.san,
-              uci: m.uci,
-              probability: prob,
-              gamesCount: games,
-              winRate,
-              isStockfishBest: isBest,
-            };
-          }
-        );
-
-        // Normalize probabilities so they sum to 100
-        const probSum = candidateMoves.reduce((acc, cur) => acc + cur.probability, 0);
-        if (probSum > 0 && probSum !== 100) {
-          candidateMoves.forEach((m) => {
-            m.probability = Math.round((m.probability / probSum) * 100);
-          });
-        }
-
-        const topHuman = candidateMoves[0];
-        const isHumanTrap = Boolean(
-          stockfishBestMove &&
-          topHuman.san !== stockfishBestMove &&
-          topHuman.probability >= 40
-        );
-
-        return {
-          fen,
-          ratingTier: tier,
-          candidateMoves,
-          topHumanMove: topHuman,
-          isHumanTrap,
-          miaiDilemma: detectMiaiDilemma(fen, candidateMoves),
-          cognitiveDiagnosis: diagnosePsychology(chess, topHuman.san, tier),
-          source: 'lichess_explorer',
-        };
-      }
-    }
+    if (!res.ok) return emptyResult(fen, tier, 'unavailable');
+    data = await res.json();
   } catch {
-    // Network fallback to neural heuristic below
+    return emptyResult(fen, tier, 'unavailable');
   }
 
-  // 2. Fallback to heuristic cognitive distribution
-  const heuristicMoves = generateHeuristicDistribution(fen, tier, stockfishBestMove);
-  const topHuman = heuristicMoves[0] || { san: 'None', uci: '', probability: 100 };
+  const rawMoves = data?.moves || [];
+  if (rawMoves.length === 0) return emptyResult(fen, tier, 'no_data');
+
+  const shownGames = rawMoves.reduce(
+    (acc, cur) => acc + cur.white + cur.draws + cur.black,
+    0
+  );
+
+  // The denominator is every game in the sample for this position, not just
+  // the handful of moves the explorer returned. Probabilities therefore sum
+  // to less than 100 whenever there is a long tail of rarer moves, which is
+  // the honest reading of the data.
+  const totalGames =
+    (data.white ?? 0) + (data.draws ?? 0) + (data.black ?? 0) || shownGames;
+
+  if (totalGames === 0) return emptyResult(fen, tier, 'no_data');
+
+  const candidateMoves: MaiaCandidateMove[] = rawMoves.map((m) => {
+    const games = m.white + m.draws + m.black;
+    const winRate =
+      games > 0
+        ? Math.round((((chess.turn() === 'w' ? m.white : m.black) + 0.5 * m.draws) / games) * 100)
+        : 50;
+
+    return {
+      san: m.san,
+      uci: m.uci,
+      probability: Math.round((games / totalGames) * 100),
+      gamesCount: games,
+      winRate,
+      isStockfishBest: stockfishBestMove
+        ? m.san === stockfishBestMove || m.uci === stockfishBestMove
+        : false,
+    };
+  });
+
+  const coveragePercent = Math.min(100, Math.round((shownGames / totalGames) * 100));
+
+  const topHuman = candidateMoves[0];
   const isHumanTrap = Boolean(
     stockfishBestMove &&
     topHuman.san !== stockfishBestMove &&
@@ -340,11 +292,18 @@ export async function fetchMaiaAnalysis(
   return {
     fen,
     ratingTier: tier,
-    candidateMoves: heuristicMoves,
+    hasData: true,
+    totalGames,
+    coveragePercent,
+    candidateMoves,
     topHumanMove: topHuman,
     isHumanTrap,
-    miaiDilemma: detectMiaiDilemma(fen, heuristicMoves),
-    cognitiveDiagnosis: diagnosePsychology(chess, topHuman.san, tier),
-    source: 'neural_heuristic',
+    miaiDilemma: detectMiaiDilemma(fen, candidateMoves),
+    // Only diagnose when the crowd move actually diverges from the engine move.
+    // Otherwise there is no trap to explain.
+    cognitiveDiagnosis: isHumanTrap
+      ? diagnosePsychology(chess, topHuman.san, tier, topHuman.probability)
+      : null,
+    source: 'lichess_explorer',
   };
 }

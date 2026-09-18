@@ -43,6 +43,9 @@ export async function saveGameStatsBatch(
         moveNumber: m.moveNumber,
         color: m.color,
         san: m.san,
+        // fen is the position before the move: required by the blunder trainer's
+        // setup stepper and by Maia Lens after a reload from cache.
+        fen: m.fen,
         evalBefore: m.evalBefore,
         evalAfter: m.evalAfter,
         winPctBefore: m.winPctBefore,
@@ -215,6 +218,24 @@ interface DbGameRow {
 }
 
 /**
+ * Reads the locally checkpointed games for a user. These rows carry the full
+ * move list and critical moments; the Supabase tables do not.
+ */
+function readLocalGames(username: string): GameDerivedStats[] {
+  try {
+    const key = `${LOCAL_STORAGE_KEY_PREFIX}${username.toLowerCase()}`;
+    const raw = localStorage.getItem(key);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed as GameDerivedStats[];
+      }
+    }
+  } catch {}
+  return [];
+}
+
+/**
  * Loads cached game stats from Supabase or localStorage
  */
 export async function loadCachedGameStats(
@@ -223,6 +244,9 @@ export async function loadCachedGameStats(
   if (typeof window === 'undefined' || !username) {
     return { games: [], fromSupabase: false };
   }
+
+  const localGames = readLocalGames(username);
+  const localById = new Map(localGames.map((g) => [g.gameId, g]));
 
   // 1. Try Supabase first if configured and authenticated
   if (isSupabaseConfigured && supabase) {
@@ -239,7 +263,15 @@ export async function loadCachedGameStats(
           .limit(100);
 
         if (rows && rows.length > 0) {
-          const mapped: GameDerivedStats[] = (rows as DbGameRow[]).map((r) => ({
+          const mapped: GameDerivedStats[] = (rows as DbGameRow[]).map((r) => {
+            // game_stats stores aggregates only. When the same game is already
+            // checkpointed locally, prefer that copy: it still has the moves and
+            // critical moments the engine sweep and blunder trainer replay from.
+            const local = localById.get(r.game_id);
+            if (local && local.moves && local.moves.length > 0) {
+              return local;
+            }
+            return {
             gameId: r.game_id,
             userId: r.user_id,
             playedAt: new Date(r.played_at).getTime(),
@@ -272,7 +304,16 @@ export async function loadCachedGameStats(
             engineNodes: r.engine_nodes,
             moves: [],
             criticalMoments: [],
-          }));
+            };
+          });
+
+          // Local-only games (not yet upserted, or newer than the last sync)
+          // must not be dropped just because Supabase answered first.
+          const mappedIds = new Set(mapped.map((g) => g.gameId));
+          for (const lg of localGames) {
+            if (!mappedIds.has(lg.gameId)) mapped.push(lg);
+          }
+          mapped.sort((a, b) => b.playedAt - a.playedAt);
 
           return { games: mapped, fromSupabase: true };
         }
@@ -281,16 +322,9 @@ export async function loadCachedGameStats(
   }
 
   // 2. Fallback to localStorage
-  try {
-    const key = `${LOCAL_STORAGE_KEY_PREFIX}${username.toLowerCase()}`;
-    const raw = localStorage.getItem(key);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return { games: parsed, fromSupabase: false };
-      }
-    }
-  } catch {}
+  if (localGames.length > 0) {
+    return { games: localGames, fromSupabase: false };
+  }
 
   return { games: [], fromSupabase: false };
 }

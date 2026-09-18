@@ -1,6 +1,6 @@
 import { Chess } from 'chess.js';
 import { ChessEngine, EngineEvalResult, EngineProgress } from './types';
-import { GameDerivedStats, MoveAnalysis } from '../chessMetrics/types';
+import { GameDerivedStats, MoveAnalysis, CriticalMoment } from '../chessMetrics/types';
 import { evalToWinPct, calculateWinPctLost, getJudgment, calculateAccuracy } from '../chessMetrics/math';
 
 export class BrowserStockfishEngine implements ChessEngine {
@@ -167,16 +167,22 @@ export class BrowserStockfishEngine implements ChessEngine {
 
       const searchTimer = setTimeout(() => {
         if (this.activeResolver?.seq === seq) {
-          this.isSearching = false;
           const { resolve: res } = this.activeResolver;
-          this.activeResolver = null;
-          res({
+          const snapshot: EngineEvalResult = {
             cp: this.currentEval.cp || 0,
             mate: this.currentEval.mate,
             depth: this.currentEval.depth || 1,
             nodes: this.currentEval.nodes || 0,
             bestMove: undefined,
-          });
+          };
+          // Answer the caller, but leave isSearching set and ask the worker to
+          // stop. The abandoned search is still streaming info lines; keeping
+          // the searching flag makes the next evaluatePosition drain its
+          // terminating bestmove first, so stale scores can't bleed into the
+          // following position's result.
+          this.activeResolver = null;
+          this.worker?.postMessage('stop');
+          res(snapshot);
         }
       }, 5000);
 
@@ -212,6 +218,12 @@ export class BrowserStockfishEngine implements ChessEngine {
 }
 
 /**
+ * Maximum number of games analyzed per batch on low-end / mobile clients.
+ * Exported so the UI can state the real cap instead of hardcoding its own number.
+ */
+export const MOBILE_GAME_BATCH_CAP = 5;
+
+/**
  * Checks if the current client is on a mobile device or low-core machine
  */
 export function isMobileOrLowEndDevice(): boolean {
@@ -236,6 +248,11 @@ export async function analyzeUnanalyzedGames(
   options: {
     engine?: ChessEngine;
     onProgress?: (p: EngineProgress) => void;
+    /**
+     * Fired after each game is enriched and checkpointed, so the dashboard can
+     * update live instead of waiting for the whole batch to finish.
+     */
+    onGameAnalyzed?: (games: GameDerivedStats[]) => void;
     allowAllOnMobile?: boolean;
     signal?: AbortSignal;
   } = {}
@@ -244,8 +261,8 @@ export async function analyzeUnanalyzedGames(
   await engine.init();
 
   const isLowEnd = isMobileOrLowEndDevice();
-  // Low-end mobile phones throttle to max 5 games per batch
-  const maxToAnalyze = isLowEnd && !options.allowAllOnMobile ? 5 : games.length;
+  // Low-end mobile phones throttle to a small batch per run
+  const maxToAnalyze = isLowEnd && !options.allowAllOnMobile ? MOBILE_GAME_BATCH_CAP : games.length;
   const pass1Nodes = isLowEnd ? 40000 : 80000;
   const pass2Nodes = isLowEnd ? 150000 : 300000;
 
@@ -277,22 +294,31 @@ export async function analyzeUnanalyzedGames(
         try {
           const cachedGame = JSON.parse(saved);
           updatedGames[gameIdx] = cachedGame;
+          options.onGameAnalyzed?.([...updatedGames]);
           continue;
         } catch {}
       }
     }
 
-    // Replay moves to extract FEN for each ply
+    // Replay moves to extract the FEN before and after each ply.
+    // fenBefore is the position the player faced, and is what critical moments
+    // and their setup steppers must carry so the blunder can be re-trained.
     const chess = new Chess();
-    const positions: { fen: string; ply: number; san: string }[] = [];
+    const positions: { fen: string; fenBefore: string; ply: number; san: string }[] = [];
 
     for (const m of game.moves) {
+      const fenBefore = chess.fen();
       try {
         chess.move(m.san);
-        positions.push({ fen: chess.fen(), ply: m.ply, san: m.san });
+        positions.push({ fen: chess.fen(), fenBefore, ply: m.ply, san: m.san });
       } catch {
         break;
       }
+    }
+
+    const fenBeforeByPly: Record<number, string> = {};
+    for (const p of positions) {
+      fenBeforeByPly[p.ply] = p.fenBefore;
     }
 
     const openingPly = game.openingPly || 16;
@@ -393,6 +419,9 @@ export async function analyzeUnanalyzedGames(
 
       return {
         ...m,
+        // Restore the pre-move FEN when it was dropped by the persistence layer,
+        // so replay-dependent features survive a reload from cache.
+        fen: m.fen || fenBeforeByPly[m.ply],
         evalBefore,
         evalAfter,
         winPctBefore,
@@ -426,25 +455,57 @@ export async function analyzeUnanalyzedGames(
       ? Math.round((userMoves.reduce((acc, m) => acc + m.accuracy, 0) / userMoves.length) * 10) / 10
       : 100;
 
-    const criticalMoments = userMoves
+    // Mate is encoded as ±10000 centipawns, matching deriveGameStats so that
+    // locally analyzed games and Lichess-analyzed games stay on one scale.
+    const toCp = (e: { cp?: number; mate?: number }) =>
+      e.mate !== undefined ? (e.mate >= 0 ? 10000 : -10000) : (e.cp || 0);
+
+    const criticalMoments: CriticalMoment[] = userMoves
       .filter((m) => m.judgment === 'blunder' || m.judgment === 'mistake' || m.winPctLost >= 15)
       .sort((a, b) => b.winPctLost - a.winPctLost)
       .slice(0, 10)
-      .map((m) => ({
-        gameId: game.gameId,
-        ply: m.ply,
-        moveNumber: m.moveNumber,
-        san: m.san,
-        color: m.color,
-        evalBefore: m.evalBefore.mate ? m.evalBefore.mate * 1000 : (m.evalBefore.cp || 0),
-        evalAfter: m.evalAfter.mate ? m.evalAfter.mate * 1000 : (m.evalAfter.cp || 0),
-        winPctLost: m.winPctLost,
-        judgment: m.judgment,
-        phase: m.phase,
-        clockRemaining: m.clockRemaining,
-        timeSpentSeconds: m.timeSpentSeconds,
-        deepLink: `https://lichess.org/${game.gameId}/${game.color}#${m.ply}`,
-      }));
+      .map((m) => {
+        // Carry the position the blunder was played from, plus the preceding
+        // plies, so "Maia Lens" and "Train in Arena" work on engine-analyzed
+        // games exactly as they do on Lichess-analyzed ones.
+        const fen = m.fen || fenBeforeByPly[m.ply];
+        const moveIdx = updatedMoves.findIndex((um) => um.ply === m.ply);
+        const setupMoves: CriticalMoment['setupMoves'] = [];
+        if (moveIdx !== -1) {
+          const pliesBack = Math.min(moveIdx, 6);
+          for (let step = moveIdx - pliesBack; step < moveIdx; step++) {
+            const um = updatedMoves[step];
+            const stepFen = um.fen || fenBeforeByPly[um.ply];
+            if (!stepFen) continue;
+            const moveNum = Math.floor(um.ply / 2) + 1;
+            setupMoves.push({
+              ply: um.ply,
+              moveNumber: moveNum,
+              turnPrefix: um.ply % 2 === 1 ? `${moveNum}.` : `${moveNum}...`,
+              san: um.san,
+              fen: stepFen,
+            });
+          }
+        }
+
+        return {
+          gameId: game.gameId,
+          ply: m.ply,
+          moveNumber: m.moveNumber,
+          san: m.san,
+          color: m.color,
+          fen,
+          setupMoves,
+          evalBefore: toCp(m.evalBefore),
+          evalAfter: toCp(m.evalAfter),
+          winPctLost: m.winPctLost,
+          judgment: m.judgment,
+          phase: m.phase,
+          clockRemaining: m.clockRemaining,
+          timeSpentSeconds: m.timeSpentSeconds,
+          deepLink: `https://lichess.org/${game.gameId}/${game.color}#${m.ply}`,
+        };
+      });
 
     const enrichedGame: GameDerivedStats = {
       ...game,
@@ -469,19 +530,28 @@ export async function analyzeUnanalyzedGames(
         localStorage.setItem(checkpointKey, JSON.stringify(enrichedGame));
       } catch {}
     }
+
+    // Publish the partial result so the dashboard reflects each finished game
+    // rather than staying frozen until the whole batch completes.
+    options.onGameAnalyzed?.([...updatedGames]);
   }
 
   engine.terminate();
 
-  options.onProgress?.({
-    status: 'done',
-    currentGame: unanalyzedIndices.length,
-    totalGames: unanalyzedIndices.length,
-    currentPly: 0,
-    totalPliesInGame: 0,
-    pass: 2,
-    totalNodesEvaluated,
-  });
+  // An aborted run must not report itself complete: the paused progress bar
+  // stays on screen, and a "done" frame would show the final game count as if
+  // every game had been evaluated.
+  if (!options.signal?.aborted) {
+    options.onProgress?.({
+      status: 'done',
+      currentGame: unanalyzedIndices.length,
+      totalGames: unanalyzedIndices.length,
+      currentPly: 0,
+      totalPliesInGame: 0,
+      pass: 2,
+      totalNodesEvaluated,
+    });
+  }
 
   return updatedGames;
 }

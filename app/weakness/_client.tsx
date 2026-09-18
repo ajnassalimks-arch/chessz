@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Target,
@@ -10,21 +9,12 @@ import {
   RefreshCw,
   Award,
   AlertTriangle,
-  Sparkles,
-  Zap,
   ExternalLink,
   Play,
-  CheckCircle2,
   Clock,
-  ShieldAlert,
-  Flame,
-  Filter,
   BarChart3,
   Cpu,
   Layers,
-  Search,
-  ChevronDown,
-  Info,
   Brain,
   BookOpen,
 } from 'lucide-react';
@@ -32,7 +22,6 @@ import { useLichess } from '@/lib/useLichess';
 import { LichessIcon } from '@/components/LichessModal';
 import { ChessZMark } from '@/components/ChessZLogo';
 import { MaiaHumanSpectrum } from '@/components/MaiaHumanSpectrum';
-import { TermHoverCard } from '@/components/TermHoverCard';
 import { streamUserGames, StreamProgress } from '@/lib/lichessStream';
 import { GameDerivedStats, UserAggregateStats, CriticalMoment } from '@/lib/chessMetrics/types';
 import { aggregateUserStats } from '@/lib/chessMetrics/gameParser';
@@ -40,9 +29,27 @@ import { saveGameStatsBatch, loadCachedGameStats } from '@/lib/supabaseWeakness'
 import {
   analyzeUnanalyzedGames,
   isMobileOrLowEndDevice,
+  MOBILE_GAME_BATCH_CAP,
 } from '@/lib/engine/browserStockfish';
 import { EngineProgress } from '@/lib/engine/types';
 import { TransparentProgressBar } from '@/components/TransparentProgressBar';
+
+/**
+ * Clocks parsed from PGN can carry tenths (e.g. [%clk 0:02:45.3] -> 165.3),
+ * so the seconds part must be rounded before display.
+ */
+function formatClock(totalSeconds: number): string {
+  const safe = Math.max(0, Math.round(totalSeconds));
+  return `${Math.floor(safe / 60)}m ${safe % 60}s`;
+}
+
+/**
+ * Critical moment evals are stored from White's point of view. Flip them for a
+ * Black player so the studio always shows the score the player actually faced.
+ */
+function evalForPlayer(whiteCp: number, color: CriticalMoment['color']): number {
+  return color === 'black' ? -whiteCp : whiteCp;
+}
 
 function WeaknessDashboardContent() {
   const router = useRouter();
@@ -204,31 +211,49 @@ function WeaknessDashboardContent() {
     };
   }, [connectedLichessUser?.username, initialUser, loadDataForUser]);
 
+  // Pausing and resuming share one path so the two controls can't disagree
+  // about the engine's state.
+  const pauseBrowserEngine = useCallback(() => {
+    engineAbortControllerRef.current?.abort();
+    setIsEngineRunning(false);
+    setIsEnginePaused(true);
+  }, []);
+
   // Run in-browser Stockfish on unanalyzed games
   const handleRunBrowserEngine = async () => {
     if (isEngineRunning) {
-      engineAbortControllerRef.current?.abort();
-      setIsEngineRunning(false);
-      setIsEnginePaused(true);
+      pauseBrowserEngine();
       return;
     }
 
     setIsEngineRunning(true);
     setIsEnginePaused(false);
-    engineAbortControllerRef.current = new AbortController();
+    const abortCtrl = new AbortController();
+    engineAbortControllerRef.current = abortCtrl;
 
     try {
       const enriched = await analyzeUnanalyzedGames(games, activeUsername, {
-        signal: engineAbortControllerRef.current.signal,
+        signal: abortCtrl.signal,
         onProgress: (p) => setEngineProgress(p),
+        // Surface each finished game as it lands instead of leaving the
+        // dashboard frozen for the whole batch.
+        onGameAnalyzed: (partial) => setGames(partial),
       });
 
       setGames(enriched);
       await saveGameStatsBatch(activeUsername, enriched);
+
+      // A run that was paused must keep its paused state and its progress bar:
+      // the aborted analysis still resolves normally, and clearing here is what
+      // used to wipe the "Paused - click Continue" affordance the user asked for.
+      if (!abortCtrl.signal.aborted) {
+        setIsEnginePaused(false);
+        setEngineProgress(null);
+      }
+    } catch (err: unknown) {
+      console.error('Engine error:', err);
       setIsEnginePaused(false);
       setEngineProgress(null);
-    } catch (err: any) {
-      console.error('Engine error:', err);
     } finally {
       setIsEngineRunning(false);
     }
@@ -246,8 +271,22 @@ function WeaknessDashboardContent() {
 
   const isMobile = isMobileOrLowEndDevice();
 
+  // Falls back to the parent game's move list when a moment predates FEN
+  // retention, so selecting it can never leave the lens on a stale position.
+  const resolveMomentFen = useCallback(
+    (moment: CriticalMoment): string | undefined =>
+      moment.fen ||
+      games.find((g) => g.gameId === moment.gameId)?.moves?.find((pm) => pm.ply === moment.ply)?.fen,
+    [games]
+  );
+
   const handleTrainBlunderInArena = (moment: CriticalMoment) => {
     const parentGame = games.find((g) => g.gameId === moment.gameId);
+    const moveInGame = parentGame?.moves?.find((pm) => pm.ply === moment.ply);
+    // Older cached moments (and anything analyzed before FEN retention) may not
+    // carry the position, so recover it from the parent game's move list.
+    const startingFen = moment.fen || moveInGame?.fen;
+
     let setupMoves = moment.setupMoves || [];
     if ((!setupMoves || setupMoves.length === 0) && parentGame && parentGame.moves) {
       const moveIdx = parentGame.moves.findIndex((pm) => pm.ply === moment.ply);
@@ -276,7 +315,7 @@ function WeaknessDashboardContent() {
       gameId: moment.gameId,
       ply: moment.ply,
       moveNumber: moment.moveNumber,
-      initialFen: moment.fen,
+      initialFen: startingFen,
       playerColor: moment.color,
       playedSan: moment.san,
       evalBefore: moment.evalBefore,
@@ -300,7 +339,7 @@ function WeaknessDashboardContent() {
       ply: moment.ply.toString(),
       color: moment.color,
       blunder: moment.san,
-      fen: moment.fen || '',
+      fen: startingFen || '',
     });
 
     router.push(`/?${query.toString()}`);
@@ -479,7 +518,7 @@ function WeaknessDashboardContent() {
                       <span>{unanalyzedCount} Games Missing Stockfish Evaluation</span>
                       {isMobile && (
                         <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-200/90 dark:bg-amber-500/30 text-amber-950 dark:text-amber-100 font-extrabold border border-amber-300 dark:border-amber-500/40">
-                          Mobile: capped at 20
+                          Mobile: capped at {MOBILE_GAME_BATCH_CAP}
                         </span>
                       )}
                     </div>
@@ -529,11 +568,8 @@ function WeaknessDashboardContent() {
                 isPaused={isEnginePaused}
                 onTogglePause={() => {
                   if (isEngineRunning) {
-                    setIsEnginePaused(true);
-                    engineAbortControllerRef.current?.abort();
-                    setIsEngineRunning(false);
+                    pauseBrowserEngine();
                   } else {
-                    setIsEnginePaused(false);
                     handleRunBrowserEngine();
                   }
                 }}
@@ -922,7 +958,7 @@ function WeaknessDashboardContent() {
                         {m.clockRemaining !== undefined && (
                           <div className="flex items-center gap-1 text-[10px] font-mono theme-text-muted">
                             <Clock className="w-3 h-3" />
-                            <span>{Math.floor(m.clockRemaining / 60)}m {m.clockRemaining % 60}s</span>
+                            <span>{formatClock(m.clockRemaining)}</span>
                           </div>
                         )}
                       </div>
@@ -936,7 +972,7 @@ function WeaknessDashboardContent() {
                           <button
                             onClick={() => {
                               setActiveMaiaMoment(m);
-                              if (m.fen) setSubmittedMaiaFen(m.fen);
+                              setSubmittedMaiaFen(resolveMomentFen(m) || '');
                               setActiveTab('maia');
                             }}
                             className="flex items-center gap-1 text-[11px] font-mono font-bold bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/30 px-2.5 py-1 rounded-lg transition cursor-pointer"
@@ -1013,7 +1049,7 @@ function WeaknessDashboardContent() {
                               key={`${moment.gameId}_${moment.ply}`}
                               onClick={() => {
                                 setActiveMaiaMoment(moment);
-                                if (moment.fen) setSubmittedMaiaFen(moment.fen);
+                                setSubmittedMaiaFen(resolveMomentFen(moment) || '');
                               }}
                               className={`px-2.5 py-1.5 rounded-xl text-xs font-mono shrink-0 transition cursor-pointer border ${
                                 isSelected
@@ -1106,16 +1142,17 @@ function WeaknessDashboardContent() {
                     'r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 10'
                   }
                   playedMoveSan={activeMaiaMoment?.san}
-                  stockfishBestMoveSan={
-                    activeMaiaMoment
-                      ? activeMaiaMoment.evalBefore > activeMaiaMoment.evalAfter
-                        ? undefined
-                        : activeMaiaMoment.san
-                      : undefined
-                  }
+                  // A critical moment is by definition a move the player got
+                  // wrong, so it is never the engine's choice. Leaving this
+                  // undefined lets MaiaHumanSpectrum search the position and
+                  // report the real best move.
+                  stockfishBestMoveSan={undefined}
                   stockfishEval={
                     activeMaiaMoment
-                      ? `${activeMaiaMoment.evalBefore > 0 ? '+' : ''}${(activeMaiaMoment.evalBefore / 100).toFixed(1)}`
+                      ? (() => {
+                          const cp = evalForPlayer(activeMaiaMoment.evalBefore, activeMaiaMoment.color);
+                          return `${cp > 0 ? '+' : ''}${(cp / 100).toFixed(1)}`;
+                        })()
                       : undefined
                   }
                   clockRemaining={activeMaiaMoment?.clockRemaining}

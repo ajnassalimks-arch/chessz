@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Chess } from 'chess.js';
 import { fetchMaiaAnalysis, MaiaRatingTier } from '@/lib/engine/maiaClient';
 
 export async function GET(request: NextRequest) {
@@ -10,6 +11,17 @@ export async function GET(request: NextRequest) {
   if (!fen) {
     return NextResponse.json(
       { error: 'Missing required query parameter "fen"' },
+      { status: 400 }
+    );
+  }
+
+  // Validate before forwarding: this route proxies to Lichess, so a malformed
+  // FEN should fail here rather than burn an upstream request.
+  try {
+    new Chess(fen);
+  } catch {
+    return NextResponse.json(
+      { error: 'Invalid FEN' },
       { status: 400 }
     );
   }
