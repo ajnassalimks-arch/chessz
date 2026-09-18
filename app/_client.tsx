@@ -606,12 +606,18 @@ export default function Home() {
     setLegalMoves([]);
     setHintSquare(null);
     setAnnotatedSquares({});
-    const targetFen = currentPuzzle.setupMoves[targetIndex].fen;
+
+    const isLastStep = targetIndex === currentPuzzle.setupMoves.length - 1;
+    // A setup step's fen is the position before that ply is played (the
+    // convention used everywhere else this shape is built, e.g.
+    // blunderAdapter.ts). The last step is one ply short of the real puzzle
+    // position, so jumping to "Solve" must land on initialFen, not on that fen.
+    const targetFen = isLastStep ? currentPuzzle.initialFen : currentPuzzle.setupMoves[targetIndex].fen;
     const newChess = new Chess(targetFen);
     setGame(newChess);
     setBoardKey((prev) => prev + 1);
 
-    if (targetIndex === currentPuzzle.setupMoves.length - 1) {
+    if (isLastStep) {
       setStatus(`${newChess.turn() === "w" ? "White" : "Black"} to move`);
     } else {
       const step = currentPuzzle.setupMoves[targetIndex];
@@ -909,6 +915,27 @@ export default function Home() {
   };
 
   const revealSolution = () => setSolutionRevealed(true);
+
+  // Groups the flat setupMoves ply list into White/Black pairs by move number,
+  // for the sidebar's move-list table. A sequence can start mid-pair (e.g. on
+  // Black's 39th), so a row's White or Black side is left empty rather than
+  // guessed.
+  type SetupStep = NonNullable<ChessPuzzle["setupMoves"]>[number];
+  type LeadUpRow = { moveNumber: number; white?: { step: SetupStep; idx: number }; black?: { step: SetupStep; idx: number } };
+  const leadUpRows: LeadUpRow[] = [];
+  if (currentPuzzle?.setupMoves) {
+    const rowByMoveNumber = new Map<number, LeadUpRow>();
+    currentPuzzle.setupMoves.forEach((step, idx) => {
+      let row = rowByMoveNumber.get(step.moveNumber);
+      if (!row) {
+        row = { moveNumber: step.moveNumber };
+        rowByMoveNumber.set(step.moveNumber, row);
+        leadUpRows.push(row);
+      }
+      if (step.ply % 2 === 1) row.white = { step, idx };
+      else row.black = { step, idx };
+    });
+  }
 
   // Curated puzzles always carry a predefined solution. Real-game blunder
   // puzzles don't, but handleStartBlunderTraining already starts the engine
@@ -1670,10 +1697,13 @@ export default function Home() {
 
           {/* Chessboard Column (Left / Center) with Exterior ChessBase Bezel */}
           <div className="flex flex-col items-center justify-center shrink-0">
-            {/* Setup Moves Lead-up Stepper for Blunder Review */}
+            {/* Setup Moves Lead-up Stepper for Blunder Review. Desktop moves this
+                into the sidebar as a proper move-list table (more room, no
+                horizontal scroll); mobile has no sidebar to put it in, so it
+                keeps this compact bar. */}
             {currentPuzzle?.setupMoves && currentPuzzle.setupMoves.length > 1 && (
               <div
-                className="w-full mb-3 px-3 py-2.5 rounded-xl theme-surface border border-[var(--border-subtle)] flex items-center justify-between gap-3 text-xs select-none shadow-xs"
+                className="w-full mb-3 px-3 py-2.5 rounded-xl theme-surface border border-[var(--border-subtle)] flex items-center justify-between gap-3 text-xs select-none shadow-xs md:hidden"
                 style={{ maxWidth: boardWidth + bezelSize * 2 }}
               >
                 <div className="flex items-center gap-2.5 overflow-x-auto py-0.5 scrollbar-none min-w-0">
@@ -2036,6 +2066,85 @@ export default function Home() {
                 </div>
               )}
             </div>
+
+            {/* Desktop Only: Lead-up move list. Same data and the same
+                handleStepSetupMove as the mobile bar, laid out as a real
+                White/Black table since the sidebar has the width for it. */}
+            {leadUpRows.length > 0 && currentPuzzle?.setupMoves && (
+              <div className="theme-surface-subtle border rounded-xl p-3 mb-3 text-left">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-amber-500 flex items-center gap-1.5">
+                    <History className="w-3 h-3" /> Lead-up
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => handleStepSetupMove(Math.max(0, setupStepIndex - 1))}
+                      disabled={setupStepIndex <= 0}
+                      className="p-1 rounded-md theme-surface hover:theme-surface-subtle theme-text-secondary hover:theme-text-primary border disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+                      title="Previous Move (◀)"
+                    >
+                      <ChevronLeft className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleStepSetupMove(Math.min(currentPuzzle.setupMoves!.length - 1, setupStepIndex + 1))}
+                      disabled={setupStepIndex >= currentPuzzle.setupMoves.length - 1}
+                      className="p-1 rounded-md theme-surface hover:theme-surface-subtle theme-text-secondary hover:theme-text-primary border disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+                      title="Next Move (▶)"
+                    >
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
+                    {setupStepIndex < currentPuzzle.setupMoves.length - 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleStepSetupMove(currentPuzzle.setupMoves!.length - 1)}
+                        className="px-2 py-1 rounded-md bg-rose-500 hover:bg-rose-600 text-white font-bold text-[10px] uppercase tracking-wider transition shadow-xs cursor-pointer whitespace-nowrap"
+                        title="Jump to critical blunder position"
+                      >
+                        Solve
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-[2rem_1fr_1fr] gap-x-2 gap-y-1 text-[11px] font-mono">
+                  {leadUpRows.map((row) => {
+                    const lastIdx = currentPuzzle.setupMoves!.length - 1;
+                    const cell = (entry: { step: SetupStep; idx: number } | undefined) => {
+                      if (!entry) return <span className="theme-text-muted">&middot;</span>;
+                      const isCurrent = setupStepIndex === entry.idx;
+                      const isCritical = entry.idx === lastIdx;
+                      return (
+                        <button
+                          type="button"
+                          onClick={() => handleStepSetupMove(entry.idx)}
+                          className={`w-full text-left px-2 py-1 rounded-md font-semibold transition cursor-pointer truncate ${
+                            isCurrent
+                              ? isCritical
+                                ? "bg-rose-500 text-white shadow-xs"
+                                : "bg-[var(--accent-primary)] text-white shadow-xs"
+                              : isCritical
+                              ? "bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 hover:bg-rose-500/25"
+                              : "theme-surface hover:theme-surface-subtle theme-text-secondary hover:theme-text-primary border border-transparent"
+                          }`}
+                          title={isCritical ? "Critical Blunder Position (Solve)" : `Lead-up Move ${entry.step.turnPrefix} ${entry.step.san}`}
+                        >
+                          {entry.step.san || "..."}
+                        </button>
+                      );
+                    };
+                    return (
+                      <React.Fragment key={row.moveNumber}>
+                        <span className="theme-text-muted flex items-center">{row.moveNumber}.</span>
+                        {cell(row.white)}
+                        {cell(row.black)}
+                      </React.Fragment>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Middle: Dynamic Learning Action Area */}
             <div className="flex-1 flex flex-col justify-center my-2">
