@@ -13,7 +13,7 @@ Everything else in this repo exists to serve that loop.
 Run all three before finishing any change. All must be clean.
 
 ```bash
-npm test            # 54 tests across 7 suites
+npm test            # 58 tests across 8 suites
 npx tsc --noEmit    # must exit 0 with zero errors
 npm run build       # Turbopack production build, 17 routes
 npm run dev         # local dev server on :3000
@@ -31,8 +31,9 @@ npm run dev         # local dev server on :3000
   browser Web Worker from `/public/stockfish/`
 - **Sound**: procedural Web Audio synthesizer, `lib/sounds.ts`, no audio assets
 - **Lichess**: OAuth 2.0 PKCE (`/api/auth/lichess/*`), NDJSON game streaming
-- **Persistence**: IndexedDB (`lib/gameLibrary.ts`) for the game library,
-  Supabase for cross-device aggregates when configured
+- **Persistence**: IndexedDB (`lib/gameLibrary.ts`) for the game library and
+  training attempt log (`lib/trainingLog.ts`), Supabase for cross-device aggregates
+  and history sync when configured
 - **Tests**: `node:test` via `tsx`
 
 ---
@@ -45,11 +46,11 @@ Lichess games ──> useWeaknessScan ──> critical moments ──> blunderAd
                         └── Stockfish WASM sweep for games Lichess never analyzed ─┘
 ```
 
-**`lib/useWeaknessScan.ts` is the single source of weakness data.** Both the
-`/weakness` page and the in-arena `WeaknessDashboard` modal mount it. There used
-to be a second pipeline behind `/api/lichess/blunders` that only worked on games
-Lichess had already analyzed server-side; it was deleted. Do not reintroduce a
-second path.
+**`lib/useWeaknessScan.ts` is the single source of weakness data.** The standalone
+`/weakness` route is the sole destination for scanning, reviewing, and queueing
+mistakes. The legacy in-arena `WeaknessDashboard` modal was deleted. Blunder
+training launches into the Arena board with `/?mode=blunder` and returns to
+`/weakness` with live mastery badging (`Fixed` / `Attempted`).
 
 ### Routes
 
@@ -58,8 +59,8 @@ second path.
    (every real blunder does), the Arena derives the answer from the in-browser
    engine rather than being handed one.
 2. **`/weakness` — your mistakes** (`app/weakness/_client.tsx`). One screen:
-   worst phase in a sentence, then the positions ranked worst first, each with
-   one button into the board.
+   worst phase in a sentence, live mastery progress (`X of Y fixed`), then
+   the positions ranked worst first with interactive boards and one-click training.
 3. **`/diagnose` — 5-puzzle benchmark** (`app/diagnose/_client.tsx`). A starting
    point for players with no connected account. Produces a bounded rating
    estimate and a training focus.
@@ -77,7 +78,7 @@ chessz-app/
 │   ├── _client.tsx                 # the board
 │   ├── diagnose/_client.tsx        # 5-puzzle benchmark
 │   ├── terms/TermsClient.tsx       # lexicon
-│   ├── weakness/_client.tsx        # the mistake queue
+│   ├── weakness/_client.tsx        # the mistake queue & mastery tracking
 │   ├── api/
 │   │   ├── auth/lichess/           # OAuth PKCE: login, callback, me, logout, link
 │   │   ├── cron/keepalive/         # daily Supabase free-tier anti-pause ping
@@ -94,8 +95,7 @@ chessz-app/
 │   ├── LichessModal.tsx            # identity only + the official LichessIcon
 │   ├── SettingsModal.tsx           # palette, light/dark, sound, wallpaper
 │   ├── TermHoverCard.tsx           # inline study popover
-│   ├── TransparentProgressBar.tsx  # scan and sweep progress
-│   └── WeaknessDashboard.tsx       # in-arena trainer, 5-pillar grouping
+│   └── TransparentProgressBar.tsx  # scan and sweep progress
 ├── lib/
 │   ├── chessMetrics/               # pure math and PGN parsing
 │   │   ├── gameParser.ts           # phase detection, critical moments
@@ -106,7 +106,8 @@ chessz-app/
 │   │   ├── browserStockfish.ts     # UCI worker + two-pass batch sweep
 │   │   └── types.ts
 │   ├── blunderAdapter.ts           # critical moment -> trainable puzzle
-│   ├── gameLibrary.ts              # IndexedDB game store + backfill cursors
+│   ├── gameLibrary.ts              # IndexedDB v2 game store + backfill cursors
+│   ├── trainingLog.ts              # append-only attempt log + mastery derivation
 │   ├── useWeaknessScan.ts          # THE scan pipeline
 │   ├── diagnosisEngine.ts          # benchmark pool, Elo estimate, patterns
 │   ├── lichessStream.ts            # incremental NDJSON reader
@@ -115,12 +116,16 @@ chessz-app/
 │   ├── studyTerms.ts               # 21 historical terms
 │   ├── supabaseWeakness.ts         # localStorage + Supabase persistence
 │   └── useStockfish.ts             # single-position engine hook
-└── tests/                          # 7 suites
+├── supabase/
+│   └── migrations/
+│       └── 20260919_puzzle_history_attempt_log.sql # attempt log schema extensions
+└── tests/                          # 8 suites (58 tests)
     ├── chessMetrics.test.ts        # win% curve, tokenizer, phases
     ├── diagnosticEnhancements.test.ts # rules, velocity, rating bounds
     ├── puzzleIntegrity.test.ts     # all 500 FENs, solutions, refutations
     ├── qaStress.test.ts            # boundaries and edge cases
     ├── studyTermsIntegrity.test.ts # terms, legal master lines, rule mapping
+    ├── trainingLog.test.ts         # attempt log invariants, mastery map, legacy import
     └── weaknessPipeline.test.ts    # the seams: parse -> sweep -> adapt
 ```
 

@@ -19,13 +19,25 @@ create table if not exists public.profiles (
 );
 
 -- 2. Create Puzzle Solved History Table
+-- This is the training attempt log: every attempt at a puzzle, correct or
+-- not, dated. Not just solves -- a failed attempt is what makes "did this
+-- player actually stop hanging pieces to knight forks after training" an
+-- answerable question later.
 create table if not exists public.puzzle_history (
   id uuid default gen_random_uuid() primary key,
   user_id uuid references public.profiles(id) on delete cascade not null,
   puzzle_id text not null,
   track text not null check (track in ('tactical', 'positional')),
   is_correct boolean not null default true,
-  solved_at timestamp with time zone default timezone('utc'::text, now()) not null
+  solved_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  -- mistakeClassifier category id, e.g. 'adv_knight_forks'
+  category text,
+  tier text,
+  game_id text,
+  ply integer,
+  time_spent_ms integer,
+  used_engine boolean default false,
+  source text
 );
 
 -- 3. Enable Row Level Security (RLS)
@@ -74,6 +86,8 @@ create trigger on_auth_user_created
 -- 7. Helpful Indexing for fast queries
 create index if not exists idx_puzzle_history_user_id on public.puzzle_history(user_id);
 create index if not exists idx_puzzle_history_puzzle_id on public.puzzle_history(puzzle_id);
+create index if not exists idx_puzzle_history_user_solved_at on public.puzzle_history(user_id, solved_at desc);
+create index if not exists idx_puzzle_history_user_category on public.puzzle_history(user_id, category);
 
 -- ==============================================================================
 -- 8. Lichess Accounts Table & RLS

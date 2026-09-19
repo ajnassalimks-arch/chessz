@@ -3,7 +3,8 @@
 import { GameDerivedStats } from './chessMetrics/types';
 
 /**
- * The player's game library, stored on disk in the browser.
+ * The player's local database: the game library, and (via lib/trainingLog.ts,
+ * which shares this connection) the training attempt log.
  *
  * This used to be a single localStorage key holding every game as one JSON
  * blob. Measured on a real account, one game with its move list costs ~23KB,
@@ -23,9 +24,15 @@ import { GameDerivedStats } from './chessMetrics/types';
  */
 
 const DB_NAME = 'chessz-library';
-const DB_VERSION = 1;
+/**
+ * v2 added the `attempts` store (lib/trainingLog.ts). Bumping this is the only
+ * way to add a store to an existing player's database -- onupgradeneeded only
+ * fires when the requested version is higher than what is on disk.
+ */
+const DB_VERSION = 2;
 const GAMES_STORE = 'games';
 const META_STORE = 'meta';
+const ATTEMPTS_STORE = 'attempts';
 
 const LEGACY_KEY_PREFIX = 'chessz_weakness_';
 const LEGACY_CHECKPOINT_PREFIX = 'chessz_engine_ckpt_';
@@ -68,7 +75,12 @@ export function isLibraryAvailable(): boolean {
 
 let dbPromise: Promise<IDBDatabase | null> | null = null;
 
-function openDb(): Promise<IDBDatabase | null> {
+/**
+ * Opens the shared connection, creating any store that does not exist yet.
+ * Exported so lib/trainingLog.ts can add its own store to this same database
+ * instead of managing a second connection and a second version number.
+ */
+export function openDb(): Promise<IDBDatabase | null> {
   if (!isLibraryAvailable()) return Promise.resolve(null);
   if (dbPromise) return dbPromise;
 
@@ -90,6 +102,13 @@ function openDb(): Promise<IDBDatabase | null> {
       if (!db.objectStoreNames.contains(META_STORE)) {
         db.createObjectStore(META_STORE, { keyPath: 'user' });
       }
+      if (!db.objectStoreNames.contains(ATTEMPTS_STORE)) {
+        const store = db.createObjectStore(ATTEMPTS_STORE, {
+          keyPath: 'id',
+          autoIncrement: true,
+        });
+        store.createIndex('user', 'user', { unique: false });
+      }
     };
 
     req.onsuccess = () => resolve(req.result);
@@ -100,7 +119,7 @@ function openDb(): Promise<IDBDatabase | null> {
   return dbPromise;
 }
 
-function promisify<T>(req: IDBRequest<T>): Promise<T | null> {
+export function promisify<T>(req: IDBRequest<T>): Promise<T | null> {
   return new Promise((resolve) => {
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => resolve(null);

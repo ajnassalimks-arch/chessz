@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import {
   X,
   ExternalLink,
@@ -45,7 +46,6 @@ interface LichessModalProps {
   onRefresh: () => void;
   onConnectUsername: (username: string) => Promise<boolean>;
   diagnosedElo?: number | null;
-  onOpenWeaknessDashboard?: () => void;
 }
 
 export function LichessModal({
@@ -59,7 +59,6 @@ export function LichessModal({
   onRefresh,
   onConnectUsername,
   diagnosedElo,
-  onOpenWeaknessDashboard,
 }: LichessModalProps) {
   const [usernameInput, setUsernameInput] = useState('');
   const [usernameError, setUsernameError] = useState<string | null>(null);
@@ -278,33 +277,29 @@ export function LichessModal({
 
               {/* Blunder training lives in the Weakness Studio: one scan, one
                   pipeline. This modal handles identity only. */}
-              {onOpenWeaknessDashboard && (
-                <div className="p-4 rounded-xl theme-surface border border-[var(--border-subtle)] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-rose-500/15 text-rose-500 flex items-center justify-center border border-rose-500/30 shrink-0">
-                      <Target className="w-4 h-4" />
-                    </div>
-                    <div>
-                      <h4 className="text-xs sm:text-sm font-bold font-display theme-text-primary">
-                        Fix Your Real Game Blunders
-                      </h4>
-                      <p className="text-[11px] theme-text-secondary">
-                        Scan your recent games and train the exact positions you got wrong.
-                      </p>
-                    </div>
+              <div className="p-4 rounded-xl theme-surface border border-[var(--border-subtle)] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-rose-500/15 text-rose-500 flex items-center justify-center border border-rose-500/30 shrink-0">
+                    <Target className="w-4 h-4" />
                   </div>
-                  <button
-                    onClick={() => {
-                      onOpenWeaknessDashboard();
-                      onClose();
-                    }}
-                    className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 border border-rose-500/30 text-xs font-bold transition cursor-pointer shadow-xs shrink-0"
-                  >
-                    <Target className="w-3.5 h-3.5" />
-                    <span>Open Weakness Studio</span>
-                  </button>
+                  <div>
+                    <h4 className="text-xs sm:text-sm font-bold font-display theme-text-primary">
+                      Fix Your Real Game Blunders
+                    </h4>
+                    <p className="text-[11px] theme-text-secondary">
+                      Scan your recent games and train the exact positions you got wrong.
+                    </p>
+                  </div>
                 </div>
-              )}
+                <Link
+                  href="/weakness"
+                  onClick={onClose}
+                  className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 border border-rose-500/30 text-xs font-bold transition cursor-pointer shadow-xs shrink-0"
+                >
+                  <Target className="w-3.5 h-3.5" />
+                  <span>Open Weakness Studio</span>
+                </Link>
+              </div>
 
               {/* Re-authenticate with OAuth prompt if only public preview */}
               {!isAuthenticated && (

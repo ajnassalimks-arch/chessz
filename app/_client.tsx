@@ -26,11 +26,8 @@ import {
   ArrowRight,
   RefreshCw,
   HelpCircle,
-  Save,
-  Mail,
   X,
   BookOpen,
-  Share2,
   Check,
   Volume2,
   VolumeX,
@@ -54,7 +51,6 @@ import { useTheme } from "@/components/ThemeProvider";
 import { SettingsModal } from "@/components/SettingsModal";
 import { useLichess } from "@/lib/useLichess";
 import { LichessModal, LichessIcon } from "@/components/LichessModal";
-import { WeaknessDashboard } from "@/components/WeaknessDashboard";
 import { useStockfish } from "@/lib/useStockfish";
 import { EngineAnalysisBar } from "@/components/EngineAnalysisBar";
 import { CoachStudyModal, CoachStudyItem } from "@/components/CoachStudyModal";
@@ -62,8 +58,9 @@ import { MiniBoard } from "@/components/MiniBoard";
 import { loadCachedGameStats } from "@/lib/supabaseWeakness";
 import { aggregateUserStats } from "@/lib/chessMetrics/gameParser";
 import { CriticalMoment } from "@/lib/chessMetrics/types";
-import { momentToBlunderPuzzle } from "@/lib/blunderAdapter";
+import { momentToBlunderPuzzle, BlunderPuzzle } from "@/lib/blunderAdapter";
 import { SkillTier } from "@/lib/mistakeClassifier";
+import { recordAttempt } from "@/lib/trainingLog";
 import { TermHoverCard } from "@/components/TermHoverCard";
 
 interface CoachDiagnosis {
@@ -187,7 +184,6 @@ export default function Home() {
     connectByUsername: connectLichessUsername,
   } = useLichess();
   const [showLichessModal, setShowLichessModal] = useState<boolean>(false);
-  const [showWeaknessDashboard, setShowWeaknessDashboard] = useState<boolean>(false);
   
   // Stockfish In-Browser WASM Engine Hook
   const {
@@ -294,7 +290,6 @@ export default function Home() {
   // Timer references for resilient asynchronous scheduling and clean teardown
   const refutationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const victoryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const saveModalTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const clearPuzzleTimeouts = () => {
     if (refutationTimeoutRef.current) {
@@ -305,10 +300,6 @@ export default function Home() {
       clearTimeout(victoryTimeoutRef.current);
       victoryTimeoutRef.current = null;
     }
-    if (saveModalTimeoutRef.current) {
-      clearTimeout(saveModalTimeoutRef.current);
-      saveModalTimeoutRef.current = null;
-    }
   };
 
   // Teardown any pending timeouts when unmounting
@@ -318,13 +309,9 @@ export default function Home() {
     };
   }, []);
 
-  // Modals (Save Progress & Credits)
-  const [showSaveModal, setShowSaveModal] = useState<boolean>(false);
+  // Modals (Credits & Settings)
   const [showCreditsModal, setShowCreditsModal] = useState<boolean>(false);
   const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
-  const [emailInput, setEmailInput] = useState<string>("");
-  const [authStatusMessage, setAuthStatusMessage] = useState<string>("");
-  const [shareCopied, setShareCopied] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [savedDiagnosisProfile, setSavedDiagnosisProfile] = useState<any>(null);
 
@@ -523,7 +510,6 @@ export default function Home() {
     const tier = LEVEL_OPTIONS.find((l) => l.id === puzzle.tier) || LEVEL_OPTIONS[2];
     setSelectedLevel(tier);
     setShowLichessModal(false);
-    setShowWeaknessDashboard(false);
     setIsCalibrated(true);
     setIsCurriculumActive(false);
     loadPuzzle(puzzle);
@@ -761,16 +747,23 @@ export default function Home() {
       setEngineEnabled(true);
       startAnalysis(testChess.fen());
 
-      // If this was a Lichess blunder puzzle, mark it as mastered in localStorage
-      if (currentPuzzle.id && currentPuzzle.id.startsWith("lichess_")) {
-        try {
-          const stored = localStorage.getItem("chessz_mastered_blunders");
-          const parsed = stored ? JSON.parse(stored) : [];
-          if (!parsed.includes(currentPuzzle.id)) {
-            parsed.push(currentPuzzle.id);
-            localStorage.setItem("chessz_mastered_blunders", JSON.stringify(parsed));
-          }
-        } catch {}
+      // Record attempt in training log
+      if (currentPuzzle.id) {
+        const blunderMatch = currentPuzzle.id.match(/^lichess_([^_]+)_p(\d+)$/);
+        const isBlunder = Boolean(blunderMatch || currentPuzzle.id.startsWith("lichess_"));
+        recordAttempt(lichessUser?.username || "", {
+          puzzleId: currentPuzzle.id,
+          gameId: (currentPuzzle as BlunderPuzzle).gameId || (blunderMatch ? blunderMatch[1] : undefined),
+          ply: blunderMatch ? parseInt(blunderMatch[2], 10) : undefined,
+          category: (currentPuzzle as BlunderPuzzle).category,
+          tier: currentPuzzle.tier,
+          track: (currentPuzzle.track as "tactical" | "positional") || "tactical",
+          source: isBlunder ? "blunder" : isCurriculumActive ? "diagnose" : "curated",
+          correct: true,
+          usedEngine: engineEnabled,
+        }).catch((err) => {
+          console.warn("Failed to record solve attempt:", err);
+        });
       }
 
       victoryTimeoutRef.current = setTimeout(() => {
@@ -778,13 +771,6 @@ export default function Home() {
         victoryTimeoutRef.current = null;
       }, 250);
 
-      // Trigger "Save Progress" prompt at streak 3 milestone
-      if (nextStreak === 3) {
-        saveModalTimeoutRef.current = setTimeout(() => {
-          setShowSaveModal(true);
-          saveModalTimeoutRef.current = null;
-        }, 1200);
-      }
       return true;
     }
 
@@ -843,6 +829,25 @@ export default function Home() {
       setStreak(0);
       setStatus(playedBlunder ? "Original Blunder Repeated!" : (refutationApplied ? "Refuted by opponent!" : "Not the best move"));
       refutationTimeoutRef.current = null;
+
+      // Record failed attempt in training log
+      if (currentPuzzle?.id) {
+        const blunderMatch = currentPuzzle.id.match(/^lichess_([^_]+)_p(\d+)$/);
+        const isBlunder = Boolean(blunderMatch || currentPuzzle.id.startsWith("lichess_"));
+        recordAttempt(lichessUser?.username || "", {
+          puzzleId: currentPuzzle.id,
+          gameId: (currentPuzzle as BlunderPuzzle).gameId || (blunderMatch ? blunderMatch[1] : undefined),
+          ply: blunderMatch ? parseInt(blunderMatch[2], 10) : undefined,
+          category: (currentPuzzle as BlunderPuzzle).category,
+          tier: currentPuzzle.tier,
+          track: (currentPuzzle.track as "tactical" | "positional") || "tactical",
+          source: isBlunder ? "blunder" : isCurriculumActive ? "diagnose" : "curated",
+          correct: false,
+          usedEngine: engineEnabled,
+        }).catch((err) => {
+          console.warn("Failed to record failed attempt:", err);
+        });
+      }
     }, 650);
 
     return true;
@@ -1140,95 +1145,13 @@ export default function Home() {
     setSetupStepIndex(-1);
   };
 
-  const handleSaveProgressSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!emailInput.trim()) return;
-
-    if (isSupabaseConfigured && supabase) {
-      try {
-        const { error } = await supabase.auth.signInWithOtp({
-          email: emailInput.trim(),
-        });
-        if (error) {
-          setAuthStatusMessage(`Error: ${error.message}`);
-        } else {
-          setAuthStatusMessage("Magic link sent! Check your inbox to sync.");
-        }
-      } catch {
-        setAuthStatusMessage("Saved locally to your browser!");
-      }
-    } else {
-      // Local graceful fallback
-      setAuthStatusMessage("Progress saved locally to this device!");
-      setTimeout(() => {
-        setShowSaveModal(false);
-        setAuthStatusMessage("");
-      }, 1500);
-    }
-  };
-
-  const handleShareDiagnosis = async () => {
-    console.log("[handleShareDiagnosis] called!");
-    if (!coachDiagnosis || !selectedLevel) return;
-    const shareText = `♟️ My ChessZ Coach Diagnosis:\nRating Tier: ${selectedLevel.title}\n${coachDiagnosis.headline}\nGolden Rule: ${coachDiagnosis.ruleTitle} — "${coachDiagnosis.ruleBody}"\nFocus Area: ${coachDiagnosis.targetFocus}\n\n100% Free Chess Training • No ₹1,500/yr Paywall\nTrain now: https://chessz.vercel.app`;
-
-    let shared = false;
-    if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
-      try {
-        await navigator.share({
-          title: "ChessZ Coach Diagnosis",
-          text: shareText,
-          url: typeof window !== "undefined" ? window.location.origin : undefined,
-        });
-        shared = true;
-      } catch (err: any) {
-        // If user actively cancelled the share sheet, return without modifying clipboard
-        if (err?.name === "AbortError") {
-          return;
-        }
-      }
-    }
-
-    let copied = false;
-    if (!shared) {
-      if (typeof navigator !== "undefined" && navigator.clipboard) {
-        try {
-          await navigator.clipboard.writeText(shareText);
-          copied = true;
-        } catch {
-          // Fallback below
-        }
-      }
-
-      if (!copied && typeof document !== "undefined") {
-        try {
-          const textarea = document.createElement("textarea");
-          textarea.value = shareText;
-          textarea.style.position = "fixed";
-          textarea.style.opacity = "0";
-          document.body.appendChild(textarea);
-          textarea.select();
-          document.execCommand("copy");
-          document.body.removeChild(textarea);
-          copied = true;
-        } catch {}
-      }
-
-      // Show confirmation toast for clipboard fallback
-      if (copied) {
-        setShareCopied(true);
-        setTimeout(() => setShareCopied(false), 2500);
-      }
-    }
-  };
-
   return (
     <main className={`min-h-screen flex flex-col p-3 sm:p-4 md:px-6 md:py-4 font-sans transition-colors duration-200 overflow-x-hidden ${
       selectedLevel ? "md:h-screen md:overflow-hidden justify-between" : "justify-start"
     }`}>
       {/* Top Header */}
       <header className="w-full max-w-md md:max-w-5xl lg:max-w-6xl mx-auto flex items-center justify-between py-2.5 px-3.5 sm:px-4 rounded-2xl theme-surface mb-4 md:mb-6 shrink-0 border shadow-xs relative z-30">
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           <button
             onClick={resetCalibration}
             className="flex items-center gap-2 cursor-pointer group text-left"
@@ -1242,7 +1165,15 @@ export default function Home() {
             </span>
           </button>
 
-          </div>
+          <Link
+            href="/weakness"
+            className="flex items-center gap-1.5 text-[11px] font-semibold theme-text-secondary hover:theme-text-primary px-2.5 py-1.5 rounded-xl theme-surface hover:theme-surface-subtle border transition cursor-pointer"
+            title="Weakness Studio"
+          >
+            <Target className="w-3.5 h-3.5 text-rose-500" />
+            <span className="hidden sm:inline">Weakness Studio</span>
+          </Link>
+        </div>
 
         <div className="flex items-center gap-1.5">
           {/* Lichess Account / Sync Button */}
@@ -1292,17 +1223,6 @@ export default function Home() {
             <span className="hidden sm:inline">Settings</span>
           </button>
 
-          {isCalibrated && (
-            <button
-              onClick={() => setShowSaveModal(true)}
-              className="flex items-center gap-1 text-[11px] font-mono font-medium theme-surface theme-surface-hover px-2.5 py-1.5 rounded-xl cursor-pointer transition"
-              title="Save Progress"
-            >
-              <Save className="w-3 h-3 text-[var(--accent-primary)]" />
-              <span>Save</span>
-            </button>
-          )}
-
           {selectedLevel && (
             <>
               <button
@@ -1328,12 +1248,6 @@ export default function Home() {
       {/* Screen 1: Redesigned High-Authority Landing Screen */}
       {!selectedLevel ? (
         <section className="flex-1 flex flex-col items-center justify-start max-w-md md:max-w-4xl mx-auto w-full pt-3 sm:pt-6 md:pt-8 pb-8 md:pb-12">
-          {/* Eyebrow Pill */}
-          <div className="inline-flex items-center gap-2 text-[11px] font-mono tracking-wide px-3.5 py-1 rounded-full mb-3 shadow-xs bg-[var(--surface-muted)]/80 backdrop-blur-sm border border-[var(--border-subtle)]">
-            <Sparkles className="w-3.5 h-3.5 text-[var(--accent-primary)] animate-pulse" />
-            <span className="theme-text-primary font-medium">✨ The vibe check for your chess rating</span>
-          </div>
-
           {/* Grandmaster Authority Headline with Atmospheric Lighting */}
           <div className="relative text-center mb-6 sm:mb-7 max-w-2xl mx-auto">
             {/* Multi-Depth Ambient Glow */}
@@ -1426,20 +1340,20 @@ export default function Home() {
 
               <div className="p-4 sm:p-6 text-center">
                 <h2 className="text-lg sm:text-xl font-extrabold theme-text-primary tracking-tight font-display mb-1.5">
-                  Turn Your Own Blunders Into XP
+                  Replay Where You Went Wrong
                 </h2>
                 <p className="text-xs sm:text-sm theme-text-secondary leading-relaxed max-w-lg mx-auto mb-4">
-                  Connect Lichess and ChessZ reads your rated games, finds every position where you dropped a won game, and hands them back to you as puzzles. Your mistakes, not someone else&apos;s.
+                  Connect Lichess and ChessZ reads your rated games, finds every position where you dropped a won game, and puts you back in them to find the winning move. Your mistakes, not someone else&apos;s.
                 </p>
 
                 {lichessUser ? (
-                  <button
-                    onClick={() => setShowWeaknessDashboard(true)}
+                  <Link
+                    href="/weakness"
                     className="w-full sm:w-auto py-3 px-7 rounded-xl bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-400 text-white font-bold text-sm tracking-wide inline-flex items-center justify-center gap-2 shadow-md hover:shadow-lg active:scale-[0.98] transition cursor-pointer"
                   >
                     <Target className="w-4 h-4" />
                     <span>Scan @{lichessUser.username}&apos;s Games</span>
-                  </button>
+                  </Link>
                 ) : (
                   <button
                     onClick={() => setShowLichessModal(true)}
@@ -1456,7 +1370,7 @@ export default function Home() {
                     href="/diagnose"
                     className="font-bold text-[var(--accent-primary)] hover:underline underline-offset-4"
                   >
-                    Take the 5-move vibe check
+                    Take the 5-move calibration benchmark
                   </Link>{" "}
                   instead.
                 </p>
@@ -1475,7 +1389,7 @@ export default function Home() {
               </div>
               <div className="min-w-0 flex-1 text-left">
                 <div className="text-xs font-extrabold theme-text-primary mb-0.5">
-                  {savedDiagnosisProfile ? "Retake the vibe check" : "5-move vibe check"}
+                  {savedDiagnosisProfile ? "Retake calibration benchmark" : "5-move calibration benchmark"}
                 </div>
                 <p className="text-[11px] theme-text-secondary leading-snug truncate">
                   {savedDiagnosisProfile
@@ -1529,12 +1443,12 @@ export default function Home() {
             </div>
           )}
 
-          {/* Direct Practice Lobby Selector (Prestige Rank Accents) */}
+          {/* Direct Practice Tier Selector */}
           <div className="w-full max-w-3xl mb-5">
             <div className="flex items-center gap-3 my-2 text-zinc-400">
               <div className="flex-1 h-px bg-[var(--border-subtle)]" />
               <span className="text-[10px] uppercase tracking-widest font-semibold theme-text-muted font-mono">
-                Or Pick Your Lobby
+                Or Practice by Rating Tier
               </span>
               <div className="flex-1 h-px bg-[var(--border-subtle)]" />
             </div>
@@ -1583,7 +1497,7 @@ export default function Home() {
                         </span>
                       </div>
                       <span className="text-[10px] font-mono theme-text-muted block truncate pl-2.5">
-                        {lvl.chessComRange}
+                        Lichess {lvl.lichessRange}
                       </span>
                     </div>
                   </button>
@@ -1592,17 +1506,17 @@ export default function Home() {
             </div>
           </div>
 
-          {/* "Why ChessZ?" — The 3 Pillars Section */}
+          {/* "Why ChessZ" — The 3 Pillars Section */}
           <div className="w-full max-w-3xl my-3 p-4 sm:p-5 rounded-3xl theme-surface border border-[var(--border-subtle)] shadow-sm">
             <div className="text-center mb-4">
               <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[var(--accent-primary)] block mb-1">
-                Why ChessZ Hits Different
+                Why ChessZ
               </span>
               <h2 className="text-base sm:text-lg md:text-xl font-extrabold theme-text-primary font-display">
-                Endless random puzzles are an L.
+                Random puzzles train someone else&apos;s mistakes.
               </h2>
               <p className="text-xs theme-text-secondary max-w-md mx-auto mt-1 leading-relaxed">
-                Memorizing 12-move queen sacrifices won&apos;t help when you hang rooks in rapid. Here&apos;s how ChessZ actually helps you climb:
+                Memorizing synthetic queen sacrifices won&apos;t help when you lose an advantage in your own games. Here is how ChessZ works:
               </p>
             </div>
 
@@ -1613,10 +1527,10 @@ export default function Home() {
                   <Zap className="w-4 h-4" />
                 </div>
                 <h3 className="text-xs font-bold theme-text-primary uppercase tracking-wide mb-1 font-display">
-                  1. Speed & Bluff Check
+                  1. Your Real Mistakes
                 </h3>
                 <p className="text-[11px] theme-text-secondary leading-relaxed">
-                  Did you calculate it or did you panic-guess? We track hesitation and confidence so you stop bluffing yourself.
+                  Puzzles generated from the exact moments you surrendered a winning advantage in your own games, not theoretical compositions.
                 </p>
               </div>
 
@@ -1639,34 +1553,13 @@ export default function Home() {
                   <Award className="w-4 h-4" />
                 </div>
                 <h3 className="text-xs font-bold theme-text-primary uppercase tracking-wide mb-1 font-display">
-                  3. Cheat Codes That Stick
+                  3. Rules That Stick
                 </h3>
                 <p className="text-[11px] theme-text-secondary leading-relaxed">
-                  No boring 500-page opening manuals. Just sticky rules like <em>The 2-Second Bodyguard Rule</em> to stop gifting free elo.
+                  No bloated manual memorization. Concise, sticky tactical heuristics to eliminate recurring patterns.
                 </p>
               </div>
             </div>
-          </div>
-
-          {/* Why it's free. Not a promise -- a consequence of where the engine
-              runs. Stated plainly because "free forever" from a stranger reads
-              as a bluff, and the architecture reason doesn't. */}
-          <div className="w-full max-w-3xl mt-2 p-3.5 sm:p-4 rounded-2xl theme-surface-subtle border border-[var(--border-subtle)] flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
-            <div className="w-9 h-9 rounded-xl bg-[var(--accent-primary)]/15 text-[var(--accent-primary)] border border-[var(--accent-primary)]/30 flex items-center justify-center shrink-0">
-              <Cpu className="w-4 h-4" />
-            </div>
-            <p className="text-[11px] sm:text-xs theme-text-secondary leading-relaxed flex-1">
-              <strong className="theme-text-primary">Free because there&apos;s nothing to bill you for.</strong>{" "}
-              Stockfish runs inside your browser, on your machine &mdash; not on a server we rent by the hour. Analysing your whole game history costs us the same as analysing none of it: nothing. No ads, no paywall, no &ldquo;premium&rdquo; tier holding your own mistakes hostage.
-            </p>
-          </div>
-
-          <div className="mt-3 flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-[11px] theme-text-secondary bg-[var(--surface-muted)]/80 backdrop-blur-sm px-4 py-1.5 rounded-full border border-[var(--border-subtle)] shadow-2xs font-mono">
-            <span className="font-semibold text-[var(--accent-primary)]">✓ Engine runs on your device</span>
-            <span className="hidden sm:inline theme-text-muted">•</span>
-            <span className="font-semibold text-amber-600 dark:text-amber-400">✓ Lichess Connected</span>
-            <span className="hidden sm:inline theme-text-muted">•</span>
-            <span className="theme-text-muted">No Ads • No Paywall</span>
           </div>
         </section>
       ) : (
@@ -1986,6 +1879,23 @@ export default function Home() {
                       </button>
                     </div>
                   )
+                ) : currentPuzzle?.id?.startsWith("lichess_") ? (
+                  <div className="flex flex-col gap-2 w-full">
+                    <Link
+                      href="/weakness"
+                      className="group relative w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-400 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md hover:shadow-lg active:scale-[0.98] transition cursor-pointer"
+                    >
+                      <Target className="w-4 h-4" />
+                      <span>Back to Weakness Studio</span>
+                    </Link>
+                    <button
+                      onClick={() => nextPuzzle()}
+                      className="w-full py-2 px-3 rounded-xl theme-surface hover:theme-surface-subtle border text-xs font-semibold theme-text-secondary flex items-center justify-center gap-1.5 transition cursor-pointer"
+                    >
+                      <span>Practice Generic Puzzles</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 ) : (
                   <button
                     onClick={() => nextPuzzle()}
@@ -2347,30 +2257,33 @@ export default function Home() {
                             <span>Retake Test</span>
                           </Link>
 
-                          <button
-                            onClick={() => {
-                              if (!lichessUser && !(typeof window !== 'undefined' && localStorage.getItem('chessz_last_username'))) {
-                                setShowLichessModal(true);
-                              } else {
-                                setShowWeaknessDashboard(true);
-                              }
-                            }}
+                          <Link
+                            href="/weakness"
                             className="py-2 px-2.5 rounded-lg theme-surface hover:theme-surface-subtle border text-[11px] font-bold theme-text-primary flex items-center justify-center gap-1 transition cursor-pointer"
                           >
                             <Target className="w-3 h-3 text-rose-400" />
                             <span>My Blunders</span>
-                          </button>
+                          </Link>
                         </div>
-
-                        <button
-                          onClick={handleShareDiagnosis}
-                          className="w-full py-1.5 px-3 rounded-lg theme-surface hover:theme-surface-subtle border text-[11px] font-medium theme-text-secondary flex items-center justify-center gap-1.5 transition cursor-pointer"
-                        >
-                          <Share2 className="w-3 h-3 text-[var(--accent-primary)]" />
-                          <span>{shareCopied ? "Copied to Clipboard!" : "Share Training Report"}</span>
-                        </button>
                       </div>
                     )
+                  ) : currentPuzzle?.id?.startsWith("lichess_") ? (
+                    <div className="flex flex-col gap-2 w-full">
+                      <Link
+                        href="/weakness"
+                        className="group relative w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-400 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md hover:shadow-lg active:scale-[0.98] transition cursor-pointer"
+                      >
+                        <Target className="w-4 h-4" />
+                        <span>Back to Weakness Studio</span>
+                      </Link>
+                      <button
+                        onClick={() => nextPuzzle()}
+                        className="w-full py-2 px-3 rounded-xl theme-surface hover:theme-surface-subtle border text-xs font-semibold theme-text-secondary flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      >
+                        <span>Practice Generic Puzzles</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   ) : (
                     <button
                       onClick={() => nextPuzzle()}
@@ -2422,67 +2335,6 @@ export default function Home() {
             </div>
           </div>
         </section>
-      )}
-
-      {/* Save Progress Modal */}
-      {showSaveModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-sm theme-surface border rounded-3xl p-6 shadow-2xl relative">
-            <button
-              onClick={() => setShowSaveModal(false)}
-              className="absolute top-4 right-4 p-1.5 theme-text-muted hover:theme-text-primary rounded-lg theme-surface-subtle cursor-pointer"
-            >
-              <X className="w-4 h-4" />
-            </button>
-
-            <div className="flex items-center gap-2 theme-pill px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-2 w-fit">
-              <Flame className="w-4 h-4 fill-current" />
-              <span>Streak Milestone</span>
-            </div>
-
-            <h3 className="text-lg font-bold theme-text-primary mb-2">
-              Save Your Streak ({streak} Solved)
-            </h3>
-            <p className="text-xs theme-text-secondary leading-relaxed mb-4">
-              Enter your email to sync your Coach Diagnosis, rating progress, and solved puzzles across all your devices.
-            </p>
-
-            <form onSubmit={handleSaveProgressSubmit} className="space-y-3">
-              <div className="relative">
-                <Mail className="w-4 h-4 theme-text-muted absolute left-3.5 top-3" />
-                <input
-                  type="email"
-                  value={emailInput}
-                  onChange={(e) => setEmailInput(e.target.value)}
-                  placeholder="name@example.com"
-                  className="w-full theme-surface-subtle border rounded-xl pl-10 pr-4 py-2.5 text-xs theme-text-primary placeholder:theme-text-muted focus:outline-none focus:border-[var(--border-focus)] transition"
-                  required
-                />
-              </div>
-
-              {authStatusMessage && (
-                <div className="text-xs theme-pill p-2 rounded-lg text-center font-medium">
-                  {authStatusMessage}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                className="w-full py-2.5 rounded-xl theme-accent-btn font-bold text-xs tracking-wide transition cursor-pointer shadow-sm"
-              >
-                Save Progress
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setShowSaveModal(false)}
-                className="w-full text-center text-xs theme-text-muted hover:theme-text-primary transition pt-1 cursor-pointer"
-              >
-                Keep playing as guest
-              </button>
-            </form>
-          </div>
-        </div>
       )}
 
       {/* Credits & Open Source Modal (License Compliance) */}
@@ -2585,15 +2437,6 @@ export default function Home() {
         onRefresh={refreshLichess}
         onConnectUsername={connectLichessUsername}
         diagnosedElo={isCalibrated ? calibratedRating : null}
-        onOpenWeaknessDashboard={() => setShowWeaknessDashboard(true)}
-      />
-
-      {/* 5-Category Weakness Studio Dashboard */}
-      <WeaknessDashboard
-        isOpen={showWeaknessDashboard}
-        onClose={() => setShowWeaknessDashboard(false)}
-        user={lichessUser}
-        onStartTraining={handleStartBlunderTraining}
       />
 
       {/* Interactive Coach Study Mode Modal */}

@@ -15,22 +15,25 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## 1. Verification
 ```bash
-npm test            # 52 tests across 7 suites
+npm test            # 58 tests across 8 suites
 npx tsc --noEmit    # must exit 0 with zero errors
 npm run build       # Turbopack production build, 17 routes
 ```
 
 ## 2. Rules
-1. **One pipeline.** `lib/useWeaknessScan.ts` is the only source of weakness
-   data. A second path behind `/api/lichess/blunders` was deleted because it
-   silently ignored games Lichess had not pre-analyzed. Do not add another.
-2. **Lichess logo**: always `LichessIcon` from `@/components/LichessModal`
+1. **One pipeline, one destination.** `lib/useWeaknessScan.ts` is the only source
+   of weakness data, and `/weakness` is the sole destination for scanning and
+   reviewing blunders. The legacy in-arena modal was deleted.
+2. **Append-only attempt logging**: `lib/trainingLog.ts` records every attempt
+   (correct or not) into IndexedDB `attempts` store (DB_VERSION 2) and mirrors
+   to Supabase `puzzle_history`. Never mutate or store simple boolean flags.
+3. **Lichess logo**: always `LichessIcon` from `@/components/LichessModal`
    (`viewBox="0 0 24 24"`).
-3. **Engine lifecycle**: `stopAnalysis()` and `setEngineEnabled(false)` when
+4. **Engine lifecycle**: `stopAnalysis()` and `setEngineEnabled(false)` when
    changing position or unmounting; drain an abandoned search before the next.
-4. **Blunder taxonomy**: keep `TIER_CATEGORY_DEFINITIONS` in
+5. **Blunder taxonomy**: keep `TIER_CATEGORY_DEFINITIONS` in
    `lib/mistakeClassifier.ts` at 3 tiers x 5 categories.
-5. **Zero server compute**: engines and replay loops stay in the browser.
-6. **No invented numbers**: a figure shown as a measurement must be computed
+6. **Zero server compute**: engines and replay loops stay in the browser.
+7. **No invented numbers**: a figure shown as a measurement must be computed
    from data.
-7. **Be direct**: concise, concrete, no filler.
+8. **Be direct**: concise, concrete, no filler.

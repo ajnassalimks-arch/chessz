@@ -26,6 +26,7 @@ import {
 import { isMobileOrLowEndDevice, MOBILE_GAME_BATCH_CAP } from '@/lib/engine/browserStockfish';
 import { TransparentProgressBar } from '@/components/TransparentProgressBar';
 import { MiniBoard } from '@/components/MiniBoard';
+import { getMasteryMap, MasteryInfo } from '@/lib/trainingLog';
 
 /** Positions drawn per page of the queue. Each row renders a board. */
 const MOMENTS_PAGE = 30;
@@ -97,6 +98,45 @@ function WeaknessStudioContent() {
    * render budget and nothing else -- the heading reports the true total.
    */
   const [visibleMoments, setVisibleMoments] = useState<number>(MOMENTS_PAGE);
+  const [masteryMap, setMasteryMap] = useState<Map<string, MasteryInfo>>(new Map());
+
+  // Load attempt/mastery state for the active account
+  useEffect(() => {
+    let mounted = true;
+    const loadMastery = async () => {
+      if (!activeUsername) {
+        if (mounted) setMasteryMap(new Map());
+        return;
+      }
+      try {
+        const map = await getMasteryMap(activeUsername);
+        if (mounted) setMasteryMap(map);
+      } catch (err) {
+        console.warn('Failed to load mastery map:', err);
+      }
+    };
+    loadMastery();
+
+    const onFocus = () => {
+      loadMastery();
+    };
+    window.addEventListener('focus', onFocus);
+    return () => {
+      mounted = false;
+      window.removeEventListener('focus', onFocus);
+    };
+  }, [activeUsername]);
+
+  const fixedCount = useMemo(() => {
+    let count = 0;
+    for (const m of moments) {
+      const puzzleId = `lichess_${m.gameId}_p${m.ply}`;
+      if (masteryMap.get(puzzleId)?.everCorrect) {
+        count += 1;
+      }
+    }
+    return count;
+  }, [moments, masteryMap]);
 
   // Mirror whichever account the scan settled on into the input box
   useEffect(() => {
@@ -470,89 +510,124 @@ function WeaknessStudioContent() {
             {moments.length > 0 ? (
               <div className="space-y-2">
                 <div className="flex items-baseline justify-between px-1">
-                  <h2 className="text-sm font-bold theme-text-primary">
-                    {moments.length} positions to fix
-                  </h2>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-sm font-bold theme-text-primary">
+                      {moments.length} positions to fix
+                    </h2>
+                    {moments.length > 0 && (
+                      <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-bold">
+                        {fixedCount} of {moments.length} fixed
+                      </span>
+                    )}
+                  </div>
                   <span className="text-[11px] font-mono theme-text-muted">worst first</span>
                 </div>
 
-                {moments.slice(0, visibleMoments).map((m, idx) => (
-                  <div
-                    key={`${m.gameId}_${m.ply}`}
-                    className="p-3.5 rounded-2xl theme-surface border flex flex-col sm:flex-row sm:items-center gap-3 hover:border-[var(--border-focus)] transition"
-                  >
-                    <span className="text-lg font-black theme-text-muted font-mono w-7 shrink-0 tabular-nums">
-                      {idx + 1}
-                    </span>
+                {moments.slice(0, visibleMoments).map((m, idx) => {
+                  const puzzleId = `lichess_${m.gameId}_p${m.ply}`;
+                  const mastery = masteryMap.get(puzzleId);
+                  const isFixed = Boolean(mastery?.everCorrect);
+                  const isAttempted = Boolean(mastery && !isFixed);
 
-                    {(() => {
-                      const fen = resolveFen(m);
-                      return fen ? (
-                        <MiniBoard
-                          id={`queue_${m.gameId}_${m.ply}`}
-                          fen={fen}
-                          orientation={m.color}
-                          size={56}
-                        />
-                      ) : null;
-                    })()}
+                  return (
+                    <div
+                      key={`${m.gameId}_${m.ply}`}
+                      className="p-3.5 rounded-2xl theme-surface border flex flex-col sm:flex-row sm:items-center gap-3 hover:border-[var(--border-focus)] transition"
+                    >
+                      <span className="text-lg font-black theme-text-muted font-mono w-7 shrink-0 tabular-nums">
+                        {idx + 1}
+                      </span>
 
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-bold theme-text-primary font-mono">{m.san}</span>
-                        <span
-                          className={`text-[9px] font-mono uppercase px-1.5 py-0.5 rounded font-extrabold ${
-                            m.judgment === 'blunder'
-                              ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
-                              : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
-                          }`}
-                        >
-                          {m.judgment}
-                        </span>
-                        <span className="text-[11px] font-mono text-rose-400">
-                          &minus;{m.winPctLost.toFixed(0)}% win prob
-                        </span>
-                      </div>
-                      <div className="text-[11px] theme-text-muted font-mono mt-0.5 flex items-center gap-2 flex-wrap">
-                        <span>
-                          move {m.moveNumber} as {m.color}
-                        </span>
-                        <span>&middot;</span>
-                        <span>{m.phase}</span>
-                        {m.clockRemaining !== undefined && (
-                          <>
-                            <span>&middot;</span>
-                            <span className="flex items-center gap-1">
-                              <Clock className="w-3 h-3" />
-                              {formatClock(m.clockRemaining)}
+                      {(() => {
+                        const fen = resolveFen(m);
+                        return fen ? (
+                          <MiniBoard
+                            id={`queue_${m.gameId}_${m.ply}`}
+                            fen={fen}
+                            orientation={m.color}
+                            size={56}
+                          />
+                        ) : null;
+                      })()}
+
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm font-bold theme-text-primary font-mono">{m.san}</span>
+                          <span
+                            className={`text-[9px] font-mono uppercase px-1.5 py-0.5 rounded font-extrabold ${
+                              m.judgment === 'blunder'
+                                ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
+                                : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                            }`}
+                          >
+                            {m.judgment}
+                          </span>
+                          {isFixed ? (
+                            <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded font-extrabold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                              <Check className="w-2.5 h-2.5" />
+                              Fixed
                             </span>
-                          </>
+                          ) : isAttempted ? (
+                            <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded font-extrabold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                              Attempted
+                            </span>
+                          ) : null}
+                          <span className="text-[11px] font-mono text-rose-400">
+                            &minus;{m.winPctLost.toFixed(0)}% win prob
+                          </span>
+                        </div>
+                        <div className="text-[11px] theme-text-muted font-mono mt-0.5 flex items-center gap-2 flex-wrap">
+                          <span>
+                            move {m.moveNumber} as {m.color}
+                          </span>
+                          <span>&middot;</span>
+                          <span>{m.phase}</span>
+                          {m.clockRemaining !== undefined && (
+                            <>
+                              <span>&middot;</span>
+                              <span className="flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                {formatClock(m.clockRemaining)}
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <a
+                          href={m.deepLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1.5 text-[11px] font-mono theme-text-muted hover:theme-text-primary px-2 py-1.5 rounded-lg border theme-surface-subtle transition"
+                          title="Open this game on Lichess"
+                        >
+                          <LichessIcon className="w-3 h-3 text-amber-700 dark:text-amber-400" />
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                        {isFixed ? (
+                          <button
+                            type="button"
+                            onClick={() => handleTrainInArena(m)}
+                            className="flex items-center gap-1.5 text-xs font-bold theme-surface hover:theme-surface-subtle border theme-text-secondary hover:theme-text-primary px-3 py-1.5 rounded-lg transition cursor-pointer"
+                          >
+                            <RefreshCw className="w-3.5 h-3.5" />
+                            <span>Train again</span>
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleTrainInArena(m)}
+                            className="flex items-center gap-1.5 text-xs font-bold bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 px-3 py-1.5 rounded-lg transition cursor-pointer"
+                          >
+                            <Play className="w-3.5 h-3.5" />
+                            <span>Fix it</span>
+                          </button>
                         )}
                       </div>
                     </div>
-
-                    <div className="flex items-center gap-2 shrink-0">
-                      <a
-                        href={m.deepLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1.5 text-[11px] font-mono theme-text-muted hover:theme-text-primary px-2 py-1.5 rounded-lg border theme-surface-subtle transition"
-                        title="Open this game on Lichess"
-                      >
-                        <LichessIcon className="w-3 h-3 text-amber-700 dark:text-amber-400" />
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                      <button
-                        type="button"
-                        onClick={() => handleTrainInArena(m)}
-                        className="flex items-center gap-1.5 text-xs font-bold bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 px-3 py-1.5 rounded-lg transition cursor-pointer"
-                      >
-                        <Play className="w-3.5 h-3.5" />
-                        <span>Fix it</span>
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
 
                 {visibleMoments < moments.length && (
                   <button

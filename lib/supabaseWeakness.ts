@@ -9,7 +9,12 @@ import { getLibraryGames, getLibraryMeta, saveLibraryGames } from './gameLibrary
  */
 const SUPABASE_READ_LIMIT = 1000;
 
-async function ensureAuthenticatedSession(): Promise<string | null> {
+/**
+ * Resolves the Supabase user id for the current browser session, signing in
+ * anonymously if Lichess login never established one. Exported so
+ * lib/trainingLog.ts shares this instead of a second silent-auth path.
+ */
+export async function ensureAuthenticatedSession(): Promise<string | null> {
   if (!isSupabaseConfigured || !supabase) return null;
   try {
     const { data: sessionData } = await supabase.auth.getSession();

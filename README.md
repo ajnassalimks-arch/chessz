@@ -1,6 +1,6 @@
-# ♟️ ChessZ — Zero-Paywall Chess Training Platform
+# ♟️ ChessZ
 
-> **"Why Pay ₹1,500/yr For Diamond? Unlimited Coach-Verified Training • Free Forever."**  
+> Replay where you went wrong. In-browser Stockfish analysis of your real games, pedagogical weakness diagnosis, and verified tactical training.  
 > Built with coaching pedagogy developed in consultation with academy coaches at Premier Chess Academy (PCA), Ernakulam.
 
 [![Live Production](https://img.shields.io/badge/Production-Live%20on%20Vercel-emerald?style=for-the-badge&logo=vercel)](https://chesszapp.vercel.app/)
@@ -21,13 +21,14 @@
 
 ---
 
-## 💡 The Disruption Hook: 100% Free Forever
-Commercial chess platforms restrict free players to **3 puzzles a day** and charge ₹1,500 to ₹10,000/year for unlimited tactical training and blunder reviews.
+## 💡 Architecture & Philosophy
 
-**ChessZ** eliminates this paywall with a clean, high-performance architecture:
-* **Unlimited Training:** 100% free access to verified tactical positions.
-* **Zero Subscriptions & Zero Ads:** Distraction-free, mobile-first interface.
-* **Instant Start:** Zero mandatory signup friction — train immediately as a guest or connect your Lichess account.
+Stockfish runs directly inside your browser on your own machine &mdash; not on rented cloud servers. Analyzing your full game history costs the same as analyzing none of it: zero.
+
+* **Client-Side Compute:** Complete engine evaluation and mistake detection run locally via WebAssembly and Web Workers.
+* **Unbounded History:** Full backwards game history stored locally in IndexedDB, resilient across restarts and reloads.
+* **Zero Interruption:** No ads, no paywall, no synthetic paywalls holding your own game mistakes hostage.
+* **Frictionless Handoff:** Train immediately as a guest or connect any public Lichess username with 1 click.
 
 ---
 
@@ -42,10 +43,10 @@ ChessZ is organized around a unified four-view navigation hierarchy:
          ┌─────────────────────────┬──────────┴──────────────┬─────────────────────────┐
          ▼                         ▼                         ▼                         ▼
    Train (`/`)            Skill Test (`/diagnose`)   Weakness (`/weakness`)     Study Terms (`/terms`)
-• Tactical Arena          • 5-Puzzle Benchmark       • 50-Game NDJSON Stream    • 21 Historical Studies
+• Tactical Arena          • 5-Puzzle Benchmark       • Unbounded NDJSON Stream  • 21 Historical Studies
 • 4-Tier Lobby            • Millisecond Telemetry    • Phase Loss Metrics       • Interactive Board Replay
-• Blunder Trainer         • Conviction Tracking      • In-Browser Stockfish     • Contextual Study Terms
-• Stockfish Auto-Eval     • Cognitive Dossier        • Critical Moments         • Coach Definitions & Tips
+• Real Blunder Trainer    • Conviction Tracking      • In-Browser Sweep (WASM)  • Contextual Study Terms
+• Stockfish Auto-Eval     • Cognitive Dossier        • Live Mastery Badging     • Coach Definitions & Tips
 ```
 
 ---
@@ -78,23 +79,17 @@ Instead of static quizzes, `/diagnose` dynamically samples 5 balanced, non-repea
 
 ---
 
-## 🔍 Weakness Studio (`/weakness`) & In-Arena Blunder Trainer
+## 🔍 Weakness Studio (`/weakness`) & Blunder Training
 
-### 1. Dual-Mode Lichess Game Streaming
-- Direct client-side streaming reader (`lib/lichessStream.ts`) that fetches NDJSON from Lichess incrementally.
-- Automatic fallback proxy (`/api/lichess/games/stream`) with exponential backoff if browser CORS or rate limits occur.
-- Fast browser-side parsing extracts existing Lichess server evaluations (`[%eval +3.4]`) with 0ms server compute.
+### 1. Unbounded History & Local Engine Sweep
+- Incremental NDJSON game streaming with browser-native fetch and automatic serverless proxy fallback.
+- Unbounded game library stored in IndexedDB (`lib/gameLibrary.ts`) with a resumable backwards backfill walk (`backfillHistory()`).
+- In-browser Stockfish WASM sweep (80k ➔ 300k nodes) analyzes games that Lichess never pre-evaluated, checkpointed directly into IndexedDB.
 
-### 2. 5-Pillar Blunder Classification
-Classifies real game mistakes into 5 skill-calibrated categories:
-1. **Hanging Pieces & Simple Tactics**: Unprotected pieces, undefended captures.
-2. **Threat Perception & Defense**: Overlooked checks, missed king attacks.
-3. **Calculation Depth & Complex Geometry**: Multi-ply combinations, clearance, deflections.
-4. **Opening Principles & Traps**: Moves $\le 10$, development negligence, uncastled king.
-5. **Endgame Conversion & Technique**: King activity, pawn breakthrough, technical rooks.
-
-### 3. Preceding Move Stepper (`BlunderCardItem`)
-Each blunder card provides an interactive move stepper (`◀` `▶` or step pills) that lets players walk through the preceding 2 moves (`setupMoves`) to see how the tactical crisis developed before attempting the fix.
+### 2. Live Mastery Tracking & Attempt Log
+- Powered by an append-only attempt engine (`lib/trainingLog.ts`). Every attempt (correct or failed refutation) is recorded locally and best-effort mirrored to Supabase `puzzle_history`.
+- Live mastery badging in the queue: 🟢 **Fixed** for mastered blunders, 🟡 **Attempted** for in-progress positions, and `{fixedCount} of {moments.length} fixed` overall progress counter.
+- One-click handoff into `/` (`mode=blunder`) to calculate and play the winning alternative on the board.
 
 ---
 
@@ -167,7 +162,7 @@ Players can tailor the board to their preferred study environment via **Settings
 ChessZ features an automated test suite verifying pure mathematical formulas, game parsing, phase detection, puzzle integrity, and edge-case boundary conditions:
 
 ```bash
-# Run 52 automated tests across 7 suites
+# Run 58 automated tests across 8 suites
 npm test
 
 # Run TypeScript type check (0 errors required)

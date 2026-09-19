@@ -44,14 +44,19 @@ c:\ChessZ\chessz-app\
 │   ├── LichessModal.tsx       # Lichess login/connection modal + official LichessIcon SVG
 │   ├── SettingsModal.tsx      # Palette switcher, piece selector, wallpaper toggle, sound mute
 │   ├── ThemeSwitcher.tsx      # Board color themes & theme tokens
-│   └── WeaknessDashboard.tsx  # Modal blunder trainer with 2-move stepper (BlunderCardItem)
+│   └── TransparentProgressBar.tsx # Scan and sweep progress bar
 ├── lib/
 │   ├── chessMetrics/          # Pure TypeScript math engine
-│   ├── blunderAdapter.ts      # critical moment -> trainable puzzle
-│   ├── useWeaknessScan.ts     # THE scan pipeline (page + modal share it)
 │   │   ├── gameParser.ts      # PGN tokenizer, phase detection, eval extraction
 │   │   ├── math.ts            # Centipawns-to-win% curve, accuracy formula, Wilson score
 │   │   └── types.ts           # Data interfaces for games, plies, stats, and critical moments
+│   ├── engine/
+│   │   ├── browserStockfish.ts # UCI worker + two-pass batch sweep
+│   │   └── types.ts
+│   ├── blunderAdapter.ts      # critical moment -> trainable puzzle
+│   ├── gameLibrary.ts         # IndexedDB v2 game store + backfill cursors
+│   ├── trainingLog.ts         # Append-only attempt log + mastery derivation
+│   ├── useWeaknessScan.ts     # THE scan pipeline
 │   ├── diagnosisEngine.ts     # 16-puzzle benchmark pool, adaptive selector, bounded Elo
 │   ├── lichess.ts             # Lichess user interfaces & API helpers
 │   ├── lichessStream.ts       # Client-side streaming reader for NDJSON games
@@ -61,17 +66,17 @@ c:\ChessZ\chessz-app\
 │   ├── supabaseWeakness.ts    # Supabase caching layer for scanned games & stats
 │   ├── useLichess.ts          # React hook managing Lichess auth state & storage
 │   └── useStockfish.ts        # Stockfish WASM Web Worker controller
-├── public/
-│   ├── pieces/lichess/        # Standard piece SVG assets
-│   ├── stockfish/             # stockfish.js, stockfish.wasm, stockfish.wasm.js
-│   ├── wallpapers/            # Background wallpaper textures (emerald-glitter.jpg)
-│   ├── logo-mark.svg          # Official vector brandmark
-│   └── og-image.jpg           # OpenGraph social banner
+├── supabase/
+│   └── migrations/
+│       └── 20260919_puzzle_history_attempt_log.sql # attempt log schema extensions
 ├── tests/
 │   ├── chessMetrics.test.ts          # Pure math, winPct curve, PGN tokenization
 │   ├── diagnosticEnhancements.test.ts # Category rules, velocity heuristic, master ceiling
 │   ├── puzzleIntegrity.test.ts       # Validates FENs, solution lines, mates, and refutations
-│   └── qaStress.test.ts              # Stress testing boundary conditions & edge cases
+│   ├── qaStress.test.ts              # Stress testing boundary conditions & edge cases
+│   ├── studyTermsIntegrity.test.ts   # Terms, legal master lines, rule mapping
+│   ├── trainingLog.test.ts           # Attempt log invariants, mastery map, legacy import
+│   └── weaknessPipeline.test.ts      # The seams: parse -> sweep -> adapt
 ├── AGENTS.md                  # Instructions for autonomous AI agents
 ├── CLAUDE.md                  # Quick reference file for AI assistants
 ├── LICENSE                    # MIT License
@@ -84,22 +89,26 @@ c:\ChessZ\chessz-app\
 ## 3. Core Routing & State Architecture
 
 ### A. Route 1: The Main Arena (`/` ➔ `app/page.tsx`)
-- **Primary Responsibility**: Tactical puzzle training, level selection lobby, 5-puzzle diagnostic curriculum, and post-curriculum review.
+- **Primary Responsibility**: Tactical puzzle training, level selection lobby, 5-puzzle diagnostic curriculum, and blunder training execution.
 - **Key State Variables**:
   - `game`: Current `chess.js` instance.
   - `currentPuzzle`: Active `ChessPuzzle` object with `solutionMoves`, `defaultRefutation`, and `ruleTitle`.
-  - `puzzleStatus`: `"solving"` | `"solved"` | `"failed"`.
+  - `puzzleStatus`: `"solving"` | `"solved"` | `"failed"` | `"refuting"`.
   - `engineEnabled` & `evaluation`: Stockfish WASM evaluation state (`useStockfish`).
   - `showLichessModal`: Controls the Lichess connection modal.
-  - `showWeaknessDashboard`: Controls the in-arena `WeaknessDashboard` modal.
-- **Auto-Reveal Engine Integration**:
+- **Auto-Reveal Engine Integration & Training Log**:
   When `handleMoveAttempt` validates `isCorrect === true`:
   ```typescript
   setEngineEnabled(true);
   startAnalysis(testChess.fen());
+  recordAttempt(username, { ... input, correct: true });
   ```
-  Renders a mini-eval bar inside the solved banner with numerical score (`Eval: +3.4` or `Mate in 2`), top 4 continuation moves, and the `WASM` badge.
-  When loading the next puzzle (`loadPuzzle`), the engine is cleanly stopped (`stopAnalysis()`) and disabled to avoid leaking moves across positions.
+  Renders Stockfish eval score, top continuation line, and WASM badge.
+  On failed refutation or blunder repeat:
+  ```typescript
+  recordAttempt(username, { ... input, correct: false });
+  ```
+  When launched in blunder mode (`/?mode=blunder`), completion cards provide a direct `<Link href="/weakness">` ("Back to Weakness Studio").
 
 ### B. Route 2: The 5-Puzzle Skill Diagnostic (`/diagnose` ➔ `app/diagnose/page.tsx`)
 - **Primary Responsibility**: Rapid 5-puzzle diagnostic benchmark (+1 optional Grandmaster Crucible) estimating true playing strength.
@@ -111,13 +120,14 @@ c:\ChessZ\chessz-app\
   5. **Results Screen**: Generates converged rating (`calibratedRating`), behavioral archetype, and an option to train targeted blindspots on `/`.
 
 ### C. Route 3: Deep Weakness Studio (`/weakness` ➔ `app/weakness/page.tsx`)
-- **Primary Responsibility**: Full-page analytics studio scanning up to 50 recent Lichess games.
+- **Primary Responsibility**: Full-page analytics studio scanning and analyzing the player's full game history.
 - **Key Capabilities**:
-  - A single pipeline (`lib/useWeaknessScan.ts`) shared with the in-arena trainer. Dual-mode game streaming: tries direct browser fetch to `https://lichess.org/api/games/user/...` with backoff retry, falling back to `/api/lichess/games/stream` if CORS or rate limits occur.
-  - Smart Game Merging: Preserves previously computed client-side Stockfish evaluations (`evalSource: 'local'`) across syncs without losing 50-game history.
-  - Multi-pass in-browser Stockfish WASM sweep (80k nodes pass 1 ➔ 300k nodes pass 2 refinement) for games lacking Lichess computer evals (`evalSource: 'none'`).
-  - Classifies critical turning points into Opening, Middlegame, and Endgame phases.
-  - Provides direct deep links to review the game on Lichess (`m.deepLink`).
+  - **Single Canonical Pipeline**: `lib/useWeaknessScan.ts` streams games via NDJSON with browser fallback and stores records quota-free in IndexedDB `lib/gameLibrary.ts`.
+  - **Unbounded History**: `backfillHistory()` walks backward page-by-page using Lichess `until` with persistent cursors in IndexedDB so scans resume rather than restart.
+  - **Live Mastery Badging & Attempt Log**: Powered by `lib/trainingLog.ts`. Displays `{fixedCount} of {moments.length} fixed`, with dynamic row badges (🟢 **Fixed**, 🟡 **Attempted**) and switches button from `"Fix it"` to `"Train again"`. Window focus listener automatically refreshes mastery upon returning from the Arena.
+  - **Multi-Pass Stockfish WASM Sweep**: 80k nodes pass 1 ➔ 300k nodes pass 2 refinement for games lacking server evals, checkpointed into IndexedDB.
+  - **Phase Diagnosis**: Identifies whether the player bleeds most in the Opening, Middlegame, or Endgame.
+  - **1-Click Arena Handoff**: Each blunder row carries a mini-board and launches training into `/` via `mode=blunder` with setup moves and engine refutation preloaded.
 
 ### D. Route 4: Study Terms & Master Lexicon (`/terms` ➔ `app/terms/page.tsx`)
 - **Primary Responsibility**: Interactive pedagogical encyclopedia featuring 21 real master historical positions (e.g. Greek Gift, Smothered Mate, Légal's Trap, Noah's Ark, Anastasia's Corridor).
@@ -130,12 +140,13 @@ c:\ChessZ\chessz-app\
 
 ## 4. Key Components & Modals
 
-### 1. `components/WeaknessDashboard.tsx` (In-Arena Blunder Trainer)
-- **Role**: Lightweight modal popup opening directly on `/` so players can drill real-game blunders without leaving the board.
-- **Component `BlunderCardItem`**:
-  - Displays blunder info: `moveNumber`, `playedSan`, `evalSwingPawns`, and `bestSan`.
-  - **Preceding Move Stepper**: Features `◀` and `▶` buttons plus clickable move pills (`sm.turnPrefix sm.san`) allowing players to walk back through the preceding 2 moves (`setupMoves`) to see how the tactical crisis developed.
-  - **Fix It Button**: Launches training on the blunder position with 1 click.
+### 1. Weakness Studio Queue Card (`app/weakness/_client.tsx`)
+- **Role**: Clean, responsive critical moment queue item.
+- **Features**:
+  - Mini-board preview rendering the exact blunder position with proper board orientation.
+  - Move details: played SAN, move number, game phase, clock remaining, and win probability loss.
+  - Status badges: 🟢 **Fixed** for mastered blunders, 🟡 **Attempted** for uncompleted attempts, plus blunder/mistake classification pill.
+  - Action buttons: direct Lichess game deep-link and `"Fix it"` / `"Train again"` button triggering Arena handoff.
 
 ### 2. `components/LichessModal.tsx`
 - **Role**: Authentication and identity management.
@@ -190,7 +201,7 @@ Classifies blunders using the 3-tier x 5-category matrix defined in `TIER_CATEGO
 The test suite is located in `tests/` and executes using Node's native runner via `tsx`:
 
 ```bash
-# Run all automated tests (52 tests in 7 suites)
+# Run all automated tests (58 tests in 8 suites)
 npm test
 
 # Run TypeScript type check (must exit 0 with zero errors)
