@@ -6,23 +6,22 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://chesszapp.vercel.app"),
   title: {
-    default: "ChessZ — Free Chess Tactics & Level Diagnosis",
+    default: "ChessZ",
     template: "%s | ChessZ"
   },
-  description: "Free client-side chess tactics trainer, 5-puzzle diagnostic level benchmark, and cognitive telemetry. 500+ curated Lichess puzzles, 100% free with no subscription.",
+  description: "In-browser Stockfish analysis of your real games, pedagogical weakness diagnosis, and verified tactical training.",
   keywords: [
     "ChessZ",
     "Chess Z",
     "chessz app",
     "chess tactics",
     "chess puzzles",
-    "free chess tactics",
     "chess level diagnosis",
     "chess rating benchmark",
     "client-side chess",
     "lichess puzzles",
-    "free chess coach",
-    "chess calculation trainer"
+    "chess calculation trainer",
+    "blunder trainer"
   ],
   authors: [{ name: "ChessZ Team" }],
   creator: "ChessZ",
@@ -36,8 +35,8 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://chesszapp.vercel.app",
     siteName: "ChessZ",
-    title: "ChessZ — Free Chess Tactics & Level Diagnosis",
-    description: "Discover your true chess level in 5 diagnostic puzzles. Client-side analysis, zero paywalls, cognitive telemetry.",
+    title: "ChessZ",
+    description: "In-browser Stockfish analysis of your real games, pedagogical weakness diagnosis, and verified tactical training.",
     images: [
       {
         url: "/og-image.jpg",
@@ -49,8 +48,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "ChessZ — Free Chess Tactics & Level Diagnosis",
-    description: "Discover your true chess level in 5 diagnostic puzzles. Client-side analysis, zero paywalls, cognitive telemetry.",
+    title: "ChessZ",
+    description: "In-browser Stockfish analysis of your real games, pedagogical weakness diagnosis, and verified tactical training.",
     images: ["/og-image.jpg"],
   },
   robots: {

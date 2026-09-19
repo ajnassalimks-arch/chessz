@@ -854,13 +854,13 @@ function TermsContent() {
                     </ul>
                   </div>
 
-                  {/* Direct Practice in Tactical Arena Action */}
+                  {/* Direct Practice in ChessZ Action */}
                   <Link
                     href={currentTerm.arenaFilter ? `/?tier=${currentTerm.arenaFilter.tier}` : "/"}
                     className="w-full py-2.5 px-4 rounded-xl theme-accent-btn font-bold text-xs tracking-wide flex items-center justify-center gap-2 shadow-sm hover:shadow-md transition cursor-pointer"
                   >
                     <Swords className="w-3.5 h-3.5" />
-                    <span>Drill This Rule in Tactical Arena ➔</span>
+                    <span>Drill This Rule in ChessZ ➔</span>
                   </Link>
                 </div>
               )}

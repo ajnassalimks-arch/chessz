@@ -3,22 +3,24 @@ import { Suspense } from "react";
 import TacticalArenaClient from "./_client";
 
 export const metadata: Metadata = {
-  title: "Tactical Arena",
+  title: {
+    absolute: "ChessZ",
+  },
   description:
-    "Sharpen your tactical vision with curated puzzles, interactive refutations, and instant engine analysis.",
+    "Replay where you went wrong. In-browser Stockfish analysis of your real games, pedagogical weakness diagnosis, and verified tactical training.",
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "Tactical Arena | ChessZ",
+    title: "ChessZ",
     description:
-      "Sharpen your tactical vision with curated puzzles, interactive refutations, and instant engine analysis.",
+      "Replay where you went wrong. In-browser Stockfish analysis of your real games, pedagogical weakness diagnosis, and verified tactical training.",
     url: "https://chesszapp.vercel.app/",
   },
   twitter: {
-    title: "Tactical Arena | ChessZ",
+    title: "ChessZ",
     description:
-      "Sharpen your tactical vision with curated puzzles, interactive refutations, and instant engine analysis.",
+      "Replay where you went wrong. In-browser Stockfish analysis of your real games, pedagogical weakness diagnosis, and verified tactical training.",
   },
 };
 
@@ -28,7 +30,7 @@ export default function Page() {
       fallback={
         <div className="min-h-screen bg-[#0d1117] flex flex-col items-center justify-center space-y-3">
           <div className="w-8 h-8 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin" />
-          <span className="text-xs font-mono font-bold text-zinc-400">Loading Tactical Arena...</span>
+          <span className="text-xs font-mono font-bold text-zinc-400">Loading ChessZ...</span>
         </div>
       }
     >

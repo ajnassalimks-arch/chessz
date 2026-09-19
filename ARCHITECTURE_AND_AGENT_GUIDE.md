@@ -9,7 +9,7 @@
 **ChessZ** is an open-source, zero-paywall chess training platform built to disrupt traditional commercial chess apps (which limit free users to 3 puzzles/day or charge ₹1,500–₹10,000/year for premium features).
 
 ### Core Differentiators
-1. **100% Free Tactical Arena**: Unlimited curated tactical puzzles across 4 skill tiers (Beginner to Advanced).
+1. **Tactical Training Board**: Curated tactical puzzles across 4 skill tiers (Beginner to Advanced).
 2. **Interactive 5-Puzzle Diagnostic Benchmark (`/diagnose`)**: A starting estimate from 5 trials using move-time telemetry and conviction tracking (*"Sure"*, *"Think so"*, *"Guessing"*). No single trial may move the estimate by more than `MAX_TRIAL_SWING` (120 points), because 5 puzzles is a small sample.
 3. **Weakness Studio (`/weakness`) & Blunder Trainer**: Connects to any player's Lichess account (via OAuth PKCE or public username) to stream and parse their recent games, extract exact blunder positions, and categorize them into actionable pedagogical categories.
 4. **Client-Side Stockfish WASM**: Single-threaded in-browser engine running in a Web Worker with 0ms server latency and zero server compute cost. Auto-reveals real-time evaluation and top 4 continuation moves upon puzzle completion.
@@ -22,7 +22,7 @@
 ```
 c:\ChessZ\chessz-app\
 ├── app/
-│   ├── _client.tsx            # Client component for Tactical Arena
+│   ├── _client.tsx            # Client component for the board
 │   ├── api/
 │   │   ├── auth/lichess/      # Lichess OAuth 2.0 PKCE flow (login, callback, me, logout)
 │   │   ├── cron/keepalive/    # Vercel cron heartbeat for serverless warm-up

@@ -8,7 +8,7 @@ import {
 } from '../lib/puzzles';
 import { BENCHMARK_PUZZLE_POOL } from '../lib/diagnosisEngine';
 
-test('Puzzle Integrity — Tactical Arena & Diagnostic Pool (500 Puzzles)', async (t) => {
+test('Puzzle Integrity — ChessZ Puzzle Pool (500 Puzzles)', async (t) => {
   const allPuzzles: (ChessPuzzle & { source: string })[] = [];
 
   for (const [category, puzzles] of Object.entries(LICHESS_DIAGNOSTIC_CATEGORIES)) {

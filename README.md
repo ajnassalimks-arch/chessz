@@ -43,7 +43,7 @@ ChessZ is organized around a unified four-view navigation hierarchy:
          ┌─────────────────────────┬──────────┴──────────────┬─────────────────────────┐
          ▼                         ▼                         ▼                         ▼
    Train (`/`)            Skill Test (`/diagnose`)   Weakness (`/weakness`)     Study Terms (`/terms`)
-• Tactical Arena          • 5-Puzzle Benchmark       • Unbounded NDJSON Stream  • 21 Historical Studies
+• Interactive Board       • 5-Puzzle Benchmark       • Unbounded NDJSON Stream  • 21 Historical Studies
 • 4-Tier Lobby            • Millisecond Telemetry    • Phase Loss Metrics       • Interactive Board Replay
 • Real Blunder Trainer    • Conviction Tracking      • In-Browser Sweep (WASM)  • Contextual Study Terms
 • Stockfish Auto-Eval     • Cognitive Dossier        • Live Mastery Badging     • Coach Definitions & Tips
