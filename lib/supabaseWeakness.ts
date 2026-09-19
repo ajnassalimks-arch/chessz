@@ -1,7 +1,13 @@
 import { supabase, isSupabaseConfigured } from './supabase';
 import { GameDerivedStats } from './chessMetrics/types';
+import { getLibraryGames, getLibraryMeta, saveLibraryGames } from './gameLibrary';
 
-const LOCAL_STORAGE_KEY_PREFIX = 'chessz_weakness_';
+/**
+ * How many aggregate rows to read back from Supabase. These carry no moves --
+ * the on-device library holds those -- so this only bounds what a player sees
+ * on a device that has never scanned.
+ */
+const SUPABASE_READ_LIMIT = 1000;
 
 async function ensureAuthenticatedSession(): Promise<string | null> {
   if (!isSupabaseConfigured || !supabase) return null;
@@ -32,38 +38,32 @@ export async function saveGameStatsBatch(
     return { savedToSupabase: false, count: 0 };
   }
 
-  // 1. Always checkpoint locally for instant client-side cache load
-  try {
-    const key = `${LOCAL_STORAGE_KEY_PREFIX}${username.toLowerCase()}`;
-    const sanitized = games.map((g) => ({
-      ...g,
-      // Preserve essential move data so in-browser Stockfish engine can replay moves
-      moves: (g.moves || []).map((m) => ({
-        ply: m.ply,
-        moveNumber: m.moveNumber,
-        color: m.color,
-        san: m.san,
-        // fen is the position before the move: required by the blunder trainer's
-        // setup stepper and by Maia Lens after a reload from cache.
-        fen: m.fen,
-        evalBefore: m.evalBefore,
-        evalAfter: m.evalAfter,
-        winPctBefore: m.winPctBefore,
-        winPctAfter: m.winPctAfter,
-        winPctLost: m.winPctLost,
-        judgment: m.judgment,
-        accuracy: m.accuracy,
-        phase: m.phase,
-        pieceCount: m.pieceCount,
-        clockRemaining: m.clockRemaining,
-        timeSpentSeconds: m.timeSpentSeconds,
-      })),
-    }));
-    localStorage.setItem(key, JSON.stringify(sanitized));
-    localStorage.setItem(`${key}_timestamp`, Date.now().toString());
-  } catch (e) {
-    console.warn('LocalStorage quota limit reached, skipping local backup', e);
-  }
+  // 1. Always checkpoint to the on-device library for an instant cache load
+  const sanitized = games.map((g) => ({
+    ...g,
+    // Preserve essential move data so in-browser Stockfish engine can replay moves
+    moves: (g.moves || []).map((m) => ({
+      ply: m.ply,
+      moveNumber: m.moveNumber,
+      color: m.color,
+      san: m.san,
+      // fen is the position before the move: required by the blunder trainer's
+      // setup stepper and by Maia Lens after a reload from cache.
+      fen: m.fen,
+      evalBefore: m.evalBefore,
+      evalAfter: m.evalAfter,
+      winPctBefore: m.winPctBefore,
+      winPctAfter: m.winPctAfter,
+      winPctLost: m.winPctLost,
+      judgment: m.judgment,
+      accuracy: m.accuracy,
+      phase: m.phase,
+      pieceCount: m.pieceCount,
+      clockRemaining: m.clockRemaining,
+      timeSpentSeconds: m.timeSpentSeconds,
+    })),
+  }));
+  await saveLibraryGames(username, sanitized, { lastSyncedAt: Date.now() });
 
   // 2. If Supabase is configured, check if user has an active session
   if (!isSupabaseConfigured || !supabase) {
@@ -223,40 +223,8 @@ interface DbGameRow {
 }
 
 /**
- * Reads the locally checkpointed games for a user. These rows carry the full
- * move list and critical moments; the Supabase tables do not.
- */
-function readLocalGames(username: string): GameDerivedStats[] {
-  try {
-    const key = `${LOCAL_STORAGE_KEY_PREFIX}${username.toLowerCase()}`;
-    const raw = localStorage.getItem(key);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed as GameDerivedStats[];
-      }
-    }
-  } catch {}
-  return [];
-}
-
-/**
- * When this user's games were last written to localStorage, or null if never.
- * Read by useWeaknessScan to decide whether a visit needs to hit Lichess again
- * or can serve the saved library as-is.
- */
-export function getLastSyncedAt(username: string): number | null {
-  try {
-    const key = `${LOCAL_STORAGE_KEY_PREFIX}${username.toLowerCase()}_timestamp`;
-    const raw = localStorage.getItem(key);
-    return raw ? parseInt(raw, 10) || null : null;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Loads cached game stats from Supabase or localStorage
+ * Loads cached game stats from the on-device library, topped up from Supabase
+ * on a device that has never scanned.
  */
 export async function loadCachedGameStats(
   username: string
@@ -265,9 +233,9 @@ export async function loadCachedGameStats(
     return { games: [], fromSupabase: false, lastSyncedAt: null };
   }
 
-  const localGames = readLocalGames(username);
+  const localGames = await getLibraryGames(username);
   const localById = new Map(localGames.map((g) => [g.gameId, g]));
-  const lastSyncedAt = getLastSyncedAt(username);
+  const lastSyncedAt = (await getLibraryMeta(username)).lastSyncedAt;
 
   // 1. Try Supabase first if configured and authenticated
   if (isSupabaseConfigured && supabase) {
@@ -281,7 +249,7 @@ export async function loadCachedGameStats(
           .select('*')
           .eq('user_id', userId)
           .order('played_at', { ascending: false })
-          .limit(100);
+          .limit(SUPABASE_READ_LIMIT);
 
         if (rows && rows.length > 0) {
           const mapped: GameDerivedStats[] = (rows as DbGameRow[]).map((r) => {

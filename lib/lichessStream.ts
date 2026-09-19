@@ -13,6 +13,19 @@ export type OnGameReceivedCallback = (
   progress: StreamProgress
 ) => void;
 
+/**
+ * What the stream saw before filtering, which the backwards walk through a
+ * player's history needs in order to tell two different things apart: Lichess
+ * having no older games at all, and a page that happened to be all variants.
+ * Only the first means the history is exhausted.
+ */
+export interface StreamSummary {
+  /** Every NDJSON line that parsed, standard or not. */
+  rawGames: number;
+  /** Oldest timestamp seen on any of them, or 0 if none. */
+  oldestRawAt: number;
+}
+
 let activeStreamAbortController: AbortController | null = null;
 
 /**
@@ -24,13 +37,21 @@ export async function streamUserGames(
   options: {
     max?: number;
     since?: number;
+    /**
+     * Only games played before this timestamp. This is what makes the
+     * backwards walk through a player's full history resumable: each page asks
+     * for games older than the oldest one already held.
+     */
+    until?: number;
     incremental?: boolean;
     signal?: AbortSignal;
     onGame?: OnGameReceivedCallback;
     onProgress?: (progress: StreamProgress) => void;
+    onStreamSummary?: (summary: StreamSummary) => void;
   } = {}
 ): Promise<GameDerivedStats[]> {
   const max = options.max || 50;
+  const until = typeof options.until === 'number' && options.until > 0 ? options.until : 0;
   const cleanUsername = username.trim();
   const storageKey = `chessz_last_game_at_${cleanUsername.toLowerCase()}`;
 
@@ -72,9 +93,14 @@ export async function streamUserGames(
   if (since > 0) {
     queryParams.set('since', since.toString());
   }
+  if (until > 0) {
+    queryParams.set('until', until.toString());
+  }
 
   const directUrl = `https://lichess.org/api/games/user/${encodeURIComponent(cleanUsername)}?${queryParams.toString()}`;
-  const proxyUrl = `/api/lichess/games/stream?username=${encodeURIComponent(cleanUsername)}&max=${max}${since > 0 ? `&since=${since}` : ''}`;
+  const proxyUrl =
+    `/api/lichess/games/stream?username=${encodeURIComponent(cleanUsername)}&max=${max}` +
+    `${since > 0 ? `&since=${since}` : ''}${until > 0 ? `&until=${until}` : ''}`;
 
   let response: Response | null = null;
 
@@ -160,6 +186,14 @@ export async function streamUserGames(
   const games: GameDerivedStats[] = [];
   let newestGameAt = 0;
   let analyzedCount = 0;
+  let rawGames = 0;
+  let oldestRawAt = 0;
+
+  const noteRaw = (rawGame: LichessRawGame) => {
+    rawGames++;
+    const at = rawGame.createdAt || rawGame.lastMoveAt || 0;
+    if (at > 0 && (oldestRawAt === 0 || at < oldestRawAt)) oldestRawAt = at;
+  };
 
   options.onProgress?.({
     gamesFetched: 0,
@@ -182,6 +216,7 @@ export async function streamUserGames(
 
         try {
           const rawGame: LichessRawGame = JSON.parse(trimmed);
+          noteRaw(rawGame);
 
           // Only process standard games (skip variants like chess960, crazyhouse, etc.)
           if (rawGame.variant && rawGame.variant !== 'standard') {
@@ -220,6 +255,7 @@ export async function streamUserGames(
     if (buffer.trim()) {
       try {
         const rawGame: LichessRawGame = JSON.parse(buffer.trim());
+        noteRaw(rawGame);
         if (!rawGame.variant || rawGame.variant === 'standard') {
           const derived = deriveGameStats(rawGame, cleanUsername);
           if (derived) {
@@ -234,8 +270,10 @@ export async function streamUserGames(
     reader.releaseLock();
   }
 
-  // 4. Update last synced game timestamp in localStorage
-  if (typeof window !== 'undefined' && newestGameAt > 0) {
+  // 4. Update last synced game timestamp in localStorage. Never from a
+  // backwards walk: those pages are older by construction, so recording their
+  // newest game would drag the incremental cursor into the past.
+  if (typeof window !== 'undefined' && newestGameAt > 0 && until === 0) {
     try {
       localStorage.setItem(storageKey, newestGameAt.toString());
     } catch {}
@@ -247,6 +285,8 @@ export async function streamUserGames(
     analyzedCount,
     currentPhase: 'done',
   });
+
+  options.onStreamSummary?.({ rawGames, oldestRawAt });
 
   return games;
 }

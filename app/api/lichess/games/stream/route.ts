@@ -8,8 +8,8 @@ import { NextRequest } from 'next/server';
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const username = searchParams.get('username')?.trim();
-  const max = searchParams.get('max') || '50';
   const since = searchParams.get('since');
+  const until = searchParams.get('until');
 
   if (!username || !/^[a-zA-Z0-9_-]{2,30}$/.test(username)) {
     return new Response(JSON.stringify({ error: 'Valid Lichess username required' }), {
@@ -18,8 +18,11 @@ export async function GET(request: NextRequest) {
     });
   }
 
+  // A page of the backwards walk through a full history, not just the recent
+  // window. Still bounded: the body is piped, so a large page costs no memory
+  // here, but it must finish inside the fetch timeout below.
   const parsedMax = parseInt(searchParams.get('max') || '50', 10);
-  const clampedMax = String(Math.min(Math.max(Number.isFinite(parsedMax) ? parsedMax : 50, 1), 100));
+  const clampedMax = String(Math.min(Math.max(Number.isFinite(parsedMax) ? parsedMax : 50, 1), 300));
 
   const queryParams = new URLSearchParams({
     max: clampedMax,
@@ -35,12 +38,18 @@ export async function GET(request: NextRequest) {
   if (since) {
     queryParams.set('since', since);
   }
+  if (until) {
+    queryParams.set('until', until);
+  }
 
   const lichessUrl = `https://lichess.org/api/games/user/${encodeURIComponent(username)}?${queryParams.toString()}`;
 
   try {
+    // Scales with the page size: 50 games arrive in a few seconds, 300 do not,
+    // and the timeout aborts the body stream, not just the headers.
+    const timeoutMs = Math.min(45000, 15000 + Number(clampedMax) * 100);
     const lichessRes = await fetch(lichessUrl, {
-      signal: AbortSignal.timeout(15000),
+      signal: AbortSignal.timeout(timeoutMs),
       headers: {
         Accept: 'application/x-ndjson',
         'User-Agent': 'ChessZ-App/1.0 (contact: chesszapp@vercel.app)',

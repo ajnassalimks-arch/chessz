@@ -5,7 +5,8 @@ import { deriveGameStats, LichessRawGame } from '../lib/chessMetrics/gameParser'
 import { analyzeUnanalyzedGames } from '../lib/engine/browserStockfish';
 import { momentsToBlunderPuzzles, evalSwingForPlayer } from '../lib/blunderAdapter';
 import { ChessEngine, EngineEvalResult } from '../lib/engine/types';
-import { CriticalMoment } from '../lib/chessMetrics/types';
+import { CriticalMoment, GameDerivedStats } from '../lib/chessMetrics/types';
+import { mergeGames, decideBackfillStep } from '../lib/gameLibrary';
 
 /**
  * These cover the seams rather than the pure functions: parse -> analyse ->
@@ -214,5 +215,61 @@ test('Weakness pipeline seams', async (t) => {
 
     assert.equal(out.length, 1, 'aborting must not drop games from the list');
     assert.equal(out[0].gameId, stats.gameId);
+  });
+
+  await t.test('a re-sync never overwrites a game the local engine already swept', () => {
+    const swept = { gameId: 'a', playedAt: 300, evalSource: 'local' } as GameDerivedStats;
+    const other = { gameId: 'b', playedAt: 100, evalSource: 'lichess' } as GameDerivedStats;
+
+    // Lichess reports evalSource 'none' for games it never analyzed. Taking
+    // that row would silently discard minutes of the player's own CPU time.
+    const fresh = { gameId: 'a', playedAt: 300, evalSource: 'none' } as GameDerivedStats;
+    const merged = mergeGames([swept, other], [fresh]);
+
+    assert.equal(merged.length, 2, 'merge must union, not replace');
+    assert.equal(merged.find((g) => g.gameId === 'a')!.evalSource, 'local');
+
+    // A genuinely analyzed row is still allowed to win.
+    const analyzed = { gameId: 'a', playedAt: 300, evalSource: 'lichess' } as GameDerivedStats;
+    assert.equal(
+      mergeGames([swept], [analyzed]).find((g) => g.gameId === 'a')!.evalSource,
+      'lichess'
+    );
+
+    // Newest first, so the oldest game is always the backwards cursor.
+    const older = { gameId: 'c', playedAt: 50, evalSource: 'none' } as GameDerivedStats;
+    const walked = mergeGames([swept, other], [older]);
+    assert.deepEqual(walked.map((g) => g.gameId), ['a', 'b', 'c']);
+  });
+
+  await t.test('the backwards walk tells an empty page from a page of variants', () => {
+    const cursor = 1_000;
+
+    // Standard games came back: save them and keep walking.
+    assert.deepEqual(
+      decideBackfillStep({ standardGames: 40, rawGames: 40, oldestRawAt: 500, cursor }),
+      { action: 'save' }
+    );
+
+    // Lichess had nothing older at all. This is the only real end of history.
+    assert.deepEqual(
+      decideBackfillStep({ standardGames: 0, rawGames: 0, oldestRawAt: 0, cursor }),
+      { action: 'complete' }
+    );
+
+    // A block of chess960 games: nothing to save, but they are real history.
+    // Stopping here would truncate the library, and retrying the same cursor
+    // would loop on the same page forever -- so step the cursor past them.
+    assert.deepEqual(
+      decideBackfillStep({ standardGames: 0, rawGames: 100, oldestRawAt: 400, cursor }),
+      { action: 'advance', to: 400 }
+    );
+
+    // Rows came back but none older than where we already are: no progress is
+    // possible, so stop rather than loop.
+    assert.deepEqual(
+      decideBackfillStep({ standardGames: 0, rawGames: 100, oldestRawAt: 1_000, cursor }),
+      { action: 'complete' }
+    );
   });
 });

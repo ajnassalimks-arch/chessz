@@ -11,12 +11,18 @@ import {
   Play,
   Clock,
   Cpu,
+  History,
+  Check,
 } from 'lucide-react';
 import { useLichess } from '@/lib/useLichess';
 import { LichessIcon } from '@/components/LichessModal';
 import { ChessZMark } from '@/components/ChessZLogo';
 import { CriticalMoment } from '@/lib/chessMetrics/types';
-import { useWeaknessScan } from '@/lib/useWeaknessScan';
+import {
+  useWeaknessScan,
+  RECENT_WINDOW_GAMES,
+  BACKFILL_PAGE_GAMES,
+} from '@/lib/useWeaknessScan';
 import { isMobileOrLowEndDevice, MOBILE_GAME_BATCH_CAP } from '@/lib/engine/browserStockfish';
 import { TransparentProgressBar } from '@/components/TransparentProgressBar';
 import { MiniBoard } from '@/components/MiniBoard';
@@ -64,10 +70,24 @@ function WeaknessStudioContent() {
     isEngineRunning,
     isEnginePaused,
     engineProgress,
+    historyComplete,
+    isBackfilling,
+    backfillFetched,
     scan,
     runEngine,
     pauseEngine,
+    backfillHistory,
   } = useWeaknessScan({ autoUsername: initialUser || connectedLichessUser?.username });
+
+  /** playedAt of the oldest game held, which is how far back the library goes. */
+  const oldestGameAt = games.length > 0 ? games[games.length - 1].playedAt : 0;
+
+  /**
+   * The page cap for whichever request is in flight. "of up to" rather than
+   * "of": an incremental sync usually returns a handful, and the true total is
+   * not knowable until the stream ends.
+   */
+  const streamPageSize = isBackfilling ? BACKFILL_PAGE_GAMES : RECENT_WINDOW_GAMES;
 
   // Mirror whichever account the scan settled on into the input box
   useEffect(() => {
@@ -258,8 +278,9 @@ function WeaknessStudioContent() {
             <div className="space-y-1">
               <h2 className="text-lg font-black theme-text-primary">Find where you drop points</h2>
               <p className="text-xs theme-text-secondary max-w-md mx-auto">
-                Enter your Lichess username to scan your last 50 games. Every evaluation
-                runs in your browser.
+                Enter your Lichess username to scan your recent games &mdash; then load as
+                far back through your history as you like. Every evaluation runs in your
+                browser.
               </p>
             </div>
             <div className="pt-3 border-t border-[var(--border-subtle)] space-y-2">
@@ -289,11 +310,14 @@ function WeaknessStudioContent() {
             stepDetail={
               streamProgress.currentPhase === 'connecting'
                 ? 'Opening the Lichess game stream...'
-                : `Game ${streamProgress.gamesFetched} of 50`
+                : `Game ${streamProgress.gamesFetched} of up to ${streamPageSize}`
             }
-            progressPercent={Math.min(100, Math.max(5, (streamProgress.gamesFetched / 50) * 100))}
+            progressPercent={Math.min(
+              100,
+              Math.max(5, (streamProgress.gamesFetched / streamPageSize) * 100)
+            )}
             currentCount={streamProgress.gamesFetched}
-            totalCount={50}
+            totalCount={streamPageSize}
             unitLabel="games"
             allowPause={false}
             tabTitlePrefix="ChessZ Scan"
@@ -309,6 +333,51 @@ function WeaknessStudioContent() {
 
         {aggregate && (
           <>
+            {/* How far back the library goes. The scan pulls a recent window so
+                the page is useful in seconds; everything older is reachable
+                here, a page at a time, resuming from a cursor on disk. */}
+            <div className="p-4 rounded-3xl theme-surface border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-2xl bg-[var(--accent-primary)]/15 text-[var(--accent-primary)] border border-[var(--accent-primary)]/30 flex items-center justify-center shrink-0">
+                  {historyComplete ? <Check className="w-5 h-5" /> : <History className="w-5 h-5" />}
+                </div>
+                <div>
+                  <div className="text-xs font-bold theme-text-primary">
+                    {games.length} games in your library
+                    {isBackfilling && backfillFetched > 0 && (
+                      <span className="ml-2 text-[11px] font-mono font-normal text-emerald-600 dark:text-emerald-400">
+                        +{backfillFetched} older
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] theme-text-secondary">
+                    {historyComplete
+                      ? 'Your full Lichess history is here. Nothing older to load.'
+                      : oldestGameAt > 0
+                      ? `Back to ${new Date(oldestGameAt).toLocaleDateString(undefined, {
+                          month: 'short',
+                          year: 'numeric',
+                        })}. Load older games to find mistakes you have forgotten making.`
+                      : 'Load older games to reach further back through your history.'}
+                  </p>
+                </div>
+              </div>
+              {!historyComplete && (
+                <button
+                  onClick={backfillHistory}
+                  disabled={isLoading}
+                  className={`flex items-center justify-center gap-2 px-4 py-2 rounded-2xl text-xs font-bold transition cursor-pointer shrink-0 disabled:opacity-50 disabled:cursor-not-allowed ${
+                    isBackfilling
+                      ? 'bg-rose-500 hover:bg-rose-600 text-white'
+                      : 'theme-surface-subtle hover:theme-surface border'
+                  }`}
+                >
+                  <History className={`w-4 h-4 ${isBackfilling ? 'animate-spin' : ''}`} />
+                  <span>{isBackfilling ? 'Pause' : 'Load older games'}</span>
+                </button>
+              )}
+            </div>
+
             {/* Engine sweep */}
             {unanalyzedCount > 0 && (
               <div className="p-4 rounded-3xl bg-linear-to-r from-amber-500/15 via-rose-500/10 to-transparent border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">

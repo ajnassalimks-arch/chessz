@@ -13,7 +13,7 @@ Everything else in this repo exists to serve that loop.
 Run all three before finishing any change. All must be clean.
 
 ```bash
-npm test            # 52 tests across 7 suites
+npm test            # 54 tests across 7 suites
 npx tsc --noEmit    # must exit 0 with zero errors
 npm run build       # Turbopack production build, 17 routes
 npm run dev         # local dev server on :3000
@@ -31,7 +31,8 @@ npm run dev         # local dev server on :3000
   browser Web Worker from `/public/stockfish/`
 - **Sound**: procedural Web Audio synthesizer, `lib/sounds.ts`, no audio assets
 - **Lichess**: OAuth 2.0 PKCE (`/api/auth/lichess/*`), NDJSON game streaming
-- **Persistence**: `localStorage` first, Supabase when configured
+- **Persistence**: IndexedDB (`lib/gameLibrary.ts`) for the game library,
+  Supabase for cross-device aggregates when configured
 - **Tests**: `node:test` via `tsx`
 
 ---
@@ -105,6 +106,7 @@ chessz-app/
 │   │   ├── browserStockfish.ts     # UCI worker + two-pass batch sweep
 │   │   └── types.ts
 │   ├── blunderAdapter.ts           # critical moment -> trainable puzzle
+│   ├── gameLibrary.ts              # IndexedDB game store + backfill cursors
 │   ├── useWeaknessScan.ts          # THE scan pipeline
 │   ├── diagnosisEngine.ts          # benchmark pool, Elo estimate, patterns
 │   ├── lichessStream.ts            # incremental NDJSON reader
@@ -173,11 +175,23 @@ from replay. Anything that carries a position — critical moments, setup steppe
 A move number is `Math.ceil(ply / 2)`. Plies 1 and 2 are both move 1.
 `floor(ply/2)+1` numbers Black's move as the next move.
 
-### 9. Manual scans never send `since`
+### 9. The library is unbounded; a request is not
+There is no cap on how many games a player can hold. `RECENT_WINDOW_GAMES` is a
+latency budget for the first scan and `BACKFILL_PAGE_GAMES` is one page of the
+backwards walk — neither is a ceiling. The walk's cursor (`oldestGameAt`) lives
+in IndexedDB, so a paused or reloaded backfill resumes rather than restarts.
+
+Two things this must keep straight:
+- A page with rows but no *standard* games is not the end of the history. Only
+  `rawGames === 0` is. See `decideBackfillStep`.
+- A backwards page must never touch the incremental `since` cursor: its games
+  are older by construction, and recording them would drag the cursor backwards.
+
+### 10. Manual scans never send `since`
 In `lib/lichessStream.ts`, only send `since` when `options.incremental === true`.
 Sending it on a full scan makes Lichess return 0 or 1 game.
 
-### 10. Do not invent numbers
+### 11. Do not invent numbers
 Anything shown as a measurement must be derived from data. A statistic with no
 computation behind it does not ship, however plausible it reads.
 

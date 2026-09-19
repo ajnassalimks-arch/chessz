@@ -1,10 +1,18 @@
 'use client';
 
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { streamUserGames, StreamProgress } from './lichessStream';
+import { streamUserGames, StreamProgress, StreamSummary } from './lichessStream';
 import { GameDerivedStats, UserAggregateStats, CriticalMoment } from './chessMetrics/types';
 import { aggregateUserStats } from './chessMetrics/gameParser';
 import { saveGameStatsBatch, loadCachedGameStats } from './supabaseWeakness';
+import {
+  advanceOldestCursor,
+  decideBackfillStep,
+  getLibraryMeta,
+  markHistoryComplete,
+  mergeGames,
+  saveLibraryGames,
+} from './gameLibrary';
 import { analyzeUnanalyzedGames } from './engine/browserStockfish';
 import { EngineProgress } from './engine/types';
 
@@ -20,6 +28,23 @@ import { EngineProgress } from './engine/types';
  */
 /** Below this age, a visit serves the saved library and never touches Lichess. */
 export const SYNC_FRESHNESS_MS = 20 * 60 * 1000;
+
+/**
+ * How many recent games a first scan pulls. This is a latency budget, not a
+ * ceiling: everything older is reachable through backfillHistory(), which
+ * walks backwards a page at a time and survives a reload.
+ */
+export const RECENT_WINDOW_GAMES = 100;
+
+/** Games per page of the backwards walk. */
+export const BACKFILL_PAGE_GAMES = 100;
+
+/**
+ * Pages one backfillHistory() call will walk before returning. The cursor is
+ * on disk, so pressing Continue picks up exactly where this left off -- the
+ * bound exists so a single click cannot hold the connection for an hour.
+ */
+export const BACKFILL_PAGES_PER_RUN = 20;
 
 export interface WeaknessScan {
   activeUsername: string;
@@ -40,9 +65,18 @@ export interface WeaknessScan {
   isEnginePaused: boolean;
   engineProgress: EngineProgress | null;
 
+  /** True once Lichess has no games older than the oldest one held. */
+  historyComplete: boolean;
+  isBackfilling: boolean;
+  /** Games added by the backwards walk since this run started. */
+  backfillFetched: number;
+
   scan: (username: string, forceRefresh?: boolean) => Promise<void>;
   runEngine: () => Promise<void>;
   pauseEngine: () => void;
+  /** Walks further back through the player's history. Call again to resume. */
+  backfillHistory: () => Promise<void>;
+  pauseBackfill: () => void;
 }
 
 export function useWeaknessScan(options: { autoUsername?: string; enabled?: boolean } = {}): WeaknessScan {
@@ -60,8 +94,14 @@ export function useWeaknessScan(options: { autoUsername?: string; enabled?: bool
   const [isEnginePaused, setIsEnginePaused] = useState<boolean>(false);
   const [engineProgress, setEngineProgress] = useState<EngineProgress | null>(null);
 
+  const [historyComplete, setHistoryComplete] = useState<boolean>(false);
+  const [isBackfilling, setIsBackfilling] = useState<boolean>(false);
+  const [backfillFetched, setBackfillFetched] = useState<number>(0);
+
   const engineAbortControllerRef = useRef<AbortController | null>(null);
   const streamAbortControllerRef = useRef<AbortController | null>(null);
+  const backfillAbortControllerRef = useRef<AbortController | null>(null);
+  const isBackfillingRef = useRef<boolean>(false);
   const hasLoadedInitialRef = useRef<boolean>(false);
   // Mirrors activeUsername so scan can compare against it without taking it as a
   // dependency (the callback is intentionally stable).
@@ -89,27 +129,27 @@ export function useWeaknessScan(options: { autoUsername?: string; enabled?: bool
     setActiveUsername(clean);
     setError(null);
 
-    // 1. Local cache first for a 0ms render
-    let cachedGames: GameDerivedStats[] = [];
-    if (!forceRefresh) {
-      const cached = await loadCachedGameStats(clean);
-      if (cached.games.length > 0) {
-        cachedGames = cached.games;
-        setGames(cached.games);
-        setLastSyncedAt(cached.lastSyncedAt);
+    // 1. Local cache first for a 0ms render. Loaded even on a force refresh:
+    // it is the merge base, and a refresh that replaced the library with just
+    // the recent window would throw away every backfilled game.
+    const cached = await loadCachedGameStats(clean);
+    const cachedGames: GameDerivedStats[] = cached.games;
+    if (cachedGames.length > 0) {
+      setGames(cachedGames);
+      setLastSyncedAt(cached.lastSyncedAt);
+      setHistoryComplete((await getLibraryMeta(clean)).historyComplete);
 
-        // The saved library is recent enough to serve as-is. This is the fix
-        // for re-downloading the same 50 games on every visit: previously the
-        // cache only painted the first frame, and a full Lichess stream always
-        // followed it regardless of age.
-        const age = cached.lastSyncedAt ? Date.now() - cached.lastSyncedAt : Infinity;
-        if (age < SYNC_FRESHNESS_MS) {
-          setIsServingCache(true);
-          if (streamAbortControllerRef.current === abortCtrl) {
-            streamAbortControllerRef.current = null;
-          }
-          return;
+      // The saved library is recent enough to serve as-is. This is the fix
+      // for re-downloading the same games on every visit: previously the
+      // cache only painted the first frame, and a full Lichess stream always
+      // followed it regardless of age.
+      const age = cached.lastSyncedAt ? Date.now() - cached.lastSyncedAt : Infinity;
+      if (!forceRefresh && age < SYNC_FRESHNESS_MS) {
+        setIsServingCache(true);
+        if (streamAbortControllerRef.current === abortCtrl) {
+          streamAbortControllerRef.current = null;
         }
+        return;
       }
     }
 
@@ -137,38 +177,41 @@ export function useWeaknessScan(options: { autoUsername?: string; enabled?: bool
         localStorage.setItem('chessz_last_username', canonicalUser);
       } catch {}
 
-      // 3. Stream up to 50 recent rated games
+      // 3. Stream recent rated games. When a library already exists, ask only
+      // for what is newer than its newest game: a revisit is then a handful of
+      // games rather than a re-download of the whole recent window.
+      const meta = await getLibraryMeta(canonicalUser);
+      setHistoryComplete(meta.historyComplete);
+
+      const since =
+        !forceRefresh && cachedGames.length > 0 && meta.newestGameAt
+          ? meta.newestGameAt
+          : undefined;
+
       const streamed = await streamUserGames(canonicalUser, {
-        max: 50,
+        max: RECENT_WINDOW_GAMES,
+        since,
         signal: abortCtrl.signal,
         onProgress: (p) => setStreamProgress(p),
       });
 
       if (streamed.length === 0) {
+        // Nothing new is the normal outcome of an incremental sync, and must
+        // not read as "this account has no games".
         if (cachedGames.length === 0) {
           setError(`No recent standard games found for @${canonicalUser}.`);
+        } else {
+          // saveGameStatsBatch is a no-op on an empty list, so stamp freshness
+          // directly -- otherwise "nothing new" would never refresh the clock
+          // and every visit would hit Lichess again.
+          setLastSyncedAt(Date.now());
+          await saveLibraryGames(canonicalUser, [], { lastSyncedAt: Date.now() });
         }
       } else {
-        // Merge, preserving locally computed engine evals already on disk
-        const cachedMap = new Map(cachedGames.map((g) => [g.gameId, g]));
-        const merged: GameDerivedStats[] = streamed.map((sg) => {
-          const prev = cachedMap.get(sg.gameId);
-          if (prev && prev.evalSource === 'local' && sg.evalSource === 'none') {
-            return prev;
-          }
-          return sg;
-        });
-
-        const streamedIds = new Set(streamed.map((g) => g.gameId));
-        for (const cg of cachedGames) {
-          if (!streamedIds.has(cg.gameId)) merged.push(cg);
-        }
-
-        merged.sort((a, b) => b.playedAt - a.playedAt);
-        const finalGames = merged.slice(0, 50);
-
+        const finalGames = mergeGames(cachedGames, streamed);
         setGames(finalGames);
-        await saveGameStatsBatch(canonicalUser, finalGames);
+        // Only the new rows need writing; the rest are already on disk.
+        await saveGameStatsBatch(canonicalUser, streamed);
         setLastSyncedAt(Date.now());
       }
     } catch (err: unknown) {
@@ -203,6 +246,97 @@ export function useWeaknessScan(options: { autoUsername?: string; enabled?: bool
       streamAbortControllerRef.current?.abort();
     };
   }, [enabled, autoUsername, scan]);
+
+  const pauseBackfill = useCallback(() => {
+    backfillAbortControllerRef.current?.abort();
+    isBackfillingRef.current = false;
+    setIsBackfilling(false);
+  }, []);
+
+  /**
+   * Walks backwards through the player's history, a page at a time, asking
+   * Lichess only for games older than the oldest one already held. The cursor
+   * lives in the on-device library, so a paused, reloaded or crashed walk
+   * resumes from exactly where it stopped rather than starting over.
+   */
+  const backfillHistory = useCallback(async () => {
+    if (isBackfillingRef.current) {
+      pauseBackfill();
+      return;
+    }
+
+    const user = activeUsernameRef.current;
+    if (!user) return;
+
+    isBackfillingRef.current = true;
+    setIsBackfilling(true);
+    setBackfillFetched(0);
+    setError(null);
+
+    const abortCtrl = new AbortController();
+    backfillAbortControllerRef.current = abortCtrl;
+
+    try {
+      for (let page = 0; page < BACKFILL_PAGES_PER_RUN; page++) {
+        if (abortCtrl.signal.aborted) break;
+
+        const meta = await getLibraryMeta(user);
+        if (meta.historyComplete) {
+          setHistoryComplete(true);
+          break;
+        }
+        // Nothing held yet: there is no cursor to walk back from, so a plain
+        // scan has to run first.
+        if (!meta.oldestGameAt) break;
+
+        let summary: StreamSummary = { rawGames: 0, oldestRawAt: 0 };
+        const older = await streamUserGames(user, {
+          max: BACKFILL_PAGE_GAMES,
+          until: meta.oldestGameAt - 1,
+          signal: abortCtrl.signal,
+          onProgress: (p) => setStreamProgress(p),
+          onStreamSummary: (s) => {
+            summary = s;
+          },
+        });
+
+        const step = decideBackfillStep({
+          standardGames: older.length,
+          rawGames: summary.rawGames,
+          oldestRawAt: summary.oldestRawAt,
+          cursor: meta.oldestGameAt,
+        });
+
+        if (step.action === 'complete') {
+          await markHistoryComplete(user);
+          setHistoryComplete(true);
+          break;
+        }
+
+        if (step.action === 'advance') {
+          // A block of variant games: nothing to save, but the cursor still
+          // has to step past them or the walk loops on the same page forever.
+          await advanceOldestCursor(user, step.to);
+          continue;
+        }
+
+        setGames((prev) => mergeGames(prev, older));
+        await saveGameStatsBatch(user, older);
+        setBackfillFetched((n) => n + older.length);
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name !== 'AbortError') {
+        setError(err.message || 'Could not load older games');
+      }
+    } finally {
+      isBackfillingRef.current = false;
+      setIsBackfilling(false);
+      setStreamProgress(null);
+      if (backfillAbortControllerRef.current === abortCtrl) {
+        backfillAbortControllerRef.current = null;
+      }
+    }
+  }, [pauseBackfill]);
 
   // Pause and resume share one path so the controls can't disagree about state.
   const pauseEngine = useCallback(() => {
@@ -276,8 +410,13 @@ export function useWeaknessScan(options: { autoUsername?: string; enabled?: bool
     isEngineRunning,
     isEnginePaused,
     engineProgress,
+    historyComplete,
+    isBackfilling,
+    backfillFetched,
     scan,
     runEngine,
     pauseEngine,
+    backfillHistory,
+    pauseBackfill,
   };
 }

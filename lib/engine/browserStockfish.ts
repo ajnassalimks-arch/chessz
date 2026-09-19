@@ -2,6 +2,7 @@ import { Chess } from 'chess.js';
 import { ChessEngine, EngineEvalResult, EngineProgress } from './types';
 import { GameDerivedStats, MoveAnalysis, CriticalMoment } from '../chessMetrics/types';
 import { evalToWinPct, calculateWinPctLost, getJudgment, calculateAccuracy } from '../chessMetrics/math';
+import { saveLibraryGames } from '../gameLibrary';
 
 export class BrowserStockfishEngine implements ChessEngine {
   private worker: Worker | null = null;
@@ -286,19 +287,9 @@ export async function analyzeUnanalyzedGames(
     const gameIdx = unanalyzedIndices[u];
     const game = updatedGames[gameIdx];
 
-    // Check localStorage checkpoint
-    const checkpointKey = `chessz_engine_ckpt_${game.gameId}`;
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem(checkpointKey);
-      if (saved) {
-        try {
-          const cachedGame = JSON.parse(saved);
-          updatedGames[gameIdx] = cachedGame;
-          options.onGameAnalyzed?.([...updatedGames]);
-          continue;
-        } catch {}
-      }
-    }
+    // Resuming an interrupted sweep needs no separate checkpoint store: a
+    // finished game is written straight into the library below, and comes back
+    // with evalSource 'local', so it is never in unanalyzedIndices again.
 
     // Replay moves to extract the FEN before and after each ply.
     // fenBefore is the position the player faced, and is what critical moments
@@ -524,12 +515,9 @@ export async function analyzeUnanalyzedGames(
 
     updatedGames[gameIdx] = enrichedGame;
 
-    // Checkpoint this game immediately to localStorage
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem(checkpointKey, JSON.stringify(enrichedGame));
-      } catch {}
-    }
+    // Checkpoint immediately: a sweep over a full history can run for a long
+    // time, and a reload must not discard the games already evaluated.
+    await saveLibraryGames(targetUsername, [enrichedGame]);
 
     // Publish the partial result so the dashboard reflects each finished game
     // rather than staying frozen until the whole batch completes.
