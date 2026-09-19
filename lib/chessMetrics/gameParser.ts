@@ -582,7 +582,10 @@ export function aggregateUserStats(
     rescuesCount,
     missedPunishmentsTotal,
     openings: openings.sort((a, b) => b.totalGames - a.totalGames),
-    criticalMoments: allCriticalMoments.slice(0, 50),
+    // Not truncated. This is the data layer: how many mistakes a player is
+    // shown is a presentation decision, and a cap here silently became the
+    // real ceiling once the game library stopped being capped at 50.
+    criticalMoments: allCriticalMoments,
     timePressureBlundersCount,
   };
 }

@@ -27,6 +27,9 @@ import { isMobileOrLowEndDevice, MOBILE_GAME_BATCH_CAP } from '@/lib/engine/brow
 import { TransparentProgressBar } from '@/components/TransparentProgressBar';
 import { MiniBoard } from '@/components/MiniBoard';
 
+/** Positions drawn per page of the queue. Each row renders a board. */
+const MOMENTS_PAGE = 30;
+
 /**
  * Clocks parsed from PGN can carry tenths (e.g. [%clk 0:02:45.3] -> 165.3),
  * so the seconds part must be rounded before display.
@@ -88,6 +91,12 @@ function WeaknessStudioContent() {
    * not knowable until the stream ends.
    */
   const streamPageSize = isBackfilling ? BACKFILL_PAGE_GAMES : RECENT_WINDOW_GAMES;
+
+  /**
+   * How many positions are rendered. Each row draws a board, so this is a
+   * render budget and nothing else -- the heading reports the true total.
+   */
+  const [visibleMoments, setVisibleMoments] = useState<number>(MOMENTS_PAGE);
 
   // Mirror whichever account the scan settled on into the input box
   useEffect(() => {
@@ -467,7 +476,7 @@ function WeaknessStudioContent() {
                   <span className="text-[11px] font-mono theme-text-muted">worst first</span>
                 </div>
 
-                {moments.slice(0, 30).map((m, idx) => (
+                {moments.slice(0, visibleMoments).map((m, idx) => (
                   <div
                     key={`${m.gameId}_${m.ply}`}
                     className="p-3.5 rounded-2xl theme-surface border flex flex-col sm:flex-row sm:items-center gap-3 hover:border-[var(--border-focus)] transition"
@@ -544,6 +553,20 @@ function WeaknessStudioContent() {
                     </div>
                   </div>
                 ))}
+
+                {visibleMoments < moments.length && (
+                  <button
+                    type="button"
+                    onClick={() => setVisibleMoments((n) => n + MOMENTS_PAGE)}
+                    className="w-full p-3 rounded-2xl theme-surface-subtle hover:theme-surface border text-xs font-bold theme-text-secondary hover:theme-text-primary transition cursor-pointer"
+                  >
+                    Show {Math.min(MOMENTS_PAGE, moments.length - visibleMoments)} more
+                    <span className="theme-text-muted font-mono font-normal">
+                      {' '}
+                      ({visibleMoments} of {moments.length})
+                    </span>
+                  </button>
+                )}
               </div>
             ) : (
               unanalyzedCount === 0 && (
